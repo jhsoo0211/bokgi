@@ -9,6 +9,31 @@ const results = [];
 const check = (name, cond, extra = '') => { results.push(`${cond ? 'PASS' : 'FAIL'}  ${name}${extra ? '  — ' + extra : ''}`); };
 const S = page => page.evaluate(k => JSON.parse(localStorage.getItem(k) || '{}'), KEY);
 const top = page => page.locator('.top').first().innerText();
+/* 입장 카드 세 칸: 1줄 학습, 2줄 오늘 남은 카드, 오른쪽 스트릭 */
+const entry = page => page.evaluate(() => {
+  const e = document.querySelector('.ds-entry'); if (!e) return null;
+  const t = s => (e.querySelector(s) || {}).innerText || '';
+  return { lead: t('.ds-entry-lead'), sub: t('.ds-entry-sub'), streak: t('.ds-streak'), all: e.innerText };
+});
+const fmtEntry = e => (e ? `${e.lead} / ${e.sub} / ${e.streak}` : 'no .ds-entry');
+/* 연습 달력이 보여 주는 달의 기대값을 State에서 계산 (날짜가 바뀌어도 맞게) */
+const calExpect = (page, shift) => page.evaluate(sh => {
+  const S = State.get(), today = State.dayKey(), now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth() + sh, 1), ym = State.dayKey(first).slice(0, 7);
+  const practiced = [...new Set(S.judgments.map(j => State.dayKey(j.created_at)))].filter(k => k.startsWith(ym));
+  const due = Object.entries(S.review).filter(([id]) => IFSAVE.CONCEPTS[id]).map(([, r]) => { const k = State.dayKey(r.due_at); return k < today ? today : k; }).filter(k => k.startsWith(ym));
+  return { title: `${first.getFullYear()}년 ${first.getMonth() + 1}월`, month: first.getMonth() + 1, practicedDays: practiced.map(k => +k.slice(8)).sort((a, b) => a - b), dueDays: [...new Set(due.map(k => +k.slice(8)))].sort((a, b) => a - b), dueCount: due.length, todayN: +today.slice(8), isCurrent: sh === 0 };
+}, shift);
+const calShown = page => page.evaluate(() => ({
+  title: document.querySelector('#cal-title').innerText,
+  cap: document.querySelector('.cal-cap').innerText,
+  done: [...document.querySelectorAll('.cal-day--done .cal-n')].map(e => +e.innerText),
+  due: [...document.querySelectorAll('.cal-day--due .cal-n')].map(e => +e.innerText),
+  today: [...document.querySelectorAll('.cal-day--today .cal-n')].map(e => +e.innerText),
+  todayDone: document.querySelectorAll('.cal-day--today.cal-day--done').length,
+  classes: [...new Set([...document.querySelectorAll('.cal td')].flatMap(td => [...td.classList]))],
+  prevDisabled: document.querySelector('#cal-prev').disabled, nextDisabled: document.querySelector('#cal-next').disabled
+}));
 
 function watch(page, errors) {
   page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`console.${m.type()}: ${m.text()}`); });
@@ -56,7 +81,13 @@ async function dragCard(page, dx) {
   check('A8 nav = 오늘/일지/개념', (await page.locator('#nav button').allInnerTexts()).join('/') === '오늘/일지/개념');
 
   // 카드 화면
-  check('A9 header 오늘 0/3 · 스트릭 0일', /오늘 0\/3 · 스트릭 0일/.test(await top(page)), await top(page));
+  check('A9 header 오늘 0/3 (스트릭은 입장 카드로 옮김)', /^오늘 0\/3/.test(await top(page)) && !(await top(page)).includes('스트릭'), await top(page));
+  let en = await entry(page);
+  check('E1 entry strip: learning line first, then cards, streak right', en && en.lead === '개념 이해 0/4 · 복습 예정 0개' && en.sub === '오늘 남은 카드 3장' && en.streak === '스트릭 0일' && en.all.startsWith('개념 이해'), fmtEntry(en));
+  check('E2 entry strip sits above the card stack, not a button', await page.evaluate(() => { const e = document.querySelector('.ds-entry'), s = document.querySelector('#stage'); return !!(e.compareDocumentPosition(s) & Node.DOCUMENT_POSITION_FOLLOWING) && !e.querySelector('button, a') && e.closest('button') === null; }));
+  const lpLeak = await page.evaluate(() => { const t = document.body.innerText; return Object.values(IFSAVE.CONCEPTS).map(c => c.title).filter(x => t.includes(x)); });
+  check('E3 no learning point / concept title on the card screen (no outcome hint)', lpLeak.length === 0, JSON.stringify(lpLeak));
+  check('H1 no .ds-hl highlighter before reveal', (await page.locator('.ds-hl').count()) === 0);
   check('A10 default panel = 숫자', (await page.locator('#stage .sc:last-child .panel-tabs button[aria-pressed="true"]').innerText()) === '숫자');
   check('A11 숫자 panel has no 맥락/기준금리', !(await page.locator('#stage .sc:last-child .panel').innerText()).includes('기준금리'));
   check('A12 buttons disabled at start', (await page.locator('#btnL').isDisabled()) && (await page.locator('#btnR').isDisabled()));
@@ -103,6 +134,7 @@ async function dragCard(page, dx) {
   await page.click('#risk .ds-chip >> nth=0');
   await page.click('#conf button:has-text("3")');
   check('A29 evidence + confidence → enabled', (await page.locator('#btnR').isEnabled()) && (await page.locator('#btnL').isEnabled()));
+  check('H1b still no .ds-hl with the gate filled (pre-judgment)', (await page.locator('.ds-hl').count()) === 0);
   await shotFull(page, `${OUT}/02-gate.png`);
 
   // → 버튼으로 판단, 2.5초 뒤 자동 공개
@@ -118,7 +150,8 @@ async function dragCard(page, dx) {
   const name = await page.locator('.reveal .name').innerText();
   check('A34 company name appears in reveal', name === '어도비 (ADBE)', name);
   await page.waitForSelector('#explain .ds-bubble', { timeout: 3000 });
-  check('A34b AI explain uses − sign like the numbers', (await page.locator('#explain').innerText()).includes('시장 대비 −2.3%p'), (await page.locator('#explain').innerText()).split('\n')[1]);
+  await page.waitForSelector('#explain .ex-line--read');
+  check('A34b AI explain uses − sign like the numbers', (await page.locator('#explain').innerText()).includes('시장 대비 −2.3%p'), (await page.locator('#explain .ex-line--read .ex-s').innerText()));
   const nums = await page.locator('.ds-nums b').allInnerTexts();
   check('A35 numbers have sign + shape', nums[0] === '▲+4.8%' && nums[1] === '▲+7.1%' && nums[2] === '▼−2.3%p', JSON.stringify(nums));
   check('A36 colored classes in reveal', (await page.locator('.ds-nums b.ds-up').count()) === 2 && (await page.locator('.ds-nums b.ds-down').count()) === 1);
@@ -130,7 +163,53 @@ async function dragCard(page, dx) {
   st = await S(page);
   check('A40 judgment stored with recognized/result', st.judgments.length === 1 && st.judgments[0].recognized === true && st.judgments[0].result.state === 'behind' && st.judgments[0].result.hit === false && st.judgments[0].result.company === '어도비');
   check('A41 judge log has recognized + gesture', st.events.some(e => e.event === 'judge' && e.payload.recognized === true && e.payload.gesture.via === 'button'));
+
+  // 해설 세 줄: 머리글·라벨·면책, 개념 줄이 마지막이고 가장 진함
+  await page.waitForSelector('#explain .ex-line');
+  const ex = await page.evaluate(() => {
+    const lines = [...document.querySelectorAll('#explain .ex-line')];
+    const fw = s => +getComputedStyle(s).fontWeight, fs = s => parseFloat(getComputedStyle(s).fontSize);
+    return {
+      heads: lines.map(l => l.querySelector('.ex-h').innerText),
+      labels: lines.map(l => l.querySelector('.ex-s .ds-label').innerText),
+      sentences: lines.map(l => l.querySelector('.ex-s').innerText),
+      warnIn: lines.map(l => !!l.querySelector('.warn')),
+      lastIsConcept: lines[lines.length - 1].classList.contains('ex-line--concept') && !lines[lines.length - 1].nextElementSibling,
+      conceptHl: (lines[2] && lines[2].querySelector('.ds-hl') || {}).innerText || '',
+      stronger: lines.length === 3 && fw(lines[2].querySelector('.ex-s')) > fw(lines[0].querySelector('.ex-s')) && fs(lines[2].querySelector('.ex-s')) >= fs(lines[0].querySelector('.ex-s'))
+    };
+  });
+  check('X1 explainer = three labelled lines (잘 읽은 것 · 바꿀 것 · 개념 연결)', ex.heads.join('|') === '이번에 잘 읽은 것|다음에 바꿀 것|개념 연결' && ex.labels.join('|') === '📄 출처|🔍 추론|📄 출처', `${ex.heads.join('|')} / ${ex.labels.join('|')}`);
+  check('X2 disclaimer sits next to the 🔍 추론 line only', ex.warnIn.join(',') === 'false,true,false');
+  check('X3 concept line last, strongest, concept name highlighted', ex.lastIsConcept && ex.stronger && ex.conceptHl === '절대수익과 시장 대비', `hl=${ex.conceptHl} stronger=${ex.stronger}`);
+  check('X4 each line is one sentence', ex.sentences.every(s => (s.replace(/^\S+ \S+ /, '').match(/[.?!](\s|$)/g) || []).length === 1), ex.sentences.join(' | '));
+  const guard = await page.evaluate(() => {
+    const nums = s => s.match(/\d+(?:\.\d+)?/g) || [];
+    const shown = new Set(nums(document.querySelector('.ds-nums').innerText + ' ' + document.querySelector('.mine').innerText));
+    return nums(document.querySelector('#explain').innerText).filter(n => !shown.has(n));
+  });
+  check('X5 number guard: explainer numbers are only numbers shown on the reveal screen', guard.length === 0, JSON.stringify(guard));
+  const hl = await page.evaluate(() => [...document.querySelectorAll('.ds-hl')].map(e => `${e.closest('#after-row') ? 'after' : e.closest('.ex-line--concept') ? 'explain' : e.closest('.concept h5') ? 'concept' : 'OTHER'}:${e.innerText}`));
+  check('H2 .ds-hl after reveal only on 사후 value · explainer concept · concept title', hl.length === 3 && hl.every(x => !x.startsWith('OTHER') && x.endsWith(':절대수익과 시장 대비')), JSON.stringify(hl));
+  // ○△✕ 자기 평가 (난이도 2 카드): 사후에 중요했던 것 바로 아래
+  const sc = await page.evaluate(() => {
+    const box = document.querySelector('#selfcheck');
+    return box && { under: document.querySelector('#after-row').nextElementSibling === box, q: box.querySelector('.selfcheck-q').innerText,
+      btns: [...box.querySelectorAll('.ds-selfcheck button')].map(b => b.innerText), pressed: box.querySelectorAll('[aria-pressed="true"]').length };
+  });
+  check('S1 self-check under 사후에 중요했던 것, concept wording, ○△✕, nothing preselected', !!sc && sc.under && sc.q === '내 근거는 이 개념과 맞았나요?' && sc.btns.join('|') === '○ 맞았다|△ 일부|✕ 달랐다' && sc.pressed === 0, JSON.stringify(sc));
   await shotFull(page, `${OUT}/03-reveal.png`);
+  await page.click('.ds-selfcheck button[data-v="o"]');
+  await page.click('.ds-selfcheck button[data-v="tri"]');
+  st = await S(page);
+  const scEv = st.events.filter(e => e.event === 'self_check');
+  check('S2 self-check stores value (change allowed) + logs self_check', st.judgments[0].self_check === 'tri' && scEv.length === 2 && scEv[1].payload.value === 'tri' && scEv[1].payload.concept === 'abs-vs-relative' && scEv[1].payload.judgment_id === st.judgments[0].id, JSON.stringify(scEv.map(e => e.payload.value)));
+  check('S3 selected = red pen ring on one button, feedback line', (await page.locator('.ds-selfcheck button[aria-pressed="true"]').allInnerTexts()).join() === '△ 일부' && (await page.locator('.ds-selfcheck button[aria-pressed="true"]').evaluate(b => getComputedStyle(b, '::after').borderTopColor)) === 'rgb(215, 38, 61)' && (await page.locator('.selfcheck-fb').innerText()).startsWith('기록했어요'));
+  check('S4 self-check is not scored anywhere on screen', !/점수|\d+\s*점|%/.test(await page.locator('#selfcheck').innerText()));
+  await page.evaluate(() => { const r = document.querySelector('#after-row'); window.scrollTo(0, r.getBoundingClientRect().top + window.scrollY - 12); });
+  await page.waitForTimeout(50);
+  await page.screenshot({ path: `${OUT}/07-selfcheck.png` });
+  await page.evaluate(() => window.scrollTo(0, 0));
 
   // 신고 시트
   await page.click('#flag');
@@ -156,7 +235,8 @@ async function dragCard(page, dx) {
   // 카드 2: 키보드 ← → 바로 공개
   await page.click('#next');
   await page.waitForSelector('#stage .sc');
-  check('A48 header 오늘 1/3 · 스트릭 1일', /오늘 1\/3 · 스트릭 1일/.test(await top(page)), await top(page));
+  en = await entry(page);
+  check('A48 header 오늘 1/3 + strip 오늘 남은 카드 2장 · 스트릭 1일', /^오늘 1\/3/.test(await top(page)) && en.sub === '오늘 남은 카드 2장' && en.streak === '스트릭 1일' && en.lead === '개념 이해 0/4 · 복습 예정 0개', `${await top(page)} | ${fmtEntry(en)}`);
   await page.click('#ev .ds-chip >> nth=2');
   await page.click('#conf button:has-text("4")');
   await page.keyboard.press('ArrowLeft');
@@ -168,6 +248,10 @@ async function dragCard(page, dx) {
   st = await S(page);
   check('A50 keyboard judgment = underperform, hit', st.judgments[1].direction === 'underperform' && st.judgments[1].result.hit === true && st.judgments[1].gesture.via === 'button');
   check('A51 verdict hit wording', (await page.locator('.verdict').innerText()).includes('판단한 방향과 같아요'));
+  await page.waitForSelector('#explain .ex-line');
+  check('X6 explainer hit + no-risk variants (방향 같음 / 위험 요인 권유)', (await page.locator('#explain .ex-line--read').innerText()).includes('고른 방향과 같았어요') && (await page.locator('#explain .ex-line--change').innerText()).includes('위험 요인도 하나 골라'), (await page.locator('#explain').innerText()).replace(/\s+/g, ' '));
+  await page.click('.ds-selfcheck button[data-v="x"]');
+  check('S5 second card self-check = x', (await S(page)).judgments[1].self_check === 'x');
   const wrong2 = await page.evaluate(() => 1 - IFSAVE.CONCEPTS['debt-and-cycle'].quiz.answer);
   await page.click(`.concept .opt[data-i="${wrong2}"]`);
   st = await S(page);
@@ -196,13 +280,16 @@ async function dragCard(page, dx) {
   await page.click('#toast #now');
   await page.waitForSelector('.reveal .name');
   check('A59 third reveal = 코카콜라', (await page.locator('.reveal .name').innerText()).startsWith('코카콜라'));
+  check('S6 difficulty-1 card asks no self-check (docs/06 §9 난이도 2부터)', (await page.evaluate(() => IFSAVE.CASES.find(c => c.id === 'c003').difficulty)) === 1 && (await page.locator('.ds-selfcheck').count()) === 0 && (await page.locator('.ds-hl').count()) >= 2);
   check('A60 next label = 계속', (await page.locator('#next').innerText()).startsWith('계속'));
   await page.click('#next');
   await page.waitForSelector('.done-title');
   check('A61 done screen 오늘은 여기까지', (await page.locator('.done-title').innerText()) === '오늘은 여기까지');
   check('A62 concept summary listed', (await page.locator('.csum li').count()) >= 3);
   check('A63 deck exhausted message, no 한 장 더', (await page.locator('.exhausted').innerText()).includes('준비된 카드를 모두 봤어요') && (await page.locator('#more').count()) === 0);
-  check('A64 header 오늘 3/3 · 스트릭 1일', /오늘 3\/3 · 스트릭 1일/.test(await top(page)), await top(page));
+  en = await entry(page);
+  check('A64 header 오늘 3/3 + done strip 오늘 끝 (deck empty) · 스트릭 1일', /^오늘 3\/3/.test(await top(page)) && en.sub === '오늘 끝' && en.streak === '스트릭 1일', `${await top(page)} | ${fmtEntry(en)}`);
+  check('H3 no .ds-hl on the done screen', (await page.locator('.ds-hl').count()) === 0);
   await shotFull(page, `${SCRATCH}/x-done.png`);
 
   // 일지
@@ -216,6 +303,21 @@ async function dragCard(page, dx) {
   check('A69 stats collapsed by default', !(await page.locator('details.stats').evaluate(d => d.open)));
   check('A70 export/reset buttons in journal', (await page.locator('#export').count()) === 1 && (await page.locator('#reset').count()) === 1);
   check('A71 no colored result classes in journal', (await page.locator('.ds-up, .ds-down').count()) === 0);
+  const marks = await page.evaluate(() => [...document.querySelectorAll('.jrow')].map(r => { const m = r.querySelector('.jmark'); return m ? `${m.innerText}|${m.getAttribute('role')}|${m.getAttribute('aria-label')}` : '-'; }));
+  check('S7 journal rows show ○△✕ mark with aria-label 개념 확인 (none for unasked card)', marks.join(' / ') === '- / ✕|img|개념 확인: 달랐다 / △|img|개념 확인: 일부', marks.join(' / '));
+  check('S8 journal has no self-check tally/score', !/[○△✕]\s*\d/.test(await page.locator('.screen').innerText()));
+  check('H4 no .ds-hl in the journal', (await page.locator('.ds-hl').count()) === 0);
+  // 연습 달력
+  let ce = await calExpect(page, 0), cs = await calShown(page);
+  check('CAL1 calendar at top of 일지: month title + 월~일 headers', cs.title === ce.title && (await page.locator('.cal-grid th').allInnerTexts()).join('') === '월화수목금토일' && (await page.evaluate(() => document.querySelector('.top').nextElementSibling.id)) === 'cal', `${cs.title}`);
+  check('CAL2 today = pen ring (one cell) with a done dot after judging today', cs.today.join() === String(ce.todayN) && cs.todayDone === 1 && cs.done.join() === ce.practicedDays.join(), JSON.stringify({ today: cs.today, done: cs.done }));
+  check('CAL3 scheduled reviews = outlined ring on their (future) days', cs.due.join() === ce.dueDays.join() && cs.due.every(d => d >= ce.todayN), `shown ${cs.due} expected ${ce.dueDays}`);
+  check('CAL4 caption 이달 연습 n일 · 복습 n개', cs.cap === `이달 연습 ${ce.practicedDays.length}일 · 복습 ${ce.dueCount}개`, cs.cap);
+  const ringColor = await page.locator('.cal-day--today .cal-n').evaluate(n => getComputedStyle(n, '::after').borderTopColor);
+  const dotColor = await page.locator('.cal-day--done .cal-mk').first().evaluate(n => getComputedStyle(n).backgroundColor);
+  check('CAL5 never coloured by result: only practice/due/today/future classes, ink dot, pen ring', cs.classes.every(c => ['cal-day', 'cal-day--done', 'cal-day--due', 'cal-day--today', 'cal-day--future'].includes(c)) && (await page.locator('.cal .ds-up, .cal .ds-down, .cal .jstate').count()) === 0 && dotColor === 'rgb(28, 27, 26)' && ringColor === 'rgb(215, 38, 61)', JSON.stringify({ classes: cs.classes, dotColor, ringColor }));
+  check('CAL6 ‹ disabled with no earlier practice; › only if reviews fall in a later month', cs.prevDisabled === true && cs.nextDisabled === !(await page.evaluate(() => Object.values(State.get().review).some(r => State.dayKey(r.due_at).slice(0, 7) > State.dayKey().slice(0, 7)))));
+  await page.screenshot({ path: `${OUT}/06-calendar.png` });
   await shotFull(page, `${OUT}/04-journal.png`);
 
   // 개념
@@ -225,8 +327,10 @@ async function dragCard(page, dx) {
   check('A72 concepts list 4 items', crow.length === 4);
   check('A73 concept states + due', crow[0].includes('학습 중') && crow[0].includes('복습 예정: 내일') && crow[2].includes('복습 필요') && crow[1].includes('신규') && crow[1].includes('복습 예정 없음'), crow.map(c => c.replace(/\s+/g, ' ')).join(' / '));
   await shotFull(page, `${OUT}/05-concepts.png`);
+  const hlList = await page.locator('.ds-hl').count();
   await page.click('.crow[data-c="growth-vs-valuation"]');
   await page.waitForSelector('.concept .opt');
+  check('H5 no .ds-hl on the concept tab (list + detail)', hlList === 0 && (await page.locator('.ds-hl').count()) === 0);
   const ans3 = await page.evaluate(() => IFSAVE.CONCEPTS['growth-vs-valuation'].quiz.answer);
   await page.click(`.concept .opt[data-i="${ans3}"]`);
   st = await S(page);
@@ -242,6 +346,8 @@ async function dragCard(page, dx) {
   await page.reload();
   await page.waitForSelector('.top');
   check('A76 due review shown after cards (복습 1/2)', /복습 1\/2/.test(await top(page)), await top(page));
+  en = await entry(page);
+  check('E4 review screen strip: 개념 이해 counts 이해 concepts · 복습 예정 = today\'s review quizzes', en && en.lead === '개념 이해 1/4 · 복습 예정 2개' && en.sub === '오늘 끝', fmtEntry(en));
   const rid1 = await page.evaluate(() => State.dueReviews()[0]);
   const rans1 = await page.evaluate(id => IFSAVE.CONCEPTS[id].quiz.answer, rid1);
   await page.click(`.concept .opt[data-i="${rans1}"]`);
@@ -250,6 +356,8 @@ async function dragCard(page, dx) {
   await page.click('#next');
   await page.waitForSelector('.top');
   check('A78 second review (복습 2/2)', /복습 2\/2/.test(await top(page)), await top(page));
+  en = await entry(page);
+  check('E5 strip 복습 예정 counts down (1개)', en && en.lead.endsWith('· 복습 예정 1개'), fmtEntry(en));
   const rid2 = await page.evaluate(() => State.dueReviews()[0]);
   await page.click('.concept .opt >> nth=0');
   await page.click('#next');
@@ -291,8 +399,9 @@ async function dragCard(page, dx) {
   }, KEY);
   await p2.reload();
   await p2.waitForSelector('.top');
-  check('B2 streak counts yesterday+day before, not 4 days ago (2일)', /스트릭 2일/.test(await top(p2)), await top(p2));
-  check('B3 deck exhausted with 0 today → 준비된 카드를 모두 봤어요', (await p2.locator('.done-title').innerText()) === '준비된 카드를 모두 봤어요');
+  let en2 = await entry(p2);
+  check('B2 streak counts yesterday+day before, not 4 days ago (2일, in the strip)', en2 && en2.streak === '스트릭 2일' && !(await top(p2)).includes('스트릭'), fmtEntry(en2));
+  check('B3 deck exhausted with 0 today → 준비된 카드를 모두 봤어요 + strip 남은 카드 없음', (await p2.locator('.done-title').innerText()) === '준비된 카드를 모두 봤어요' && en2.sub === '남은 카드 없음', fmtEntry(en2));
 
   // 통계: 판단 24장(비슷 4장 포함) 주입 → 잠금 해제
   await p2.evaluate(k => {
@@ -311,15 +420,32 @@ async function dragCard(page, dx) {
   const dates = await p2.locator('.jrow-date').allInnerTexts();
   const exp = await p2.evaluate(() => State.get().judgments.slice().sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)).map(j => { const d = new Date(j.created_at); return `${d.getMonth() + 1}월 ${d.getDate()}일`; }));
   check('B10 journal newest first by created_at', dates.join(',') === exp.join(','), dates.slice(0, 4).join(', ') + ' …');
+  // 연습 달력: 이번 달 → ‹ 이전 달 → › 이번 달 (판단이 30일 전까지 있음)
+  let ce2 = await calExpect(p2, 0), cs2 = await calShown(p2);
+  check('CAL7 current month: practice dots = days with judgments, caption 이달', cs2.done.join() === ce2.practicedDays.join() && cs2.cap === `이달 연습 ${ce2.practicedDays.length}일 · 복습 0개` && cs2.todayDone === 0 && cs2.today.length === 1, `${cs2.cap} dots=${cs2.done}`);
+  const minMonth = await p2.evaluate(() => State.get().judgments.map(j => State.dayKey(j.created_at).slice(0, 7)).sort()[0] < State.dayKey().slice(0, 7));
+  if (minMonth) {
+    await p2.click('#cal-prev');
+    const pe = await calExpect(p2, -1), ps = await calShown(p2);
+    check('CAL8 ‹ shows previous month: title, dots, caption "{m}월 연습", no today ring', ps.title === pe.title && ps.done.join() === pe.practicedDays.join() && ps.cap === `${pe.month}월 연습 ${pe.practicedDays.length}일 · 복습 0개` && ps.today.length === 0 && ps.nextDisabled === false, `${ps.title} ${ps.cap}`);
+    check('CAL9 month change logged (calendar_month) and focus kept on the nav', (await S(p2)).events.some(e => e.event === 'calendar_month' && e.payload.shift === -1) && (await p2.evaluate(() => document.activeElement && ['cal-prev', 'cal-title'].includes(document.activeElement.id))));
+    await p2.click('#cal-next');
+    const back = await calShown(p2);
+    check('CAL10 › returns to this month; › disabled with no future reviews', back.title === ce2.title && back.cap.startsWith('이달 연습') && back.nextDisabled === true, `${back.title} ${back.cap}`);
+  } else check('CAL8-10 month navigation (skipped: all injected judgments fall in this month today)', true);
   const sum = await p2.locator('details.stats summary').innerText();
   check('B4 stats unlocked at ≥20', sum === '통계 (지금 24장)', sum);
   await p2.click('details.stats summary');
   await p2.waitForFunction(() => document.querySelector('details.stats').open);
   await p2.waitForTimeout(100);   // toggle 이벤트는 비동기로 온다
   const statsText = await p2.locator('.stats-body').innerText();
-  check('B5 per-evidence counts shown', statsText.includes('근거별 횟수') && (await p2.locator('.stats-body .ds-kv').count()) >= 4);
-  const noPct = await p2.evaluate(() => { const c = document.querySelector('.stats-body').cloneNode(true); c.querySelectorAll('.ds-kv span').forEach(s => s.remove()); return !/\d\s*%/.test(c.innerText); });
-  check('B6 stats show no percentage (text-only calibration)', noPct);
+  const ins = await p2.locator('.stats-body .ds-insight p').allInnerTexts();
+  check('B5 insight cards (1–3, one sentence each, counts only) replace raw stat rows', ins.length === 3 && (await p2.locator('.stats-body .ds-kv').count()) === 0
+    && ins[0] === '확신도 5를 준 판단 21번 중 시장보다 앞선 것은 10번이었어요.'
+    && ins[1] === "'매출'을 근거로 한 판단 7번 중 5번이 시장보다 뒤졌어요."
+    && ins[2] === '아는 회사 판단 5번과 모르는 회사 판단 19번의 앞섬 횟수는 2번·9번이었어요.', '\n      ' + ins.join('\n      '));
+  check('B6 no "%" anywhere in insight cards or the stats body', ins.length > 0 && !ins.join('').includes('%') && !statsText.includes('%'));
+  check('B6b insight cards: no big numbers (same size as body text, no bold counts)', await p2.evaluate(() => [...document.querySelectorAll('.ds-insight p')].every(p => parseFloat(getComputedStyle(p).fontSize) <= 14 && !p.querySelector('b, strong'))));
   check('B7 calibration note (all conf 5 → over)', statsText.includes('확신이 근거보다 앞서는 편이에요'), statsText.split('\n').find(l => l.includes('확신')) || '');
   st = await S(p2);
   check('B8 stats_toggle logged', st.events.some(e => e.event === 'stats_toggle' && e.payload.open === true && e.payload.unlocked === true), JSON.stringify(st.events.map(e => e.event + (e.payload && e.payload.open !== undefined ? ':' + e.payload.open : ''))));
@@ -335,6 +461,24 @@ async function dragCard(page, dx) {
     S.judgments = saved; return out;
   });
   check('B9 calibration over/under/fit/few + lock at 20', cal.over === 'over' && cal.under === 'under' && cal.fit === 'fit' && cal.few === 'few' && cal.lockedAt19 === true && cal.lockedAt20 === false, JSON.stringify(cal));
+  // 인사이트 규칙 단위 확인: 같은 조건 3번 미만이면 뺀다, 뒤짐 없는 근거는 뺀다, 확신도 동률은 높은 쪽
+  const insU = await p2.evaluate(() => {
+    const S = State.get(), saved = S.judgments, out = {};
+    const mk = (conf, ev, state, rec) => ({ key_evidence: ev, confidence: conf, recognized: rec, result: { state, hit: state === 'even' ? null : state === 'ahead' } });
+    S.judgments = [mk(1, 'A 1', 'ahead'), mk(2, 'A 2', 'behind'), mk(3, 'B 3', 'behind'), mk(4, 'C', 'ahead', true), mk(5, 'C', 'ahead', true)];
+    out.small = State.stats().insights.map(i => i.kind);                                   // 모두 3번 미만
+    S.judgments = [mk(4, 'X 1', 'ahead'), mk(4, 'X 2', 'ahead'), mk(4, 'X 3', 'even'), mk(5, 'Y', 'behind'), mk(5, 'Y', 'ahead'), mk(5, 'Y', 'ahead')];
+    out.tie = State.stats().insights;                                                      // 확신도 4·5 동률 → 5, X는 뒤짐 0 → 빼고 Y
+    const st = State.stats(); out.keys = Object.keys(st).sort().join(',');
+    S.judgments = saved; return out;
+  });
+  check('B11 insight rules: skip <3, skip evidence with no 뒤짐, tie → higher confidence, API keys kept', insU.small.length === 0
+    && insU.tie.length === 2 && insU.tie[0].kind === 'confidence' && insU.tie[0].level === 5 && insU.tie[0].n === 3 && insU.tie[0].k === 2
+    && insU.tie[1].kind === 'evidence' && insU.tie[1].label === 'Y' && insU.tie[1].k === 1
+    && insU.keys === 'calibration,decided,evidence,insights,lock,locked,total', JSON.stringify(insU));
+  const jo = await p2.evaluate(() => [['매출', '을', '를'], ['PER', '을', '를'], ['금리', '을', '를'], ['5', '을', '를'], ['3', '을', '를'], ['가이던스 상향', '이', '가'], ['매출 +23%', '과', '와'], ['FCF 음수', '을', '를'], ['절대수익과 시장 대비', '이에요', '예요'], ['높은 성장률과 높은 밸류에이션', '이에요', '예요']].map(a => State.josa(...a)).join(' '));
+  const kinds = await p2.evaluate(() => ['PER 38 vs 27', '매출 +23%', '매출 −8%', '가이던스 하향', '금리 5.25%', '순현금 보유'].map(State.evidenceKind).join('|'));
+  check('B12 Korean particles follow the final sound (josa) + evidence kinds strip numbers', jo === '을 을 를 를 을 이 와 를 예요 이에요' && kinds === 'PER|매출|매출|가이던스 하향|금리|순현금 보유', `${jo} / ${kinds}`);
   await shotFull(p2, `${SCRATCH}/x-journal-stats.png`);
 
   /* ===== C. 비슷함 공개 화면 · 한 장 더 · 되돌리기 창 중 이탈 (카드 4장짜리 덱 주입) ===== */
@@ -355,6 +499,7 @@ async function dragCard(page, dx) {
   await p3.waitForSelector('#toast #undo');
   await p3.click('#nav button[data-v="journal"]');
   check('C1 leaving during undo window → journal shows 결과 대기', (await p3.locator('.jstate--wait').count()) === 1 && (await p3.locator('.jrow-title').innerText()) === '소프트웨어 · 대형');
+  check('C1b calendar counts the unrevealed judgment as practice (today dot)', (await p3.locator('.cal-day--today.cal-day--done').count()) === 1 && (await p3.locator('.cal-cap').innerText()).startsWith('이달 연습 1일'));
   await p3.waitForTimeout(2800);
   check('C2 no auto-reveal hijack on other tab', (await p3.locator('.jlist').count()) === 1);
   await p3.click('#nav button[data-v="today"]');
@@ -370,9 +515,13 @@ async function dragCard(page, dx) {
   await p3.click('#next');
   await p3.waitForSelector('.done-title');
   check('C4 done with cards left → 한 장 더 button', (await p3.locator('#more').count()) === 1 && (await p3.locator('.done-title').innerText()) === '오늘은 여기까지');
+  let en3 = await entry(p3);
+  check('E6 done strip = 오늘 끝 · 한 장 더 가능 (no extra tap needed for the 3 cards)', en3 && en3.sub === '오늘 끝 · 한 장 더 가능' && en3.lead.startsWith('개념 이해 ') && en3.streak === '스트릭 1일', fmtEntry(en3));
   await p3.click('#more');
   await p3.waitForSelector('#stage .sc');
   check('C5 extra card header', /한 장 더/.test(await top(p3)), await top(p3));
+  en3 = await entry(p3);
+  check('E7 extra card strip = 오늘 끝 · 한 장 더 보는 중', en3 && en3.sub === '오늘 끝 · 한 장 더 보는 중', fmtEntry(en3));
   st = await S(p3);
   check('C6 extra_card logged', st.events.some(e => e.event === 'extra_card' && e.payload.case_id === 'c004'));
   await p3.click('#ev .ds-chip >> nth=1'); await p3.click('#conf button:has-text("3")');
@@ -384,6 +533,8 @@ async function dragCard(page, dx) {
   check('C8 even stamp + ■ + neutral color', (await p3.locator('.verdict .ds-stamp--even').count()) === 1 && n3[2] === '■+0.4%p' && !(await p3.locator('.ds-nums div:nth-child(3) b').getAttribute('class')).includes('ds-'), JSON.stringify(n3));
   st = await S(p3);
   check('C9 even → hit null, extra flag stored', st.judgments[3].result.state === 'even' && st.judgments[3].result.hit === null && st.judgments[3].extra === true);
+  await p3.waitForSelector('#explain .ex-line');
+  check('X7 even explainer: read line restates 거의 같았어요 with the revealed +0.4%p', (await p3.locator('#explain .ex-line--read').innerText()).includes('시장 대비 +0.4%p로 시장과 거의 같았어요') && (await p3.locator('#explain .ex-line--concept .ds-hl').count()) === 1, (await p3.locator('#explain .ex-line--read').innerText()).replace(/\s+/g, ' '));
   await shotFull(p3, `${SCRATCH}/x-reveal-even.png`);
   await p3.click('#next');
   await p3.waitForSelector('.done-title');

@@ -17,6 +17,7 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--ink-500); border-bottom: 1.5px solid var(--ink-900); padding-bottom: 8px; font-weight: 700; letter-spacing: -0.01em; }
 .top b { color: var(--ink-900); }
 .ds-bar { margin: 0 0 12px; }
+.ds-entry { margin: 0 0 8px; }   /* 입장 카드: 머리줄 아래, 카드 스택·복습·마침 위 */
 .meta { margin: 0 0 8px; font-size: 12px; color: var(--ink-500); }
 .meta b { color: var(--ink-900); font-weight: 600; }
 
@@ -96,9 +97,24 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .mine .row:last-child { border: 0; }
 .mine .row span { color: var(--ink-500); flex: none; }
 .mine .row b { font-weight: 700; text-align: right; }
+/* ○△✕ 자기 평가: '사후에 중요했던 것' 행 바로 아래 */
+.selfcheck { padding: 10px 0 4px; }
+.selfcheck-q { margin: 0 0 10px; font-size: 13px; font-weight: 700; }
+.selfcheck-fb { margin: 10px 0 0; font-size: 12px; line-height: 1.45; color: var(--ink-500); }
+.selfcheck-fb:empty { margin: 0; }
+/* 해설 세 줄: 작은 머리글 + 문장 라벨. 개념 연결이 마지막이고 가장 진하다 */
 .explain { margin-bottom: 10px; }
 .explain .ds-bubble { max-width: 100%; }
-.explain .warn { display: block; color: var(--ink-500); font-size: 12px; margin-top: 6px; }
+.ex-line { padding: 8px 0; border-top: 1px dotted #9a9890; }
+.ex-line:first-of-type { padding-top: 2px; border-top: 0; }
+.ex-h { margin: 0 0 4px; font-size: 12px; font-weight: 700; color: var(--ink-500); letter-spacing: -0.01em; }
+.ex-s { margin: 0; font-size: 13px; line-height: 1.6; }
+.ex-s .ds-label { margin-right: 2px; vertical-align: 1px; }
+.explain .warn { margin: 4px 0 0; font-size: 12px; color: var(--ink-500); }
+.ex-line--concept { padding-bottom: 0; border-top: 1.5px solid var(--ink-900); }
+.ex-line--concept .ex-h { color: var(--ink-900); }
+.ex-line--concept .ex-s { font-size: 14px; font-weight: 600; }
+.ex-line--concept .ds-hl { font-weight: 700; }
 .concept p { margin: 0 0 8px; font-size: 13px; line-height: 1.55; }
 .quiz { border-top: 1px dotted #9a9890; padding-top: 8px; font-size: 13px; }
 .quiz .quiz-q { margin: 0; }
@@ -127,6 +143,32 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .note-label { display: block; margin: 0 0 4px; font-size: 12px; color: var(--ink-500); }
 .sheet textarea { display: block; width: 100%; min-height: 72px; resize: vertical; padding: 8px 10px; border: 1.5px solid var(--ink-900); border-radius: 0; background: var(--bg-100); color: var(--ink-900); font: inherit; font-size: 13px; }
 
+/* 일지: 연습 달력 — 결과 상태로 칠하지 않는다. 연습한 날 = 잉크 점, 복습 예정일 = 테두리 원, 오늘 = 빨간 펜 링 */
+.cal { margin-bottom: 12px; padding: 8px 12px 10px; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.cal-title { margin: 0; font-size: 15px; }
+.cal-nav { width: 44px; height: 34px; padding: 0; font: inherit; font-size: 20px; line-height: 1; color: var(--ink-900); background: var(--bg-100); border: 1.5px solid var(--ink-900); border-radius: 0; cursor: pointer; }
+.cal-nav:disabled { color: var(--ink-200); border-color: var(--ink-200); cursor: default; }
+.cal-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.cal-grid th { padding: 4px 0 5px; font-size: 11px; font-weight: 600; color: var(--ink-500); text-align: center; border-bottom: 1.5px solid var(--ink-900); }
+.cal-grid td { height: 34px; padding: 2px 0 0; text-align: center; vertical-align: top; border-bottom: 1px dotted #9a9890; }
+.cal-grid tbody tr:last-child td { border-bottom: 0; }
+.cal-n { position: relative; display: inline-block; min-width: 20px; font-size: 13px; line-height: 20px; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.cal-day--future .cal-n { color: var(--ink-500); }
+.cal-day--today .cal-n { font-weight: 700; }
+.cal-day--today .cal-n::after { content: ""; position: absolute; inset: -3px -5px; border: 2px solid var(--select); border-radius: 50%; transform: rotate(-4deg); pointer-events: none; }
+.cal-mk { display: block; width: 7px; height: 7px; margin: 3px auto 0; border-radius: 50%; }
+.cal-day--done .cal-mk, .cal-mk--done { background: var(--ink-900); }
+.cal-day--due .cal-mk, .cal-mk--due { border: 1.5px solid var(--ink-900); }
+.cal-day--done.cal-day--due .cal-mk { outline: 1.5px solid var(--ink-900); outline-offset: 1px; }
+.cal-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 10px; margin-top: 4px; padding-top: 6px; border-top: 1.5px solid var(--ink-900); }
+.cal-cap { margin: 0; font-size: 12px; color: var(--ink-500); }
+.cal-cap b { color: var(--ink-900); font-weight: 700; font-variant-numeric: tabular-nums; }
+.cal-key { display: flex; gap: 8px; margin: 0; font-size: 11px; color: var(--ink-500); }
+.cal-key span { display: inline-flex; align-items: center; gap: 3px; }
+.cal-key .cal-mk { display: inline-block; margin: 0; }
+.cal-ring { display: inline-block; width: 13px; height: 10px; border: 1.5px solid var(--select); border-radius: 50%; transform: rotate(-4deg); }
+
 /* 일지 */
 .empty { margin: 16px 0; font-size: 13px; color: var(--ink-500); }
 .jlist { list-style: none; margin: 0 0 14px; padding: 0; }
@@ -137,6 +179,8 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .tag { padding: 0 6px; font-size: 12px; border: 1px solid var(--ink-500); color: var(--ink-500); }
 .jstate { margin-left: auto; padding: 1px 7px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--ink-900); }
 .jstate--wait { border-style: dashed; border-color: var(--ink-500); color: var(--ink-500); font-weight: 400; }
+/* ○△✕ 개념 확인 표시 (자기 평가 기록, 합산 없음) — 결과 도장과 헷갈리지 않게 잉크·작게 */
+.jmark { display: inline-grid; place-items: center; width: 20px; height: 20px; font-size: 12px; font-weight: 700; line-height: 1; color: var(--ink-900); border: 1px solid var(--ink-500); }
 .jrow-body { margin-top: 4px; font-size: 13px; color: var(--ink-500); }
 .jrow-body b { color: var(--ink-900); font-weight: 600; }
 .stats { margin: 0 0 12px; border: 1.5px solid var(--ink-900); background: var(--bg-100); }
@@ -147,6 +191,8 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .stats-body { padding: 0 12px 12px; font-size: 13px; line-height: 1.55; }
 .stats-body h5 { margin: 8px 0 2px; font-size: 12px; color: var(--ink-500); }
 .stats-body p { margin: 4px 0; }
+.stats-body .ds-insight p { margin: 0; }
+.ins-list { margin: 4px 0 10px; }
 
 /* 개념 */
 .clist { list-style: none; margin: 0 0 12px; padding: 0; }

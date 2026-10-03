@@ -29,6 +29,7 @@
   --board-muted: #9a9890;
   --board-up: #ff8a7a;
   --board-down: #8fb4ff;
+  --hl: #d9f5c7;              /* 학습지 형광펜 — 공개 뒤 화면 전용 (.ds-hl) */
 
   /* 글자 */
   --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;

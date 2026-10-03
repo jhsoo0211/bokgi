@@ -21,6 +21,48 @@
 
   let onboardedMem = false;          // localStorage를 못 쓰는 환경에서도 한 번 본 안내는 다시 띄우지 않는다
 
+  /* 조사: 앞말의 받침에 따라 고른다. josa('매출', '을', '를') → '을'.
+     숫자·영문·기호는 읽는 소리로 본다: 27 → 칠(받침), 5 → 오, R → 알(받침), F → 에프, % → 퍼센트 */
+  function josa(word, withFinal, withoutFinal) {
+    const s = String(word).replace(/[\s'"‘’“”)\]]+$/, ''), ch = s.charAt(s.length - 1), code = ch.charCodeAt(0);
+    let fin = false;
+    if (code >= 0xAC00 && code <= 0xD7A3) fin = (code - 0xAC00) % 28 !== 0;
+    else if (/[0-9]/.test(ch)) fin = '013678'.includes(ch);       // 영 일 삼 육 칠 팔
+    else if (/[a-z]/i.test(ch)) fin = 'lmnr'.includes(ch.toLowerCase());   // 엘 엠 엔 알
+    return fin ? withFinal : withoutFinal;
+  }
+
+  /* 근거 칩 → 근거 종류: 숫자가 든 낱말과 'vs'를 뺀다. 'PER 38 vs 27' → 'PER', '매출 +23%' → '매출', '가이던스 하향' → 그대로.
+     칩 글자는 카드마다 다르고 사례는 한 번만 판단하므로, 같은 종류끼리 묶어야 횟수가 쌓인다 */
+  const evidenceKind = e => {
+    const full = String(e == null ? '' : e).trim();
+    return full.split(/\s+/).filter(t => /[가-힣a-z]/i.test(t) && !/\d/.test(t) && t.toLowerCase() !== 'vs').join(' ') || full;
+  };
+
+  /* 통계 인사이트 (한 문장 카드의 재료). 횟수만 돌려준다 — 퍼센트·적중률은 만들지 않는다.
+     같은 조건의 판단이 MIN_INSIGHT번 미만이면 그 카드는 뺀다. 문장은 화면 코드(app.js)가 만든다.
+     confidence: 가장 자주 고른 확신도(같으면 높은 쪽)에서 시장보다 앞선 횟수
+     evidence:   뒤짐이 가장 많은 근거 종류(같으면 판단 수가 적은 쪽)의 뒤짐 횟수. 뒤짐이 없으면 뺀다
+     recognized: 아는 회사 / 모르는 회사 판단의 앞섬 횟수(두 쪽 모두 MIN_INSIGHT번 이상일 때만) */
+  const MIN_INSIGHT = 3;
+  function insights(done) {
+    const out = [], count = (js, state) => js.filter(j => j.result.state === state).length;
+    const byConf = {};
+    done.filter(j => j.confidence).forEach(j => { (byConf[j.confidence] = byConf[j.confidence] || []).push(j); });
+    const conf = Object.entries(byConf).sort((a, b) => b[1].length - a[1].length || b[0] - a[0])[0];
+    if (conf && conf[1].length >= MIN_INSIGHT) out.push({ kind: 'confidence', level: +conf[0], n: conf[1].length, k: count(conf[1], 'ahead') });
+    const byKind = {};
+    done.forEach(j => { const k = evidenceKind(j.key_evidence); (byKind[k] = byKind[k] || []).push(j); });
+    const ev = Object.entries(byKind).map(([label, js]) => ({ label, n: js.length, k: count(js, 'behind') }))
+      .filter(e => e.n >= MIN_INSIGHT && e.k > 0)
+      .sort((a, b) => b.k - a.k || a.n - b.n || a.label.localeCompare(b.label))[0];
+    if (ev) out.push(Object.assign({ kind: 'evidence' }, ev));
+    const known = done.filter(j => j.recognized), unknown = done.filter(j => !j.recognized);
+    if (known.length >= MIN_INSIGHT && unknown.length >= MIN_INSIGHT)
+      out.push({ kind: 'recognized', n: known.length, k: count(known, 'ahead'), m: unknown.length, j: count(unknown, 'ahead') });
+    return out;
+  }
+
   /* 간격 복습: 맞히면 level +1(새 개념은 0부터), 틀리면 0. 다음 복습일 = 오늘 + INTERVALS[level]일(그날 0시부터).
      아직 복습일이 안 된 개념을 다시 맞힌 경우에는 간격을 늘리지 않는다(같은 날 반복으로 간격이 부풀지 않게). */
   function schedule(conceptId, correct) {
@@ -34,7 +76,7 @@
 
   const State = {
     get: () => S,
-    EVEN_PP, INTERVALS, dayKey,
+    EVEN_PP, INTERVALS, MIN_INSIGHT, dayKey, josa, evidenceKind,
 
     reset() {
       Object.assign(S, fresh()); save(S);
@@ -76,6 +118,15 @@
       save(S); return j.result;
     },
 
+    /* ○△✕ 자기 평가: 내 근거가 이 개념과 맞았나. o 맞았다 · tri 일부 · x 달랐다.
+       판단 기록에 남기기만 하고 점수·비율로 합산하지 않는다 */
+    selfCheck(judgmentId, value) {
+      const j = S.judgments.find(x => x.id === judgmentId);
+      if (!j || !['o', 'tri', 'x'].includes(value)) return null;
+      j.self_check = value; j.self_check_at = new Date().toISOString();
+      save(S); return j;
+    },
+
     /* 확인 문제: 숙련도(신규 → 학습 중 → 이해, 틀리면 복습 필요) + 간격 복습 일정. via: reveal | review | concepts */
     quiz(conceptId, correct, via) {
       const c = S.concept_progress[conceptId] || { state: 'new', correct: 0, total: 0 };
@@ -102,7 +153,7 @@
       return rec;
     },
 
-    /* 통계: LOCK장 미만이면 잠금. 근거별 횟수와 확신도 보정(글로만 쓴다, 퍼센트를 돌려주지 않는다).
+    /* 통계: LOCK장 미만이면 잠금. 인사이트 재료(insights, 횟수만), 근거별 횟수, 확신도 보정(글로만 쓴다, 퍼센트를 돌려주지 않는다).
        보정: 비슷함을 뺀 판단에서 확신도(1→50% … 5→90%)의 평균과, 결과가 판단과 같은 방향이었던 비율의 차이 */
     stats(LOCK = 20) {
       const done = S.judgments.filter(j => j.result);
@@ -115,7 +166,7 @@
         const actual = decided.filter(j => j.result.hit).length / decided.length;
         calibration = expected - actual > 0.1 ? 'over' : expected - actual < -0.1 ? 'under' : 'fit';
       }
-      return { total: done.length, locked: done.length < LOCK, lock: LOCK, evidence, calibration, decided: decided.length };
+      return { total: done.length, locked: done.length < LOCK, lock: LOCK, evidence, calibration, decided: decided.length, insights: insights(done) };
     },
     exportJSON() { return JSON.stringify(S, null, 2); }
   };
@@ -139,17 +190,35 @@ window.AI = {
     await new Promise(r => setTimeout(r, 350));
     return { text: bank[(card.id.charCodeAt(3) + conf) % bank.length], labels: ['inference'] };
   },
-  /* 공개 후: 근거 문서와 결과만으로 비교. 결과를 하나의 원인으로 단정하지 않는다. */
+  /* 공개 후: 근거 문서와 결과만으로 비교. 결과를 하나의 원인으로 단정하지 않는다.
+     세 줄 틀(각 한 문장, 화면은 이 순서로 그린다 — 개념 줄이 늘 마지막):
+       read    이번에 잘 읽은 것 — 📄 출처. 사용자가 고른 근거와 공개된 숫자만 되풀이한다
+       change  다음에 바꿀 것   — 🔍 추론. 화면이 면책 한 줄을 바로 옆에 붙인다
+       concept 개념 연결       — 📄 출처. 카드의 학습 포인트(learning_points[0]) 이름. term = 형광펜 칠할 개념 이름
+     숫자 가드(서버 NumberGuard의 축소판): 문장 속 숫자는 공개 화면에 나온 숫자(기업·시장 수익률, 시장 대비, 시장 이름)와
+     사용자가 고른 근거 칩의 숫자만 허용. 어기는 문장은 숫자 없는 문장으로 바꾼다. */
   async explain(card, judgment, outcome, concept) {
     await new Promise(r => setTimeout(r, 350));
     const sg = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(1);   // 공개 화면 숫자와 같은 부호(−)
+    const J = State.josa, r = judgment.result || {}, ev = judgment.key_evidence, q = `'${ev}'`;
+    const rel = +(outcome.return_pct - outcome.bench_return_pct).toFixed(1);
     const dir = judgment.direction === 'outperform' ? '시장보다 앞섰다' : '시장보다 뒤졌다';
+    const picked = `${q}${J(ev, '을', '를')} 핵심 근거로 짚어`;
+    const read = r.state === 'even' ? `${picked} 두었고, 결과는 시장 대비 ${sg(rel)}%p로 시장과 거의 같았어요.`
+      : r.hit ? `${picked} '${dir}'를 골랐고, 결과도 시장 대비 ${sg(rel)}%p로 고른 방향과 같았어요.`
+      : `${picked} 두었기에, 시장 대비 ${sg(rel)}%p라는 결과와 나란히 되짚어 볼 수 있어요.`;
+    const change = !judgment.risk_factor ? `다음에는 ${q}${J(ev, '과', '와')} 함께 가장 큰 위험 요인도 하나 골라, 반대로 움직일 가능성을 같이 적어 보세요.`
+      : r.state === 'even' ? '시장과 거의 같게 움직인 사례라 근거의 힘을 가리기 어려우니, 다음에는 같은 근거가 시장 대비로 어떻게 이어지는지 여러 장에 걸쳐 살펴보세요.'
+      : r.hit ? `방향이 같았던 한 번만으로 근거가 옳았다고 보기는 어려우니, 다음에도 ${q}${J(ev, '이', '가')} 이미 가격에 반영돼 있었는지부터 확인해 보세요.`
+      : `왜 이렇게 움직였는지는 한 가지 이유로 말할 수 없지만, 다음에 ${q} 같은 근거를 쓸 때는 그 정보가 이미 가격에 반영돼 있었는지부터 확인해 보세요.`;
+    const link = `이번 결과를 읽는 데 필요한 개념은 ${concept.title}${J(concept.title, '이에요', '예요')}.`;
+    const nums = s => String(s).match(/\d+(?:\.\d+)?/g) || [];
+    const allowed = new Set(nums([sg(outcome.return_pct), sg(outcome.bench_return_pct), sg(rel), outcome.bench, ev].join(' ')));
+    const guard = (text, safe) => (nums(text).every(n => allowed.has(n)) ? text : safe);
     return {
-      sentences: [
-        { text: `기업 ${sg(outcome.return_pct)}%, ${outcome.bench} ${sg(outcome.bench_return_pct)}%, 시장 대비 ${sg(outcome.return_pct - outcome.bench_return_pct)}%p입니다.`, label: 'source' },
-        { text: `'${judgment.key_evidence}'를 근거로 '${dir}'를 고르셨습니다. 이번 사례에서 다시 볼 개념은 '${concept.title}'입니다.`, label: 'source' },
-        { text: `왜 이렇게 움직였는지는 한 가지 이유로 말할 수 없습니다. 다음 카드에서 같은 근거를 쓸 때 시장 대비를 먼저 확인해 보세요.`, label: 'inference' }
-      ]
+      read: { label: 'source', text: guard(read, '이번에 고른 근거와 결과는 위 내 판단 표에서 나란히 볼 수 있어요.') },
+      change: { label: 'inference', text: guard(change, '왜 이렇게 움직였는지는 한 가지 이유로 말할 수 없으니, 다음에는 근거가 이미 가격에 반영돼 있었는지부터 확인해 보세요.') },
+      concept: { label: 'source', text: guard(link, '이번 결과를 읽는 데 필요한 개념은 아래 개념 카드에 있어요.'), term: concept.title }
     };
   }
 };
