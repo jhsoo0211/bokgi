@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="worksheet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>복기 — 프로토타입</title>
+<link rel="stylesheet" href="../design/tokens.css">
+<link rel="stylesheet" href="../design/components.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body class="ds-root">
+<main class="phone">
+  <div id="view" class="screen"></div>
+  <nav id="nav" aria-label="주 메뉴">
+    <button type="button" data-v="today" aria-current="true">오늘</button>
+    <button type="button" data-v="journal" aria-current="false">일지</button>
+    <button type="button" data-v="concepts" aria-current="false">개념</button>
+  </nav>
+</main>
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/swipe.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
