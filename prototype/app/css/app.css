@@ -2,19 +2,21 @@
    규칙: 이 파일은 상승·하락 색 변수를 쓰지 않는다(결과 색은 공개 화면에서 컴포넌트 클래스로만 칠한다).
    학습지 모양 유지: 그림자 없음, 각진 답란, 선택은 빨간 펜 링. */
 html, body { height: 100%; margin: 0; }
+html { scroll-padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }   /* Tab으로 옮긴 초점이 아래 고정 탭(44px)에 가리지 않게 */
 body { box-sizing: border-box; word-break: keep-all; overflow-wrap: break-word; }   /* 여백 32px 때문에 생기던 빈 스크롤 제거, 한국어는 어절 단위로 줄바꿈 */
 body { display: flex; justify-content: center; align-items: flex-start; padding: 16px 0 calc(16px + env(safe-area-inset-bottom, 0px)); background: #e9e8e2; }
 .phone { width: 100%; max-width: 380px; min-height: calc(100vh - 32px); background: var(--bg-000); display: flex; flex-direction: column; border: 1.5px solid var(--ink-900); }
 .screen { flex: 1; padding: 16px 16px 24px; overflow-y: auto; }
+#view:focus { outline: none; }   /* 화면이 바뀔 때 초점을 받는 틀(누르는 곳이 아님) — 링은 그 안의 컨트롤에만 */
 #nav { position: sticky; bottom: 0; z-index: 2; display: flex; border-top: 1.5px solid var(--ink-900); background: var(--bg-100); }
 #nav[hidden] { display: none; }
-#nav button { flex: 1; padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); font: inherit; font-size: 13px; background: none; border: 0; border-right: 1.5px solid var(--ink-900); color: var(--ink-500); cursor: pointer; }
+#nav button { flex: 1; min-height: 44px; padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); font: inherit; font-size: 13px; background: none; border: 0; border-right: 1.5px solid var(--ink-900); color: var(--ink-500); cursor: pointer; }
 #nav button:last-child { border-right: 0; }
 #nav button[aria-current="true"] { color: var(--ink-900); font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .small { font-size: 12px; }
 
-.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--ink-500); border-bottom: 1.5px solid var(--ink-900); padding-bottom: 8px; font-weight: 700; letter-spacing: -0.01em; }
+.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--ink-500); border-bottom: 1.5px solid var(--ink-900); padding-bottom: 8px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
 .top b { color: var(--ink-900); }
 .ds-bar { margin: 0 0 12px; }
 .ds-entry { margin: 0 0 8px; }   /* 입장 카드: 머리줄 아래, 카드 스택·복습·마침 위 */
@@ -22,8 +24,8 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .meta b { color: var(--ink-900); font-weight: 600; }
 
 /* 스와이프 스택 */
-.stage { position: relative; height: 452px; margin: 4px 0 8px; touch-action: pan-y; }
-.sc { position: absolute; inset: 0; user-select: none; will-change: transform; transition: transform 180ms ease, opacity 180ms ease; }
+.stage { position: relative; height: 452px; margin: 4px 0 8px; touch-action: pan-y; touch-action: pan-y pinch-zoom; }   /* 가로 끌기는 스와이프, 세로 스크롤·두 손가락 확대는 브라우저 (첫 줄은 pinch-zoom을 모르는 브라우저용) */
+.sc { position: absolute; inset: 0; -webkit-user-select: none; user-select: none; will-change: transform; transition: transform 180ms ease, opacity 180ms ease; }
 .sc.drag { transition: none; }
 .sc.n1 { transform: translateY(8px) scale(.96); opacity: .9; }
 .sc.n2 { transform: translateY(16px) scale(.92); opacity: .7; }
@@ -45,8 +47,10 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 
 /* 판 탭 (카드 안, .ds-lens 세그먼트 재사용) */
 .panel-tabs { flex: none; margin: 0 0 10px; }
-.panel-tabs button { padding: 6px 0; }
-.panel { flex: 1; min-height: 0; overflow-y: auto; }
+.panel-tabs button { position: relative; padding: 6px 0; }
+.panel-tabs button::before { content: ""; position: absolute; inset: -6px -3px; }   /* 누르는 자리 44px (보이는 칸·카드 높이는 그대로) */
+/* 판 본문은 스크롤 상자라 브라우저가 가로 팬을 다시 가져간다(터치 스와이프가 pointercancel로 끊김) → 세로만 브라우저에 */
+.panel { flex: 1; min-height: 0; overflow-y: auto; touch-action: pan-y; touch-action: pan-y pinch-zoom; }
 .panel-note { margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--ink-500); }
 /* 그때 판 */
 .ctx-notes { list-style: none; margin: 0; padding: 0; }
@@ -59,7 +63,8 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .hint { font-size: 12px; color: var(--ink-500); text-align: center; margin: 8px 0; min-height: 18px; }
 .gate { border: 0; margin: 0; padding: 0; min-width: 0; }
 .gate:disabled { opacity: .5; }
-.check { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; font-size: 13px; cursor: pointer; }
+.check { position: relative; isolation: isolate; display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; font-size: 13px; cursor: pointer; }
+.check::before { content: ""; position: absolute; inset: -12px 0; z-index: -1; }   /* 줄 전체가 누르는 자리, 높이 44px (위아래 여백 안에서만, 체크 상자 뒤에 깔린다) */
 .check input { appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 0; border: 1.5px solid var(--ink-900); border-radius: 0; background: var(--bg-100); display: grid; place-content: center; cursor: pointer; }
 .check input::before { content: "✓"; font-size: 17px; font-weight: 700; line-height: 1; color: var(--select); transform: scale(0); }
 .check input:checked::before { transform: scale(1); }
@@ -74,10 +79,11 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .swipe .ds-btn { flex: 1; padding: 14px 6px; font-size: 14px; }
 .ds-card { margin-bottom: 10px; }
 /* 되돌리기 알림: 스와이프로 판단해도 보이게 화면 아래에 고정 */
-.toast { margin: 0; font-size: 12px; color: var(--ink-500); text-align: center; }
+.toast { margin: 0; font-size: 12px; color: var(--ink-500); text-align: center; font-variant-numeric: tabular-nums; }
 .toast:not(:empty) { position: fixed; z-index: 5; left: 50%; bottom: 60px; transform: translateX(-50%); width: min(348px, calc(100% - 32px)); padding: 10px 12px; background: var(--bg-100); border: 1.5px solid var(--ink-900); color: var(--ink-900); }
 .toast-acts { display: flex; justify-content: center; gap: 8px; margin-top: 8px; }
-.toast-acts button { padding: 6px 14px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-900); background: var(--bg-100); border: 1.5px solid var(--ink-900); border-radius: 0; cursor: pointer; }
+.toast-acts button { position: relative; padding: 6px 14px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-900); background: var(--bg-100); border: 1.5px solid var(--ink-900); border-radius: 0; cursor: pointer; }
+.toast-acts button::before { content: ""; position: absolute; inset: -6px -4px; }   /* 2.5초 안에 눌러야 하는 버튼: 누르는 자리 44px 이상 */
 
 /* 결과 공개 */
 .reveal { margin: 4px 0 10px; }
@@ -118,25 +124,28 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .concept p { margin: 0 0 8px; font-size: 13px; line-height: 1.55; }
 .quiz { border-top: 1px dotted #9a9890; padding-top: 8px; font-size: 13px; }
 .quiz .quiz-q { margin: 0; }
-.quiz .opt { display: block; width: 100%; text-align: left; padding: 8px 10px; border: 1.5px solid var(--ink-900); background: var(--bg-100); margin-top: 6px; font: inherit; font-size: 13px; color: var(--ink-900); cursor: pointer; }
+.quiz .opt { position: relative; display: block; width: 100%; text-align: left; padding: 8px 10px; border: 1.5px solid var(--ink-900); background: var(--bg-100); margin-top: 6px; font: inherit; font-size: 13px; color: var(--ink-900); cursor: pointer; }
+.quiz .opt::before { content: ""; position: absolute; inset: -3px 0; }   /* 보기 사이 6px의 절반씩 → 누르는 자리 44px */
 .quiz .opt:disabled { cursor: default; }
 .quiz .opt.ok { outline: 2px solid var(--select); outline-offset: -4px; }
 .quiz .opt.no { text-decoration: line-through; color: var(--ink-500); }
 .quiz-fb { margin: 6px 0 0; font-size: 12px; color: var(--ink-500); }
 .report-line { display: flex; justify-content: flex-end; margin: 0 0 10px; }
 .report-line p { margin: 0; }
-.ds-btn.ghost { padding: 8px 12px; font-size: 13px; font-weight: 600; background: var(--bg-000); }
+.ds-btn.ghost { position: relative; padding: 8px 12px; font-size: 13px; font-weight: 600; background: var(--bg-000); }
+.ds-btn.ghost::before { content: ""; position: absolute; inset: -6px 0; }
 .ds-btn.wide { width: 100%; margin-top: 4px; }
 .row2 { display: flex; gap: 8px; margin-top: 8px; }
-.row2 .ds-btn { flex: 1; padding: 10px; font-size: 13px; }
+.row2 .ds-btn { position: relative; flex: 1; padding: 10px; font-size: 13px; }
+.row2 .ds-btn::before { content: ""; position: absolute; inset: -4px 0; }
 
 /* 정보 신고 시트 */
 .sheet-back { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; background: rgba(28, 27, 26, .45); }
 .sheet { width: 100%; max-width: 380px; max-height: 92vh; overflow-y: auto; background: var(--bg-000); border: 1.5px solid var(--ink-900); border-bottom: 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
 .sheet h2 { margin: 0 0 4px; font-size: 18px; }
-.sheet > p { margin: 0 0 10px; }
+.sheet-form > p { margin: 0 0 10px; }
 .sheet fieldset { margin: 0 0 12px; padding: 0; min-width: 0; border: 0; border-top: 1.5px solid var(--ink-900); }
-.radio { display: flex; align-items: center; gap: 10px; padding: 9px 2px; border-bottom: 1px dotted #9a9890; font-size: 14px; cursor: pointer; }
+.radio { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 9px 2px; border-bottom: 1px dotted #9a9890; font-size: 14px; cursor: pointer; }
 .radio input { appearance: none; -webkit-appearance: none; flex: none; width: 18px; height: 18px; margin: 0; border: 1.5px solid var(--ink-900); border-radius: 50%; background: var(--bg-100); display: grid; place-content: center; cursor: pointer; }
 .radio input::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--select); transform: scale(0); }
 .radio input:checked::before { transform: scale(1); }
@@ -147,7 +156,8 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .cal { margin-bottom: 12px; padding: 8px 12px 10px; }
 .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
 .cal-title { margin: 0; font-size: 15px; }
-.cal-nav { width: 44px; height: 34px; padding: 0; font: inherit; font-size: 20px; line-height: 1; color: var(--ink-900); background: var(--bg-100); border: 1.5px solid var(--ink-900); border-radius: 0; cursor: pointer; }
+.cal-nav { position: relative; width: 44px; height: 34px; padding: 0; font: inherit; font-size: 20px; line-height: 1; color: var(--ink-900); background: var(--bg-100); border: 1.5px solid var(--ink-900); border-radius: 0; cursor: pointer; }
+.cal-nav::before { content: ""; position: absolute; inset: -6px 0; }   /* 누르는 자리 44×44 (달력 머리 높이는 그대로) */
 .cal-nav:disabled { color: var(--ink-200); border-color: var(--ink-200); cursor: default; }
 .cal-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .cal-grid th { padding: 4px 0 5px; font-size: 11px; font-weight: 600; color: var(--ink-500); text-align: center; border-bottom: 1.5px solid var(--ink-900); }
@@ -186,8 +196,9 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .stats { margin: 0 0 12px; border: 1.5px solid var(--ink-900); background: var(--bg-100); }
 .stats summary { padding: 10px 12px; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
 .stats summary::-webkit-details-marker { display: none; }
-.stats summary::before { content: "▸"; display: inline-block; width: 16px; }
-.stats[open] summary::before { content: "▾"; }
+/* 펼침 표시는 그림일 뿐 — 대체 글자를 비워 이름에 '▸'가 읽히지 않게 (열림 상태는 details가 알린다). 첫 줄은 대체 글자 문법을 모르는 브라우저용 */
+.stats summary::before { content: "▸"; content: "▸" / ""; display: inline-block; width: 16px; }
+.stats[open] summary::before { content: "▾"; content: "▾" / ""; }
 .stats-body { padding: 0 12px 12px; font-size: 13px; line-height: 1.55; }
 .stats-body h5 { margin: 8px 0 2px; font-size: 12px; color: var(--ink-500); }
 .stats-body p { margin: 4px 0; }
@@ -200,9 +211,13 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .crow b { font-size: 15px; }
 .crow small { grid-column: 1 / -1; font-size: 12px; color: var(--ink-500); }
 .cstate { padding: 1px 7px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--ink-900); white-space: nowrap; }
-.back { padding: 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--ink-900); background: none; border: 0; cursor: pointer; }
-.peek { margin-top: 10px; font-size: 13px; }
-.peek summary { cursor: pointer; color: var(--ink-500); }
+.back { position: relative; padding: 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--ink-900); background: none; border: 0; cursor: pointer; }
+.back::before { content: ""; position: absolute; inset: -13px -8px; }   /* 글자 링크 모양 그대로, 누르는 자리 44px */
+/* '개념 다시 보기': 글자 줄(19.5px)에 위아래 8px를 더하고, 누르는 자리는 위 2px·아래 4px만 더 넓힌다(41.5px).
+   위 보기와는 여백이 겹쳐(마진 상쇄) 6px뿐이라 보기 쪽 확장 3px와 겹치지 않게 */
+.peek { margin-top: 4px; font-size: 13px; }
+.peek summary { position: relative; padding: 8px 0; cursor: pointer; color: var(--ink-500); }
+.peek summary::before { content: ""; position: absolute; inset: -2px 0 -4px; }
 .peek p { margin: 6px 0 0; }
 
 /* 오늘은 여기까지 */
@@ -226,3 +241,8 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .onb-dots { display: flex; gap: 6px; margin: auto 0 14px; padding-top: 32px; }
 .onb-dots i { width: 8px; height: 8px; border: 1.5px solid var(--ink-900); }
 .onb-dots i.on { background: var(--ink-900); }
+
+/* 줄바꿈 다듬기: 제목·가운데 맞춘 짧은 안내는 줄 길이를 고르게(balance), 짧은 본문은 마지막 줄에 한 어절만 남지 않게(pretty).
+   숫자 칸·표에는 쓰지 않는다. 지원하지 않는 브라우저는 지금처럼 줄을 바꾼다 */
+.onb-title, .done-title, .reveal .name, .sheet h2, .q, .selfcheck-q, .hint, .toast, .exhausted { text-wrap: balance; }
+.onb-body, .panel-note, .ctx-notes p, .verdict span, .ex-s, .explain .warn, .concept p, .selfcheck-fb, .quiz-fb, .stats-body p, .ds-insight p, .done > p, .empty { text-wrap: pretty; }

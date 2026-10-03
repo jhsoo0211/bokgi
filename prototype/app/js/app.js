@@ -63,8 +63,12 @@
   function screen(html) {
     seq++;
     document.onkeydown = null;
+    // 바뀌는 화면 안에 초점이 있었으면(또는 초점이 없으면) 새 화면 틀로 옮긴다 — 다음 Tab이 아래 탭이 아니라 새 화면 첫 칸에서 시작하게.
+    // 아래 탭을 눌러 왔으면 초점은 탭에 그대로 둔다
+    const refocus = !document.activeElement || document.activeElement === document.body || view.contains(document.activeElement);
     view.innerHTML = html;
     view.scrollTop = 0; window.scrollTo(0, 0);
+    if (refocus) view.focus({ preventScroll: true });
     return seq;
   }
 
@@ -122,8 +126,10 @@
         <h1 class="onb-title ds-head" id="onb-title">${s.title}</h1>
         <p class="onb-body">${s.body}</p>
         <div class="onb-dots" aria-hidden="true">${ONBOARDING.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>
-        <button type="button" class="ds-btn ds-btn--primary wide" id="onb-next">${last ? '시작' : '다음'}</button>
+        <button type="button" class="ds-btn ds-btn--primary wide" id="onb-next" aria-describedby="onb-title">${last ? '시작' : '다음'}</button>
       </section>`);
+    // 2·3장은 버튼에 초점을 이어 준다: 키보드로 Enter만 이어 누르면 되고, 화면 읽기는 버튼 설명으로 새 제목을 읽는다
+    if (i > 0) $('#onb-next').focus({ preventScroll: true });
     $('#onb-next').onclick = () => {
       if (!last) return showOnboarding(i + 1);
       State.setOnboarded(); State.log('onboarding_done', {});
@@ -208,13 +214,13 @@
         <div class="chips" id="ev" role="group" aria-labelledby="ev-q"></div>
         <p class="q ds-head" id="risk-q">가장 큰 위험 요인은? <small class="ds-muted">(선택)</small></p>
         <div class="chips" id="risk" role="group" aria-labelledby="risk-q"></div>
-        <div class="ds-conf"><label id="conf-q">얼마나 확신하나요</label><div class="dots" id="conf" role="group" aria-labelledby="conf-q"></div></div>
-        <p class="conf-scale">1 거의 모르겠다 · 5 매우 확신한다</p>
+        <div class="ds-conf"><label id="conf-q">얼마나 확신하나요</label><div class="dots" id="conf" role="group" aria-labelledby="conf-q" aria-describedby="conf-scale"></div></div>
+        <p class="conf-scale" id="conf-scale">1 거의 모르겠다 · 5 매우 확신한다</p>
       </fieldset>
       <div class="ds-card judge"><h5>${months}개월 뒤, 이 회사는</h5>
         <div class="swipe">
-          <button type="button" class="ds-btn" id="btnL" disabled aria-describedby="hint">← 시장보다 뒤졌다<small>키보드 ←</small></button>
-          <button type="button" class="ds-btn ds-btn--primary" id="btnR" disabled aria-describedby="hint">시장보다 앞섰다 →<small>키보드 →</small></button>
+          <button type="button" class="ds-btn" id="btnL" disabled aria-describedby="hint" aria-keyshortcuts="ArrowLeft">← 시장보다 뒤졌다<small>키보드 ←</small></button>
+          <button type="button" class="ds-btn ds-btn--primary" id="btnR" disabled aria-describedby="hint" aria-keyshortcuts="ArrowRight">시장보다 앞섰다 →<small>키보드 →</small></button>
         </div>
       </div>
       <p class="hint">맞히는 게 아니라 근거를 남기는 연습이에요</p>
@@ -229,6 +235,9 @@
     // 카드가 날아가기 시작하는 순간(onCommit은 220ms 뒤) 게이트를 잠가 이중 판단을 막는다. swipe.js는 고치지 않는다.
     const startCommit = stack._commit.bind(stack);
     stack._commit = (direction, el, meta) => { lock(true); startCommit(direction, el, meta); };
+    // 스와이프 도장은 보이는 피드백일 뿐이라 보조기술에서 뺀다 — swipe.js가 넣는 '잘했다/못했다' 글자가 화면 읽기에 읽히지 않게. swipe.js는 고치지 않는다
+    const baseRender = stack.render.bind(stack);
+    stack.render = () => { baseRender(); stack.stage.querySelectorAll('.sc-stamp').forEach(s => s.setAttribute('aria-hidden', 'true')); };
     stack.setDeck(cards);
     stack.render();
     fillGate();
@@ -426,7 +435,8 @@
   /* ---------- 정보 신고 시트 ---------- */
   function openReport(card, trigger) {
     const back = h('div', 'sheet-back');
-    back.innerHTML = `<form class="sheet" role="dialog" aria-modal="true" aria-labelledby="rp-title" novalidate>
+    // role="dialog"는 form이 아니라 시트 틀에 단다(form에는 허용되지 않는 역할)
+    back.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rp-title"><form class="sheet-form" novalidate>
         <h2 class="ds-head" id="rp-title">정보가 이상해요</h2>
         <p class="ds-muted small">어떤 점이 이상했나요? 카드 버전과 함께 기록돼요.</p>
         <fieldset><legend class="sr-only">신고 유형</legend>
@@ -435,17 +445,22 @@
         <label class="note-label" for="rp-note">더 적을 내용 (선택)</label>
         <textarea id="rp-note" maxlength="500" placeholder="예: 숫자 판의 PER이 공시와 달라요"></textarea>
         <div class="row2"><button type="button" class="ds-btn" id="rp-cancel">닫기</button><button type="submit" class="ds-btn ds-btn--primary" id="rp-send" disabled>보내기</button></div>
-      </form>`;
+      </form></div>`;
     document.body.appendChild(back);
+    const phone = document.querySelector('.phone');
+    phone.inert = true;                                  // 시트가 열린 동안 뒤 화면(아래 탭 포함)은 초점·클릭·화면 읽기에서 빠진다
     const form = back.querySelector('form'), send = back.querySelector('#rp-send');
     const chosen = () => { const c = form.querySelector('input[name="cat"]:checked'); return c ? c.value : ''; };
-    const close = () => { back.remove(); document.removeEventListener('keydown', onKey, true); if (trigger.isConnected) trigger.focus(); };
+    const close = () => { phone.inert = false; back.remove(); document.removeEventListener('keydown', onKey, true); if (trigger.isConnected) trigger.focus(); };
     const onKey = e => {
       if (e.key === 'Escape') { e.preventDefault(); close(); return; }
       if (e.key !== 'Tab') return;                       // 시트 안에서만 초점이 돈다
-      const f = [...back.querySelectorAll('input, textarea, button:not([disabled])')], a = f[0], z = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
-      else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+      // 라디오 묶음은 Tab 자리가 하나(고른 칸, 없으면 첫 칸)라서 그 칸을 처음으로 친다 — 전에는 다른 칸을 고른 뒤 Shift+Tab하면 시트 밖으로 빠졌다
+      const radio = form.querySelector('input[name="cat"]:checked') || form.querySelector('input[name="cat"]');
+      const f = [radio, ...back.querySelectorAll('textarea, button:not([disabled])')], a = f[0], z = f[f.length - 1], cur = document.activeElement;
+      if (!back.contains(cur)) { e.preventDefault(); (e.shiftKey ? z : a).focus(); }           // 시트 글자를 눌러 초점이 body로 간 경우
+      else if (e.shiftKey && (cur === a || cur.name === 'cat')) { e.preventDefault(); z.focus(); }
+      else if (!e.shiftKey && cur === z) { e.preventDefault(); a.focus(); }
     };
     form.addEventListener('change', () => { send.disabled = !chosen(); });
     form.onsubmit = e => {
@@ -538,9 +553,9 @@
     while (cells.length % 7) cells.push('<td></td>');
     const weeks = []; for (let i = 0; i < cells.length; i += 7) weeks.push(`<tr>${cells.slice(i, i + 7).join('')}</tr>`);
     return `<div class="cal-head">
-        <button type="button" class="cal-nav" id="cal-prev" aria-label="이전 달"${cur + calShift <= min ? ' disabled' : ''}>‹</button>
+        <button type="button" class="cal-nav" id="cal-prev" aria-label="이전 달" aria-describedby="cal-title"${cur + calShift <= min ? ' disabled' : ''}>‹</button>
         <h2 class="cal-title ds-head" id="cal-title" tabindex="-1">${y}년 ${m + 1}월</h2>
-        <button type="button" class="cal-nav" id="cal-next" aria-label="다음 달"${cur + calShift >= max ? ' disabled' : ''}>›</button>
+        <button type="button" class="cal-nav" id="cal-next" aria-label="다음 달" aria-describedby="cal-title"${cur + calShift >= max ? ' disabled' : ''}>›</button>
       </div>
       <table class="cal-grid" aria-labelledby="cal-title">
         <thead><tr>${WEEKDAYS.map(w => `<th scope="col">${w}</th>`).join('')}</tr></thead>
@@ -569,7 +584,7 @@
   function journalRow(j) {
     const c = caseById(j.case_id), r = j.result, d = new Date(j.created_at);
     const title = r && r.company ? `${r.company} (${r.ticker})` : c ? `${c.sector_public} · ${c.size_bucket}` : j.case_id;
-    const state = r ? `<span class="jstate">${SHAPE[r.state]} ${RESULT[r.state]}</span>` : '<span class="jstate jstate--wait">결과 대기</span>';
+    const state = r ? `<span class="jstate"><span aria-hidden="true">${SHAPE[r.state]}</span> ${RESULT[r.state]}</span>` : '<span class="jstate jstate--wait">결과 대기</span>';   // 모양(▲▼■)은 눈으로 보는 보조 표시 — 화면 읽기는 낱말만
     const self = SELF_CHECK[j.self_check];   // ○△✕ 개념 확인: 기록만 보인다(합산하지 않는다)
     return `<li class="jrow">
         <div class="jrow-head"><span class="jrow-date ds-num">${md(d)}</span><b class="jrow-title">${title}</b>${j.recognized ? '<span class="tag">알고 판단</span>' : ''}${self ? `<span class="jmark" role="img" aria-label="개념 확인: ${self[1]}" title="개념 확인: ${self[1]}">${self[0]}</span>` : ''}${state}</div>

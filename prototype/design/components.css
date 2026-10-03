@@ -4,7 +4,7 @@
 .ds-root {
   background: var(--bg-000); color: var(--ink-900);
   font-family: var(--ds-font-body); font-weight: var(--ds-body-weight); font-size: 14px; line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
 .ds-root *, .ds-root *::before, .ds-root *::after { box-sizing: border-box; }
 .ds-root :focus-visible { outline: var(--border-bold) solid var(--focus); outline-offset: 2px; }
@@ -36,6 +36,8 @@
   padding: 7px 11px; border: var(--ds-border) solid var(--ink-900); border-radius: var(--radius-0);
   background: var(--bg-100); color: var(--ink-900); font: inherit; font-size: 13px; cursor: pointer; position: relative;
 }
+/* 누르는 자리: 보이는 칸은 그대로, 칩 간격(8px)의 절반씩 넓혀 높이 44px (이웃 칩과 겹치지 않는다) */
+.ds-chip::before { content: ""; position: absolute; inset: -4px; }
 .ds-chip[aria-pressed="true"]::after {
   content: ""; position: absolute; inset: -6px -8px;
   border: 2px solid var(--select); border-radius: 50%; transform: rotate(-4deg); pointer-events: none;
@@ -54,12 +56,15 @@
 /* 확신도 */
 .ds-conf { display: flex; justify-content: space-between; align-items: center; }
 .ds-conf label { font-size: 12px; color: var(--ink-500); }
-.ds-conf .dots { display: flex; gap: 8px; }
+/* 답란은 26px 그대로, 간격을 18px로 벌리고 누르는 자리를 44×44px로 넓힌다(간격의 절반까지만 — 이웃 칸과 겹치지 않게) */
+.ds-conf .dots { display: flex; gap: 18px; }
 .ds-conf .dots button {
+  position: relative;
   width: 26px; height: 26px; border-radius: 0; border: var(--ds-border) solid var(--ink-900);
   background: var(--bg-100); color: var(--ink-500); font: inherit; font-size: 12px; cursor: pointer; padding: 0;
   font-variant-numeric: tabular-nums;
 }
+.ds-conf .dots button::before { content: ""; position: absolute; inset: -9px; }
 .ds-conf .dots button[aria-pressed="true"] { background: var(--ink-900); color: var(--bg-000); }
 
 /* 버튼 */
