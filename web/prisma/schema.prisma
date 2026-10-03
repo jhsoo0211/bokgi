@@ -1,0 +1,521 @@
+// 복기 데이터 모델 — 구현계획 05 §3, ADR-0001(자료 세 등급).
+//
+// ① 판단 전(public): cases · case_blocks · concepts · quizzes(정답 열 제외하고 공개)
+// ② 공개 뒤(reveal):  case_outcomes · case_reveal · case_learning_points  → src/server/outcomes.ts(server-only)만 읽는다
+// ③ 서버 전용(internal): case_internal(제작 메모·누수 사전 낱말)            → src/server/outcomes.ts만 읽는다
+// ①의 어느 열·jsonb에도 ②③ 값(회사명·티커·절대 날짜·수익률·학습 포인트)이 없다.
+//
+// CHECK 제약과 부분 인덱스는 Prisma 스키마로 선언되지 않으므로 마이그레이션 SQL(--create-only 뒤 손으로 추가)에 있다.
+// 시각은 모두 timestamptz(3). 날짜(하루 단위)는 date.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/server/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- 닫힌 집합 ----------
+
+enum CaseStatus {
+  draft
+  reviewed
+  live
+  retired
+
+  @@map("case_status")
+}
+
+enum PanelKind {
+  flow
+  numbers
+  then
+
+  @@map("panel_kind")
+}
+
+enum Direction {
+  outperform
+  underperform
+
+  @@map("direction")
+}
+
+enum ResultState {
+  ahead
+  behind
+  even
+
+  @@map("result_state")
+}
+
+enum SelfCheck {
+  o
+  tri
+  x
+
+  @@map("self_check")
+}
+
+enum ConceptBranch {
+  outcome
+  numbers
+  then
+  self
+
+  @@map("concept_branch")
+}
+
+enum ConceptState {
+  new
+  learning
+  review
+  known
+
+  @@map("concept_state")
+}
+
+enum QuizVia {
+  reveal
+  review
+  concepts
+
+  @@map("quiz_via")
+}
+
+enum ReportCategory {
+  data_error
+  identifiable
+  missing_info
+  outcome_explanation
+  concept_unclear
+  source_error
+  ai_as_fact
+  other
+
+  @@map("report_category")
+}
+
+enum ReportStatus {
+  open
+  triaged
+  fixed
+  rejected
+
+  @@map("report_status")
+}
+
+enum AiRole {
+  questioner
+  explainer
+
+  @@map("ai_role")
+}
+
+enum AiSource {
+  template
+  llm
+
+  @@map("ai_source")
+}
+
+// ---------- ① 판단 전 ----------
+
+/// 카드 한 장 = 사례 하나. 판단 시점의 절대 날짜는 여기 없다(case_outcomes.start_date가 유일한 원본).
+/// evidence_options·risk_options는 현재 버전의 칩(공개 자료). 판단은 칩 id와 글자를 함께 복사해 둔다.
+model Case {
+  id              String     @id @db.Uuid
+  version         Int
+  yearPublic      Int        @map("year_public")
+  sectorPublic    String     @map("sector_public")
+  sizeBucket      String     @map("size_bucket")
+  horizonDays     Int        @map("horizon_days")
+  difficulty      Int
+  status          CaseStatus @default(draft)
+  /// 결과 균형은 제작 도구(pick_case.py)가 굳힌 순서. 런타임은 이 순서만 읽는다.
+  /// live 카드 사이에서만 유일(부분 유일 인덱스 cases_live_deck_order_key — 마이그레이션 SQL).
+  deckOrder       Int        @map("deck_order")
+  evidenceOptions Json       @map("evidence_options") @db.JsonB
+  riskOptions     Json       @map("risk_options") @db.JsonB
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  reviewedAt      DateTime?  @map("reviewed_at") @db.Timestamptz(3)
+
+  blocks         CaseBlock[]
+  outcomes       CaseOutcome[]
+  reveals        CaseReveal[]
+  learningPoints CaseLearningPoint[]
+  internals      CaseInternal[]
+  judgments      Judgment[]
+  reports        Report[]
+
+  @@map("cases")
+}
+
+/// 판 하나(흐름·숫자·그때). payload는 계약(src/shared/contract.ts)의 FlowPanel·NumbersPanel·ThenPanel 모양 그대로.
+model CaseBlock {
+  caseId  String    @map("case_id") @db.Uuid
+  version Int
+  kind    PanelKind
+  payload Json      @db.JsonB
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Restrict)
+
+  @@id([caseId, version, kind])
+  @@map("case_blocks")
+}
+
+/// 개념(공개 자료). 사례별 연결 문장은 공개 뒤 쪽(case_learning_points)에 있다.
+model Concept {
+  id        String        @id
+  branch    ConceptBranch
+  title     String
+  bodyMd    String        @map("body_md")
+  ord       Int           @default(0)
+  /// 개념 파일에서 빠지면 false(시드 --retire-missing). 지우지 않는다(진행·학습 포인트가 참조).
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  quizzes        Quiz[]
+  learningPoints CaseLearningPoint[]
+  progress       ConceptProgress[]
+  attempts       QuizAttempt[]
+
+  @@map("concepts")
+}
+
+/// 확인 문제. answer_index는 서버만 읽는다(QuizPublic에는 없다).
+model Quiz {
+  id          String  @id
+  conceptId   String  @map("concept_id")
+  ord         Int     @default(0)
+  question    String
+  options     Json    @db.JsonB
+  answerIndex Int     @map("answer_index")
+  explanation String?
+  /// 개념 파일의 문제 목록에서 빠지면 false(시드). 지우지 않는다(풀이 기록이 참조).
+  active      Boolean @default(true)
+
+  concept  Concept       @relation(fields: [conceptId], references: [id], onDelete: Restrict)
+  attempts QuizAttempt[]
+
+  /// (concept_id, ord)는 active 문제 사이에서만 유일(부분 유일 인덱스 quizzes_active_concept_ord_key — 마이그레이션 SQL)
+  @@index([conceptId])
+  @@map("quizzes")
+}
+
+// ---------- ② 공개 뒤 (server-only 모듈만 읽는다) ----------
+
+model CaseOutcome {
+  caseId          String   @map("case_id") @db.Uuid
+  version         Int
+  companyName     String   @map("company_name")
+  ticker          String
+  startDate       DateTime @map("start_date") @db.Date
+  endDate         DateTime @map("end_date") @db.Date
+  period          String
+  startPrice      Decimal? @map("start_price") @db.Decimal(14, 4)
+  endPrice        Decimal? @map("end_price") @db.Decimal(14, 4)
+  returnPct       Decimal  @map("return_pct") @db.Decimal(10, 4)
+  benchReturnPct  Decimal  @map("bench_return_pct") @db.Decimal(10, 4)
+  sectorReturnPct Decimal? @map("sector_return_pct") @db.Decimal(10, 4)
+  benchName       String   @map("bench_name")
+  pricePath       Json     @map("price_path") @db.JsonB
+  benchPath       Json     @map("bench_path") @db.JsonB
+  sources         Json     @db.JsonB
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Restrict)
+
+  @@id([caseId, version])
+  @@map("case_outcomes")
+}
+
+/// 사후에 중요했던 것(최대 3).
+model CaseReveal {
+  caseId    String @map("case_id") @db.Uuid
+  version   Int
+  keyPoints Json   @map("key_points") @db.JsonB
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Restrict)
+
+  @@id([caseId, version])
+  @@map("case_reveal")
+}
+
+/// 학습 포인트(공개 뒤). 05 §3의 pk(case_id, concept_id)에 version을 더해 '그때의 카드'를 복원할 수 있게 했다.
+model CaseLearningPoint {
+  caseId       String @map("case_id") @db.Uuid
+  version      Int
+  conceptId    String @map("concept_id")
+  rank         Int
+  linkSentence String @map("link_sentence")
+
+  case    Case    @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Restrict)
+
+  @@id([caseId, version, conceptId])
+  @@unique([caseId, version, rank])
+  @@map("case_learning_points")
+}
+
+// ---------- ③ 서버 전용 ----------
+
+/// 제작 메모·누수 사전 낱말(제품명 등)·자료 기준일. 누수 사전은 이것과 case_outcomes로 서버가 만든다.
+model CaseInternal {
+  caseId     String    @map("case_id") @db.Uuid
+  version    Int
+  notes      String
+  leakTerms  Json      @map("leak_terms") @db.JsonB
+  dataCutoff DateTime? @map("data_cutoff") @db.Date
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Restrict)
+
+  @@id([caseId, version])
+  @@map("case_internal")
+}
+
+// ---------- 사용자·인증 ----------
+
+model User {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nickname    String
+  tz          String    @default("Asia/Seoul")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  onboardedAt DateTime? @map("onboarded_at") @db.Timestamptz(3)
+
+  invite          Invite?           @relation("InviteUsedBy")
+  recoveryInvites Invite[]          @relation("InviteForUser")
+  sessions        SessionAuth[]
+  judgments       Judgment[]
+  progress        ConceptProgress[]
+  quizAttempts    QuizAttempt[]
+  dailySessions   DailySession[]
+  reports         Report[]
+  events          Event[]
+  aiDialogs       AiDialog[]
+
+  @@map("users")
+}
+
+/// 초대 코드(해시만 저장). for_user_id가 있으면 기존 사용자의 재발급 코드다(새 사용자를 만들지 않는다).
+model Invite {
+  codeHash  String    @id @map("code_hash")
+  label     String?
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+  usedBy    String?   @unique @map("used_by") @db.Uuid
+  forUserId String?   @map("for_user_id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  usedByUser User? @relation("InviteUsedBy", fields: [usedBy], references: [id], onDelete: SetNull)
+  forUser    User? @relation("InviteForUser", fields: [forUserId], references: [id], onDelete: Cascade)
+
+  @@map("invites")
+}
+
+/// DB 세션 하나. 쿠키에는 토큰 원문, DB에는 sha256 해시만.
+model SessionAuth {
+  tokenHash String    @id @map("token_hash")
+  userId    String    @map("user_id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions_auth")
+}
+
+/// 초대 시도 한도(고정 창 카운터). key = 'invite:ip:<해시>' 또는 'invite:all'.
+model RateLimit {
+  key         String
+  windowStart DateTime @map("window_start") @db.Timestamptz(3)
+  hits        Int      @default(0)
+
+  @@id([key, windowStart])
+  @@map("rate_limits")
+}
+
+// ---------- 판단 ----------
+
+/// 판단 한 번. 버전은 유일 키에 넣지 않는다(공개 뒤 새 버전 재판단은 무의미).
+/// key_evidence·risk_factor는 판단 당시 칩 글자의 복사본(일지·인사이트용), *_id는 칩 id.
+model Judgment {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String     @map("user_id") @db.Uuid
+  caseId        String     @map("case_id") @db.Uuid
+  caseVersion   Int        @map("case_version")
+  localDate     DateTime   @map("local_date") @db.Date
+  keyEvidenceId String     @map("key_evidence_id")
+  keyEvidence   String     @map("key_evidence")
+  riskId        String?    @map("risk_id")
+  riskFactor    String?    @map("risk_factor")
+  direction     Direction
+  confidence    Int
+  recognized    Boolean    @default(false)
+  selfCheck     SelfCheck? @map("self_check")
+  selfCheckAt   DateTime?  @map("self_check_at") @db.Timestamptz(3)
+  isExtra       Boolean    @default(false) @map("is_extra")
+  panelsViewed  Json       @default("[]") @map("panels_viewed") @db.JsonB
+  gesture       Json?      @db.JsonB
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  revealedAt    DateTime?  @map("revealed_at") @db.Timestamptz(3)
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  case      Case              @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  outcome   JudgmentOutcome?
+  aiDialogs AiDialog[]
+
+  @@unique([userId, caseId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, localDate])
+  @@map("judgments")
+}
+
+/// 공개 때 한 번 채점한 결과. 반복 공개는 ON CONFLICT DO NOTHING이라 공개 당시 채점이 유지된다.
+model JudgmentOutcome {
+  judgmentId String      @id @map("judgment_id") @db.Uuid
+  relativePp Decimal     @map("relative_pp") @db.Decimal(8, 2)
+  state      ResultState
+  hit        Boolean?
+  scoredAt   DateTime    @default(now()) @map("scored_at") @db.Timestamptz(3)
+
+  judgment Judgment @relation(fields: [judgmentId], references: [id], onDelete: Cascade)
+
+  @@map("judgment_outcomes")
+}
+
+// ---------- AI ----------
+
+/// 기록은 유형·출처·가드 결과·지연과 화면에 나간 문장만. 프롬프트 원문은 남기지 않는다.
+model AiDialog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  caseId       String   @map("case_id") @db.Uuid
+  judgmentId   String?  @map("judgment_id") @db.Uuid
+  role         AiRole
+  source       AiSource
+  templateType Int?     @map("template_type")
+  text         String
+  guard        Json?    @db.JsonB
+  latencyMs    Int?     @map("latency_ms")
+  localDate    DateTime @map("local_date") @db.Date
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  judgment Judgment? @relation(fields: [judgmentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, caseId, role])
+  @@index([userId, localDate, role])
+  @@map("ai_dialogs")
+}
+
+/// LLM 호출 수(판정 호출 포함). 재배포에도 유지된다.
+model AiUsageDaily {
+  day   DateTime @id @db.Date
+  calls Int      @default(0)
+
+  @@map("ai_usage_daily")
+}
+
+// ---------- 개념·복습 ----------
+
+/// 숙련도 + 복습 일정(review_schedule 통합). level은 REVIEW_INTERVALS의 위치.
+model ConceptProgress {
+  userId      String       @map("user_id") @db.Uuid
+  conceptId   String       @map("concept_id")
+  state       ConceptState @default(new)
+  level       Int          @default(0)
+  dueOn       DateTime?    @map("due_on") @db.Date
+  quizCorrect Int          @default(0) @map("quiz_correct")
+  quizTotal   Int          @default(0) @map("quiz_total")
+  lastSeen    DateTime?    @map("last_seen") @db.Timestamptz(3)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Restrict)
+
+  @@id([userId, conceptId])
+  @@map("concept_progress")
+}
+
+/// 문제 풀이 기록. client_attempt_id로 멱등. 같은 응답을 다시 줄 수 있게 채점 뒤 상태를 함께 저장한다.
+model QuizAttempt {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String       @map("user_id") @db.Uuid
+  conceptId       String       @map("concept_id")
+  quizId          String       @map("quiz_id")
+  optionIndex     Int          @map("option_index")
+  correct         Boolean
+  via             QuizVia
+  levelBefore     Int?         @map("level_before")
+  levelAfter      Int          @map("level_after")
+  stateAfter      ConceptState @map("state_after")
+  dueOnAfter      DateTime     @map("due_on_after") @db.Date
+  localDate       DateTime     @map("local_date") @db.Date
+  clientAttemptId String       @map("client_attempt_id") @db.Uuid
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Restrict)
+  quiz    Quiz    @relation(fields: [quizId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, clientAttemptId])
+  @@index([userId, via, localDate])
+  @@map("quiz_attempts")
+}
+
+/// 그날의 카드 세트(첫 조회 때 고정). 카운터는 두지 않고 파생한다.
+model DailySession {
+  userId    String   @map("user_id") @db.Uuid
+  localDate DateTime @map("local_date") @db.Date
+  caseIds   String[] @map("case_ids") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, localDate])
+  @@map("daily_sessions")
+}
+
+// ---------- 신고·이벤트 ----------
+
+model Report {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String         @map("user_id") @db.Uuid
+  caseId      String         @map("case_id") @db.Uuid
+  caseVersion Int            @map("case_version")
+  category    ReportCategory
+  note        String?
+  status      ReportStatus   @default(open)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  case Case @relation(fields: [caseId], references: [id], onDelete: Restrict)
+
+  @@index([caseId, caseVersion])
+  @@map("reports")
+}
+
+/// UI 이벤트(allow-list). 상태 변화(판단·공개·퀴즈·세션)는 각 테이블이 기록이다.
+model Event {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  sessionId     String?  @map("session_id") @db.Uuid
+  event         String
+  caseId        String?  @map("case_id") @db.Uuid
+  caseVersion   Int?     @map("case_version")
+  payload       Json?    @db.JsonB
+  clientEventId String   @map("client_event_id") @db.Uuid
+  ts            DateTime @db.Timestamptz(3)
+  receivedAt    DateTime @default(now()) @map("received_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clientEventId])
+  @@index([userId, ts])
+  @@map("events")
+}

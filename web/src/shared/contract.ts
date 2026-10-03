@@ -135,10 +135,15 @@ export const UI_EVENTS = ["card_view", "panel_view", "evidence_pick", "risk_pick
 
 export const Health = z.object({ ok: z.boolean(), db: z.boolean(), version: z.string() }).strict();
 
-/** 세 상태 경계(±1%p)와 적중 정의 — 서버·클라이언트 공용 */
+/** 상대 성과(%p)는 표시·판정 모두 소수 첫째 자리로 반올림한 값을 쓴다(경계값에서 서버·클라이언트·카드 도구가 갈리지 않게). */
+export function roundPp(relativePp: number): number {
+  return Math.round(relativePp * 10) / 10;
+}
+/** 세 상태 경계(±1.0%p, 반올림 뒤)와 적중 정의 — 서버·클라이언트·카드 도구 공용 */
 export function resultState(relativePp: number): z.infer<typeof ResultState> {
-  if (Math.abs(relativePp) <= 1.0) return "even";
-  return relativePp > 0 ? "ahead" : "behind";
+  const r = roundPp(relativePp);
+  if (Math.abs(r) <= 1.0) return "even";
+  return r > 0 ? "ahead" : "behind";
 }
 export function hitOf(state: z.infer<typeof ResultState>, direction: z.infer<typeof Direction>): boolean | null {
   if (state === "even") return null;

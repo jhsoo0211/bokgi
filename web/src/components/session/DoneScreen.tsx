@@ -1,0 +1,61 @@
+"use client";
+
+/** 오늘 끝: 오늘 되짚은 개념 요약, '한 장 더'(허용될 때, 기록됨) 또는 카드가 바닥났다는 안내. 결과색·형광펜 없음 */
+import { useState } from "react";
+import { EntryStrip } from "@/components/common/EntryStrip";
+import { TodayTop } from "@/components/common/TodayTop";
+import { useScreenFocus } from "@/hooks/useScreenFocus";
+import { CONCEPT_STATE, dueLabel, localDayKey } from "@/lib/client/format";
+import { SESSION_CARDS } from "@/shared/contract";
+import type { ConceptListItem, Today } from "@/lib/client/types";
+
+type Props = { today: Today; summary: ConceptListItem[]; judged: number; onMore: () => Promise<string | null> };
+
+export function DoneScreen({ today, summary, judged, onMore }: Props) {
+  useScreenFocus();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const day = localDayKey();
+
+  const more = async () => {
+    if (busy) return;
+    setBusy(true);
+    setErr(null);
+    const failed = await onMore();   // 성공하면 화면이 바뀐다
+    if (failed) { setErr(failed); setBusy(false); }
+  };
+
+  return (
+    <>
+      <TodayTop judged={judged} label="마침" />
+      <EntryStrip today={today} judged={judged} extraMode={false} />
+      <section className="done">
+        <h1 id="screen-title" className="done-title ds-head">{judged >= SESSION_CARDS ? "오늘은 여기까지" : "준비된 카드를 모두 봤어요"}</h1>
+        <p className="ds-muted">{judged ? `오늘 카드 ${judged}장을 판단하고 결과를 되짚었어요.` : "오늘은 판단한 카드가 아직 없어요."}</p>
+        {summary.length > 0 && (
+          <div className="ds-card">
+            <h2 className="ds-card-title">오늘 되짚은 개념</h2>
+            <ul className="csum">
+              {summary.map((c) => (
+                <li key={c.id}>
+                  <b>{c.title}</b>
+                  <span className="cstate">{CONCEPT_STATE[c.state]}</span>
+                  {c.dueOn && <small>다음 복습: {dueLabel(c.dueOn, day)}</small>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {today.extraAllowed ? (
+          <>
+            <button type="button" className="ds-btn wide" id="more" aria-disabled={busy ? true : undefined} onClick={() => { void more(); }}>한 장 더</button>
+            <p className="hint">한 장 더 본 것도 기록돼요. 내일 다시 3장이 준비돼요.</p>
+            {err && <p className="hint" role="alert">{err}</p>}
+          </>
+        ) : (
+          <p className="exhausted">{judged >= SESSION_CARDS ? "준비된 카드를 모두 봤어요. " : ""}새 카드가 들어오면 여기서 이어져요.</p>
+        )}
+      </section>
+    </>
+  );
+}

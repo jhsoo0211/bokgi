@@ -1,0 +1,49 @@
+# 복기 이미지 빌드 컨텍스트에서 뺄 것. 패턴은 컨텍스트(web/) 루트 기준이다.
+
+# ── 비밀값 ─────────────────────────────────────────────────────────────────
+# ★ .env*는 절대 컨텍스트에 넣지 않는다. next build가 .env를 읽어 서버 번들과 NEXT_PUBLIC_*에 굽는다.
+#   운영 값은 실행 때 compose의 env_file(.env)로만 들어간다.
+.env
+.env.*
+**/.env
+**/.env.*
+*.pem
+
+# ── 의존성·빌드 산출물(이미지 안에서 npm ci·next build로 다시 만든다) ──────────
+node_modules
+**/node_modules
+.next
+out
+build
+coverage
+*.tsbuildinfo
+
+# ── 시험·제작 도구·운영 문서·운영 상태 ─────────────────────────────────────────
+tests
+playwright-report
+test-results
+blob-report
+tools
+ops
+backups
+.last_tag
+# 루트의 문서(README·AGENTS·CLAUDE·BUILD_PLAN). 하위 폴더의 .md는 빌드가 쓸 수 있어 남긴다.
+*.md
+
+# ── 배포 정의(바뀌어도 앱 레이어 캐시가 깨지지 않게) ─────────────────────────────
+Dockerfile
+.dockerignore
+docker-compose*.yml
+compose*.yml
+scripts/deploy.sh
+scripts/env-check.mjs
+
+# ── 기타 ───────────────────────────────────────────────────────────────────
+.git
+.gitignore
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vscode
+.idea

@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "branches": [
+    {"id": "outcome", "title": "결과 읽기"},
+    {"id": "numbers", "title": "숫자 읽기"},
+    {"id": "then", "title": "그때 읽기"},
+    {"id": "self", "title": "내 판단 읽기"}
+  ],
+  "concepts": [
+    {
+      "id": "abs-vs-relative",
+      "branch": "outcome",
+      "title": "절대수익과 시장 대비",
+      "body": "주가는 올랐지만 시장이 더 올랐습니다. 절대수익만 보면 성공, 시장 대비로 보면 뒤처진 판단입니다. 오른 이유의 대부분이 시장 전체의 상승이었는지 먼저 확인해야 합니다.",
+      "quizzes": [
+        {"quizId": "abs-vs-relative-q1", "question": "기업 +10%, 시장 +15%면 이 판단은?", "options": ["성공 — 주가가 올랐으니까", "하회 — 시장을 못 따라갔으니까"], "answerIndex": 1, "explanation": "시장 대비로 읽으면 시장보다 뒤진 결과예요."},
+        {"quizId": "abs-vs-relative-q2", "question": "시장이 −10%일 때 기업이 −4%였다면?", "options": ["시장보다 앞섰다", "실패한 판단이다"], "answerIndex": 0, "explanation": "주가는 내렸지만 시장보다 덜 내렸으니 시장 대비로는 앞섰어요."}
+      ]
+    },
+    {
+      "id": "growth-vs-valuation",
+      "branch": "numbers",
+      "title": "높은 성장률과 높은 밸류에이션",
+      "body": "성장률이 높아도 그 성장이 이미 가격에 반영돼 있으면 시장 대비 초과수익은 남지 않습니다. 업종 중앙값 대비 PER 프리미엄이 얼마나 큰지가 핵심입니다. 성장과 가격을 함께 봐야 합니다.",
+      "quizzes": [
+        {"quizId": "growth-vs-valuation-q1", "question": "매출 +23%인데 PER이 업종의 1.4배라면?", "options": ["성장이 확인됐으니 유리하다", "성장이 이미 가격에 반영됐을 수 있다"], "answerIndex": 1, "explanation": "높은 PER은 시장이 이미 높은 성장을 기대하고 있다는 뜻일 수 있어요."},
+        {"quizId": "growth-vs-valuation-q2", "question": "PER 프리미엄을 볼 때 비교 기준으로 알맞은 것은?", "options": ["업종 중앙값", "작년 주가"], "answerIndex": 0, "explanation": "같은 업종의 중앙값과 견줘야 프리미엄의 크기를 읽을 수 있어요."}
+      ]
+    },
+    {
+      "id": "debt-and-cycle",
+      "branch": "numbers",
+      "title": "높은 부채와 경기 민감도",
+      "body": "부채비율이 높은 기업은 금리가 오르거나 매출이 줄 때 이익이 더 크게 흔들립니다. 성장 둔화와 높은 부채가 겹치면 하방 위험이 커집니다. 낮은 PER이 이 위험을 가리기도 합니다.",
+      "quizzes": [
+        {"quizId": "debt-and-cycle-q1", "question": "부채비율 88%, 매출 −8%, 금리 상승기. 가장 큰 위험은?", "options": ["이자 부담으로 이익이 빠르게 줄 수 있다", "PER이 낮아서 안전하다"], "answerIndex": 0, "explanation": "금리가 오르면 이자 비용이 늘고, 매출이 줄면 이익이 더 크게 흔들려요."},
+        {"quizId": "debt-and-cycle-q2", "question": "낮은 PER과 높은 부채가 함께 보일 때 먼저 의심할 것은?", "options": ["이익이 곧 줄어들 가능성", "무조건 저평가"], "answerIndex": 0, "explanation": "시장이 앞으로의 이익 감소를 미리 가격에 넣었을 수 있어요."}
+      ]
+    },
+    {
+      "id": "base-rate",
+      "branch": "outcome",
+      "title": "기저확률과 노이즈",
+      "body": "6개월 주가 방향은 절반 가까이가 시장 흐름과 우연으로 설명됩니다. 한두 번의 적중은 실력이 아닐 수 있습니다. 근거가 같은 판단을 여러 번 반복했을 때의 평균이 실력입니다.",
+      "quizzes": [
+        {"quizId": "base-rate-q1", "question": "3연속 적중 후 가장 정확한 해석은?", "options": ["판단력이 검증됐다", "표본이 작아 아직 알 수 없다"], "answerIndex": 1, "explanation": "몇 번의 결과로는 운과 실력을 가를 수 없어요."},
+        {"quizId": "base-rate-q2", "question": "근거를 평가하기에 더 나은 방법은?", "options": ["같은 근거로 한 판단을 여러 번 모아 본다", "가장 최근 한 번의 결과를 본다"], "answerIndex": 0, "explanation": "같은 근거의 판단이 쌓여야 그 근거의 힘을 읽을 수 있어요."}
+      ]
+    }
+  ]
+}

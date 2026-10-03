@@ -44,4 +44,23 @@
 - D: 목 모드 e2e 통과 + 실제 API e2e(통합 때) 통과, 접근성 체크(히트 44px·초점·ARIA) 유지.
 
 ## 계약 변경 기록
-(없음)
+- 2026-10-04 (A) `contract.ts`는 바꾸지 않았다. 계약에 없던 동작만 보충한다(자세히는 `src/server/README.md` '계약 보충').
+  - `GET /api/session/today?extra=1`: 세트를 다 판단했으면 `cards`에 세트 밖 카드 1장('한 장 더'). 이유: '한 장 더' 카드 id를 받을 경로가 계약에 없다. 판단은 `isExtra: true`.
+  - 온보딩 완료는 `POST /api/events`의 `onboarding_done`으로 기록한다(→ `Me.user.onboarded`). 이유: 계약에 온보딩 완료 엔드포인트가 없다.
+  - 계약에 모양이 없는 응답: self-check `{ok, selfCheck}`, reports 201 `{ok, reportId}`, events `{ok, accepted, duplicates, rejected}`, logout `{ok}`, invite는 `Me` + 쿠키, judgments는 새 판단 201·재전송 200. 공개·로그아웃은 본문 없이 보내도 된다.
+  - 세션 쿠키 이름은 `PUBLIC_ORIGIN`이 https일 때 `__Host-bokgi_sid`, http 개발 환경에서는 `bokgi_sid`(브라우저가 Secure 없는 `__Host-` 쿠키를 버리므로).
+  - 스키마(05 §3과 다른 점): `case_learning_points` 키에 version 추가, 서버 전용 `case_internal`·초대 한도 `rate_limits` 테이블 추가, `cases.deck_order`는 live 카드 사이에서만 유일(C의 카드 스키마 규칙), 상태에 `reviewed` 추가, 퀴즈는 `quizzes` 테이블(정답 열 서버 전용), `concepts`·`quizzes`에 `active`(콘텐츠에서 빠지면 지우지 않고 false).
+  - 채점은 계약의 `roundPp()`·`resultState()`를 쓴다. 시드 CLI: `--content <폴더>`(여러 번 가능)·`--dry-run`·`--retire-missing`(콘텐츠에 없는 live 카드는 retired, 개념은 active=false — 예시 → 실제 카드 교체용). 개발 DB는 2026-10-04에 `../content`(카드 6·개념 20)로 채웠고 예시 픽스처 카드 3장은 retired.
+- 2026-10-04 (조정자, C 보고 반영) `roundPp()` 추가. `resultState()`는 소수 첫째 자리로 반올림한 뒤 ±1.0 판정 — 카드 도구·서버·클라이언트가 같은 규칙을 쓴다.
+- 2026-10-04 (C) `outcome.sources[].kind` 관례: `예시`(실측 아님 표기, 공개 화면에 "예시 자료" 태그), `가격`(label에 배당·분할 반영 명시). `windowDays` = 흐름 창 길이(달력 일). 흐름 `index14`는 창 첫날 = 100, 결과 경로는 판단일 = 100.
+- 2026-10-04 (C) 05 §3의 `start_price`·`end_price`·`sector_return_pct`·`reviewed_at`은 카드에 원천 값이 없어 nullable. `NumbersPanel`에 이자보상배율·영업현금흐름 자리는 두지 않음(기획안 §5.1보다 좁음; 2단계에서 확장).
+- 2026-10-04 (D) `contract.ts`는 바꾸지 않았다. 클라이언트(`src/lib/client/api.ts`)는 A의 계약 보충을 그대로 쓴다: 한 장 더 = `GET /api/session/today?extra=1`의 `cards[0]`(미공개 한 장 더도 여기서 찾아 돌아오면 공개), 온보딩 완료 = `onboarding_done` 이벤트(바로 보냄) + 기기 표시 `bokgi.onboarded.{userId}`, 일지 달 = `?month=YYYY-MM`, 모양 없는 2xx 본문(self-check·reports·events)은 읽지 않는다.
+  - 계약에 없어 기기(`localStorage['bokgi.today.v1']`, 날짜별)에 남기는 것: 오늘 되짚은 개념('오늘 끝' 요약), 푼 복습 수('복습 i/n'), 한 장 더 판단 수('오늘 3/3 +k'). **제안**: `Today`에 `extraJudged: number`와 `conceptsToday: {conceptId,title,state,dueOn}[]` — 그러면 기기 기록이 필요 없고 다른 기기에서도 맞는다.
+  - 퀴즈: 틀렸을 때 정답 보기 표시는 `explanation`의 `‘…’`(A 고정 문구 '아니에요. 정답: ‘…’.')를 보기 글자와 맞춰 고른다. **제안**: `QuizResult.answerIndex`(채점 뒤라 노출 무방) — 클라이언트는 선택 필드로 이미 읽는다.
+  - 인사이트 카드의 작은 머리(확신도·근거·아는 회사)는 문장 앞부분으로 고른다. **제안**: `stats.insights`를 `{kind, text}[]`로.
+  - 달력 넘기기 범위(첫 판단 달 ~ 마지막 복습 예정 달)는 일지 `items[].localDate`와 `/api/concepts`의 `dueOn`으로 계산한다(서버가 `?month=`를 모르면 같은 자료로 그 달을 계산).
+  - `Gesture.via`: 키보드 ← →는 `"key"`(프로토타입은 `"button"`). 키보드로 판단하면 초점이 [바로 공개]로 가고, 알림에 초점·포인터가 있는 동안 2.5초 타이머가 멈춘다.
+  - 판단 전송 시점: 되돌리기 창이 끝나거나 [바로 공개] → `POST /api/judgments` → 공개. 창 안에서 탭 이동·페이지 이탈(pagehide, keepalive)이면 공개 없이 보낸다(일지 '결과 대기'). 되돌리기는 서버 호출 없음(`undo` UI 이벤트만).
+  - 출처 표시(C 관례): `kind "예시"` → 기간 줄에 '예시 자료' 꼬리표, 나머지 kind(가격·공시·통계·보도)는 경로 아래 짧은 목록(label + url). `keyPoints`는 '사후에 중요했던 것' 아래, `linkSentence`는 개념 카드 본문 앞.
+  - 목 모드(`NEXT_PUBLIC_USE_MOCK=1`)는 `next dev` 전용: `api.ts`의 `NODE_ENV !== "production"` 가지에서만 `./mock`을 읽어 운영 빌드에는 목·예시 결과 자료가 없다(빌드 산출물 grep 0건). 목은 A 서버 규칙(세트 고정·extra·onboarding_done·퀴즈 해설 문구·roundPp)을 따르고 모든 응답을 계약 스키마로 검사한다.
+  - e2e: `npm run e2e`(목, `next dev -p 3210`을 직접 띄움 — 같은 폴더의 다른 `next dev`는 먼저 내린다), `npm run e2e:real`(canary.spec.ts만: 카나리 카드 deckOrder 1로 시드한 DB, 새 초대 코드 `E2E_INVITE_CODE`, 떠 있는 서버를 쓰려면 `E2E_BASE_URL` + 그 서버의 `PUBLIC_ORIGIN`). 2026-10-04 별도 DB(`bokgi_e2e_d`, 끝나고 삭제)에 예시 3장 + 카나리를 시드해 통과 확인.

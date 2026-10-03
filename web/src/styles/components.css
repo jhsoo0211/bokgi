@@ -1,0 +1,160 @@
+/* 복기 웹: ../../../prototype/design/components.css 사본(수정 없음). 화면 레이아웃·React 전용 보완은 app.css에 둔다. */
+/* IfSave DS — Worksheet 컴포넌트. tokens.css 다음에 불러온다.
+   규칙: 판단 전 화면에서 --up/--down 금지. 강조는 --action 한 곳. 흐린 그림자 없음. */
+
+.ds-root {
+  background: var(--bg-000); color: var(--ink-900);
+  font-family: var(--ds-font-body); font-weight: var(--ds-body-weight); font-size: 14px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+}
+.ds-root *, .ds-root *::before, .ds-root *::after { box-sizing: border-box; }
+.ds-root :focus-visible { outline: var(--border-bold) solid var(--focus); outline-offset: 2px; }
+
+.ds-head { font-family: var(--ds-font-head); font-weight: var(--ds-head-weight); letter-spacing: var(--ds-head-tracking); }
+.ds-num  { font-weight: var(--ds-num-weight); font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.ds-muted { color: var(--ink-500); }
+.ds-up { color: var(--up); } .ds-down { color: var(--down); }
+
+/* 답란(카드): 잉크 테두리, 각진 모서리 */
+.ds-card {
+  background: var(--bg-100);
+  border: var(--ds-border) solid var(--ink-900);
+  border-radius: var(--radius-0);
+  padding: var(--space-3) var(--space-4);
+}
+.ds-card h5, .ds-card .ds-card-title { margin: 0 0 6px; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+
+/* 항목 행: 점선 괘선 */
+.ds-kv { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px dotted #9a9890; font-size: 13px; }
+.ds-kv:last-child { border-bottom: 0; }
+.ds-kv span { color: var(--ink-500); }
+.ds-kv b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.ds-kv small { color: var(--ink-500); font-size: 11px; margin-left: 5px; font-weight: 400; }
+
+/* 칩: 선택은 빨간 펜 링 (칠하지 않음) */
+.ds-chip {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  padding: 7px 11px; border: var(--ds-border) solid var(--ink-900); border-radius: var(--radius-0);
+  background: var(--bg-100); color: var(--ink-900); font: inherit; font-size: 13px; cursor: pointer; position: relative;
+}
+/* 누르는 자리: 보이는 칸은 그대로, 칩 간격(8px)의 절반씩 넓혀 높이 44px (이웃 칩과 겹치지 않는다) */
+.ds-chip::before { content: ""; position: absolute; inset: -4px; }
+.ds-chip[aria-pressed="true"]::after {
+  content: ""; position: absolute; inset: -6px -8px;
+  border: 2px solid var(--select); border-radius: 50%; transform: rotate(-4deg); pointer-events: none;
+}
+.ds-chip[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* 렌즈 세그먼트 */
+.ds-lens { display: flex; gap: 6px; }
+.ds-lens button {
+  flex: 1; padding: 8px 0; font: inherit; font-size: 13px; cursor: pointer;
+  color: var(--ink-500); background: var(--bg-100); border: var(--ds-border) solid var(--ink-900); border-radius: 0;
+}
+.ds-lens button[aria-pressed="true"] { background: var(--ink-900); color: var(--bg-000); font-weight: 700; }
+.ds-lens button[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* 확신도 */
+.ds-conf { display: flex; justify-content: space-between; align-items: center; }
+.ds-conf label { font-size: 12px; color: var(--ink-500); }
+/* 답란은 26px 그대로, 간격을 18px로 벌리고 누르는 자리를 44×44px로 넓힌다(간격의 절반까지만 — 이웃 칸과 겹치지 않게) */
+.ds-conf .dots { display: flex; gap: 18px; }
+.ds-conf .dots button {
+  position: relative;
+  width: 26px; height: 26px; border-radius: 0; border: var(--ds-border) solid var(--ink-900);
+  background: var(--bg-100); color: var(--ink-500); font: inherit; font-size: 12px; cursor: pointer; padding: 0;
+  font-variant-numeric: tabular-nums;
+}
+.ds-conf .dots button::before { content: ""; position: absolute; inset: -9px; }
+.ds-conf .dots button[aria-pressed="true"] { background: var(--ink-900); color: var(--bg-000); }
+
+/* 버튼 */
+.ds-btn {
+  font-family: var(--ds-font-head); font-weight: 700; letter-spacing: -0.01em; font-size: 15px;
+  padding: 14px 12px; border: var(--ds-border) solid var(--ink-900); border-radius: 0;
+  background: var(--bg-100); color: var(--ink-900); cursor: pointer;
+}
+.ds-btn--primary { background: var(--action); color: var(--action-ink); }
+.ds-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.ds-btn small { display: block; font-weight: 400; font-size: 11px; opacity: .75; margin-top: 3px; }
+
+/* 라벨 칩 (문장 단위) */
+.ds-label {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11px; line-height: 1; padding: 3px 7px;
+  border: 1px solid var(--ink-200); border-radius: 0; color: var(--ink-500); font-weight: 500;
+}
+.ds-label--source { border-color: var(--label-source); color: var(--label-source); }
+.ds-label--inference { border-color: var(--label-inference); color: var(--label-inference); }
+.ds-label--uncertain { border-color: var(--label-uncertain); color: var(--label-uncertain); }
+
+/* 채점 도장 */
+.ds-stamp {
+  display: inline-block; border: 2px solid var(--select); color: var(--select);
+  font-weight: 700; padding: 2px 8px; transform: rotate(-6deg); font-size: 13px; line-height: 1.3;
+}
+.ds-stamp--ok { border-color: var(--ink-900); color: var(--ink-900); }
+/* 비슷함(시장 대비 ±1%p 이내): 채점하지 않으므로 기울이지 않는 잉크 테두리만 */
+.ds-stamp--even { border-width: 1.5px; border-color: var(--ink-900); color: var(--ink-900); transform: none; font-weight: 600; }
+
+/* 소인 (역추적 시점 표시) */
+.ds-postmark {
+  display: inline-block; border: 1.5px dashed var(--down); color: var(--down);
+  border-radius: var(--radius-pill); padding: 2px 9px; font-size: 12px; font-weight: 600; letter-spacing: .02em;
+}
+
+/* 진행 바 */
+.ds-bar { width: 100%; height: 4px; background: var(--ink-200); overflow: hidden; }
+.ds-bar i { display: block; height: 100%; background: var(--ink-900); }
+
+/* 결과 수치 3칸 */
+.ds-nums { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.ds-nums div { padding: 8px 6px; border: var(--ds-border) solid var(--ink-900); background: var(--bg-100); }
+.ds-nums small { display: block; font-size: 11px; color: var(--ink-500); margin-bottom: 2px; }
+.ds-nums b { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+/* 말풍선 */
+.ds-bubble { padding: 10px 12px; border-radius: 0; margin-bottom: 8px; font-size: 13px; line-height: 1.5; max-width: 92%; }
+.ds-bubble--ai { background: var(--bg-100); border: var(--ds-border) solid var(--ink-900); }
+.ds-bubble--me { background: var(--ink-900); color: var(--bg-000); margin-left: auto; }
+.ds-bubble .who { display: block; font-size: 11px; color: var(--ink-500); margin-bottom: 3px; }
+.ds-bubble--me .who { color: #bdbab3; }
+
+/* 형광펜 밑줄 — 공개 뒤 화면 전용(개념 이름, '사후에 중요했던 것' 값). 판단 전 화면에는 쓰지 않는다.
+   줄이 바뀌어도 줄마다 띠가 그려지게 인라인 요소에 붙인다 */
+.ds-hl { background: linear-gradient(transparent 55%, var(--hl) 55%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+/* 입장 카드 (오늘 맨 위). 1줄 = 학습(개념 이해·복습 예정), 2줄 = 오늘 남은 카드, 오른쪽 = 스트릭.
+   누르는 곳이 아니다(카드는 바로 아래에 있다). 다음 카드의 개념·결과는 넣지 않는다 */
+.ds-entry {
+  display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 12px;
+  padding: var(--space-2) var(--space-3); border: var(--border-hair) solid var(--ink-900); background: var(--bg-100);
+}
+.ds-entry p { margin: 0; }
+.ds-entry-lead { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.ds-entry-lead b { font-weight: 700; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.ds-entry-sub { grid-column: 1; font-size: 12px; color: var(--ink-500); }
+.ds-entry-sub b { color: var(--ink-900); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ds-entry .ds-streak { grid-column: 2; grid-row: 1; }
+/* 스트릭: b-caption, 강조 없음 (연습한 날 수, 정답과 무관) */
+.ds-streak { font: 400 12px/18px var(--font-sans); color: var(--ink-500); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* ○△✕ 자기 평가 — "내 근거는 이 개념과 맞았나요?" (공개 화면). 각진 버튼 셋, 선택은 칩과 같은 빨간 펜 링.
+   개념 확인 기록일 뿐 점수로 합산하지 않는다 */
+.ds-selfcheck { display: flex; gap: var(--space-2); }
+.ds-selfcheck button {
+  flex: 1; position: relative; min-height: 44px; padding: 8px 4px;
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--ink-900);
+  background: var(--bg-100); border: var(--ds-border) solid var(--ink-900); border-radius: var(--radius-0); cursor: pointer;
+}
+.ds-selfcheck button[aria-pressed="true"]::after {
+  content: ""; position: absolute; inset: -5px -4px;
+  border: 2px solid var(--select); border-radius: 50%; transform: rotate(-4deg); pointer-events: none;
+}
+
+/* 인사이트 카드 (일지 통계, 20장 뒤). 한 문장, 횟수만. 퍼센트·적중률 큰 숫자·순위 없음 */
+.ds-insight { padding: 9px 12px 10px; border: var(--border-hair) solid var(--ink-900); background: var(--bg-000); }
+.ds-insight + .ds-insight { margin-top: var(--space-2); }
+.ds-insight-kind { display: block; margin-bottom: 2px; font-size: 11px; font-weight: 600; color: var(--ink-500); }
+.ds-insight p { margin: 0; font-size: 13px; line-height: 1.55; }
+
+@media (prefers-reduced-motion: reduce) { .ds-root * { transition: none !important; animation: none !important; } }

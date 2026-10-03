@@ -1,0 +1,88 @@
+--- pg-backup.sh (설치본 v2.1)
++++ pg-backup.sh (v2.2 복기 추가)
+@@ -24,6 +24,10 @@
+ #   런북 5-1의 age 기반 canonical 스크립트(백엔드 정지 스냅샷·atomic rename)는 심사 창(9/7~9/11)
+ #   이후 설치한다 — 새벽 3시 백엔드 정지는 그 창의 다운타임 금지와 충돌한다.
+ #
++# v2.2(복기 추가) — 같은 맥미니의 복기 DB(compose 프로젝트 bokgi, 컨테이너 bokgi-db)를 같은 번들에 넣는다.
++#   원문: bokgi 저장소 web/ops/BACKUP.md. 복기 공개 전(컨테이너 없음)에는 건너뛰고 로그에 bokgi=없음을 남긴다.
++#   복기를 공개한 뒤 BOKGI_REQUIRED=1로 바꾼다 — 그때부터 복기 덤프 실패는 이 백업 전체의 실패(/fail 핑)다.
++#
+ # launchd는 로그인 셸 PATH를 상속하지 않는다 — 외부 명령은 전부 절대경로.
+ set -euo pipefail
+ 
+@@ -40,6 +44,9 @@
+ DUMP="$BACKUP_DIR/backup-$STAMP.dump"
+ BUNDLE="$BACKUP_DIR/bundle-$STAMP.tar.enc"
+ STARTED_AT="$(/bin/date +%s)"
++BOKGI_CONTAINER="bokgi-db"
++BOKGI_REQUIRED=0                                 # 복기 공개 뒤 1 (web/ops/BACKUP.md)
++BOKGI_DUMP="$BACKUP_DIR/bokgi-backup-$STAMP.dump"
+ 
+ # ── 하트비트·상태 파일 ──────────────────────────────────────────────────
+ # URL은 토큰이라 어디에도 출력하지 않는다(런북 5-5). 심볼릭 링크·빈 파일이면 미설정으로 본다.
+@@ -67,7 +74,7 @@
+ on_exit() {
+   rc=$?
+   if [ "$rc" -ne 0 ]; then
+-    for f in "$DUMP" "$BUNDLE" "$BACKUP_DIR/volumes-$STAMP.tar"; do
++    for f in "$DUMP" "$BOKGI_DUMP" "$BUNDLE" "$BACKUP_DIR/volumes-$STAMP.tar"; do
+       [ -f "$f" ] && [ ! -s "$f" ] && /bin/rm -f "$f"
+     done
+     write_status FAIL || true
+@@ -89,6 +96,25 @@
+ fi
+ /bin/chmod 600 "$DUMP"
+ 
++# ── 1b) 복기 DB 덤프 (v2.2) ─────────────────────────────────────────────
++# 같은 -Fc 형식. bokgi-db는 포트를 게시하지 않으므로 docker exec로만 뜬다. 복기에는 파일 볼륨이 없다.
++BOKGI_NOTE="bokgi=없음"
++BOKGI_FILES=""
++if [ "$("$DOCKER" inspect -f '{{.State.Running}}' "$BOKGI_CONTAINER" 2>/dev/null || true)" = "true" ]; then
++  "$DOCKER" exec "$BOKGI_CONTAINER" pg_dump -U bokgi -Fc bokgi > "$BOKGI_DUMP"
++  if [ ! -s "$BOKGI_DUMP" ]; then
++    echo "[$(/bin/date -Iseconds)] FAIL: empty bokgi dump $BOKGI_DUMP" >&2
++    /bin/rm -f "$BOKGI_DUMP"
++    exit 1
++  fi
++  /bin/chmod 600 "$BOKGI_DUMP"
++  BOKGI_FILES="bokgi-backup-$STAMP.dump"
++  BOKGI_NOTE="bokgi=$(/usr/bin/stat -f%z "$BOKGI_DUMP")bytes"
++elif [ "$BOKGI_REQUIRED" = "1" ]; then
++  echo "[$(/bin/date -Iseconds)] FAIL: $BOKGI_CONTAINER 가 실행 중이 아니다(BOKGI_REQUIRED=1)" >&2
++  exit 1
++fi
++
+ # ── 2) 업로드 볼륨 tar ──────────────────────────────────────────────────
+ # 컨테이너를 세우지 않고 볼륨만 읽기 마운트해 뜬다 — 서비스 무중단.
+ VOLTAR="$BACKUP_DIR/volumes-$STAMP.tar"
+@@ -102,7 +128,9 @@
+ # ── 3) 묶어서 암호화 ────────────────────────────────────────────────────
+ # 덤프+볼륨을 한 파일로 묶고 AES-256(-pbkdf2)으로 잠근다. 복호는:
+ #   openssl enc -d -aes-256-cbc -pbkdf2 -pass file:<암호파일> -in bundle-날짜.tar.enc | tar -xf -
+-/usr/bin/tar -cf - -C "$BACKUP_DIR" "backup-$STAMP.dump" "volumes-$STAMP.tar" \
++# v2.2: 복기가 떠 있으면 bokgi-backup-날짜.dump도 같은 번들에 들어간다($BOKGI_FILES, 없으면 빈 값).
++# shellcheck disable=SC2086
++/usr/bin/tar -cf - -C "$BACKUP_DIR" "backup-$STAMP.dump" "volumes-$STAMP.tar" $BOKGI_FILES \
+   | "$OPENSSL" enc -aes-256-cbc -pbkdf2 -salt -pass "file:$PASS_FILE" -out "$BUNDLE"
+ if [ ! -s "$BUNDLE" ]; then
+   echo "[$(/bin/date -Iseconds)] FAIL: empty bundle $BUNDLE" >&2
+@@ -131,6 +159,7 @@
+ 
+ # ── 5) 로컬 회전 ────────────────────────────────────────────────────────
+ /usr/bin/find "$BACKUP_DIR" -name 'backup-*.dump' -mtime +7 -delete
++/usr/bin/find "$BACKUP_DIR" -name 'bokgi-backup-*.dump' -mtime +7 -delete
+ /usr/bin/find "$BACKUP_DIR" -name 'bundle-*.tar.enc' -mtime +7 -delete
+ 
+ # ── 6) 하트비트 + 상태 파일 + 결과 로그 ─────────────────────────────────
+@@ -146,8 +175,8 @@
+     HEARTBEAT="heartbeat=FAIL"
+   fi
+   write_status OK
+-  echo "[$(/bin/date -Iseconds)] OK: dump $(/usr/bin/basename "$DUMP") ($(/usr/bin/stat -f%z "$DUMP") bytes) · bundle $BUNDLE_NAME ($(/usr/bin/stat -f%z "$BUNDLE") bytes) · $OFFSITE · $HEARTBEAT"
++  echo "[$(/bin/date -Iseconds)] OK: dump $(/usr/bin/basename "$DUMP") ($(/usr/bin/stat -f%z "$DUMP") bytes) · bundle $BUNDLE_NAME ($(/usr/bin/stat -f%z "$BUNDLE") bytes) · $BOKGI_NOTE · $OFFSITE · $HEARTBEAT"
+ else
+   write_status PARTIAL
+-  echo "[$(/bin/date -Iseconds)] PARTIAL: local bundle $BUNDLE_NAME ($(/usr/bin/stat -f%z "$BUNDLE") bytes) · $OFFSITE · $(fail_ping_label)"
++  echo "[$(/bin/date -Iseconds)] PARTIAL: local bundle $BUNDLE_NAME ($(/usr/bin/stat -f%z "$BUNDLE") bytes) · $BOKGI_NOTE · $OFFSITE · $(fail_ping_label)"
+ fi

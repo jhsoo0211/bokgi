@@ -1,0 +1,131 @@
+{
+  "id": "4729a31f-7054-420f-b9a4-4815446ac5f8",
+  "version": 1,
+  "status": "live",
+  "deckOrder": 4,
+  "public": {
+    "yearPublic": 2021,
+    "sectorPublic": "백화점·소매",
+    "sizeBucket": "중형",
+    "horizonDays": 90,
+    "difficulty": 3,
+    "panels": {
+      "flow": {
+        "index14": [100, 97, 108, 113, 104, 101, 96, 107, 128, 158, 170, 176, 188, 205],
+        "market14": [100, 102, 104, 107, 106, 103, 105, 102, 108, 111, 112, 113, 115, 116],
+        "volumeTrend": "증가",
+        "windowDays": 180
+      },
+      "numbers": {
+        "growth": {"revYoy": "−23%", "opm": "2% → −4%", "epsYoy": "적자 전환", "guidance": "제시 안 함"},
+        "valuation": {"per": "적자(산출 불가)", "perSector": "18", "pbr": "1.3", "psr": "0.2"},
+        "health": {"debtRatio": "410%", "netCash": "순부채", "fcf": "양수"},
+        "asOfRelative": "판단일 D-58(공시 기준)"
+      },
+      "then": {
+        "rate": "0.00~0.25%",
+        "rateTrend": "동결",
+        "fxNote": null,
+        "commodityNote": null,
+        "notes": [
+          {"when": "판단일 D-67", "text": "백신 임상에서 높은 예방 효과가 확인됐다는 발표가 나왔어요.", "sourceKind": "보도"},
+          {
+            "when": "판단일 D-58",
+            "text": "이 회사는 직전 분기 실적 발표에서 매출이 1년 전보다 23% 줄었다고 밝혔어요.",
+            "sourceKind": "공시"
+          },
+          {"when": "판단일 D-32", "text": "첫 백신 접종이 시작됐어요.", "sourceKind": "보도"},
+          {"when": "판단일 D-19", "text": "가계 현금 지급을 포함한 추가 경기 부양책이 통과됐어요.", "sourceKind": "보도"},
+          {"when": "판단일 D-9", "text": "추가 부양 기대 속에 장기 국채 금리가 10개월 만에 1%를 넘었어요.", "sourceKind": "통계"}
+        ]
+      }
+    },
+    "evidenceOptions": [
+      {
+        "id": "ev1",
+        "label": "매출 −23%",
+        "why": "매출이 얼마나 줄었는지는 영업 제한의 충격 크기를 보여 줘요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev2",
+        "label": "PBR 1.3",
+        "why": "주가가 장부가치에 가까우면 시장의 기대가 낮다는 뜻일 수 있어요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev3",
+        "label": "부채비율 410%",
+        "why": "빚이 많으면 매출 회복이 늦어질 때 버티는 비용이 커져요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev4",
+        "label": "6개월 +105%, 시장 +16%",
+        "why": "이미 크게 올랐다면 회복 기대가 가격에 얼마나 들어갔는지 따져 볼 수 있어요.",
+        "panel": "flow"
+      },
+      {
+        "id": "ev5",
+        "label": "백신 접종 시작",
+        "why": "접종 속도는 매장 영업이 언제 정상으로 돌아올지 가늠하는 단서예요.",
+        "panel": "then"
+      },
+      {"id": "ev6", "label": "가계 현금 지급", "why": "가계에 현금이 돌면 단기 소비가 늘 수 있어요.", "panel": "then"}
+    ],
+    "riskOptions": [
+      {"id": "rk1", "label": "확진자 재확산"},
+      {"id": "rk2", "label": "온라인 쇼핑으로의 이동"},
+      {"id": "rk3", "label": "부채 부담"},
+      {"id": "rk4", "label": "재고 할인"}
+    ]
+  },
+  "reveal": {
+    "outcome": {
+      "companyName": "메이시스",
+      "ticker": "M",
+      "period": "2021 Q1 → 2021 Q2",
+      "startDate": "2021-01-15",
+      "endDate": "2021-04-15",
+      "returnPct": 30.4,
+      "benchReturnPct": 10.9,
+      "benchName": "S&P 500",
+      "pricePath": [100, 96, 118, 104, 109, 113, 121, 127, 131, 124, 128, 135, 129, 130.4],
+      "benchPath": [100, 101, 99, 103, 104, 102, 100, 103, 105, 104, 106, 108, 109, 110.9],
+      "sources": [
+        {"kind": "예시", "label": "예시 자료(실측 아님) — 수치·날짜·문장은 설명용으로 만든 값이에요", "url": null},
+        {
+          "kind": "가격",
+          "label": "파생 지수 14점(판단일 = 100) · 총수익 기준(배당 재투자·분할 반영, 이 기간 배당·분할 없음) · 예시 값",
+          "url": null
+        },
+        {"kind": "공시", "label": "직전 분기 실적 발표 자료(예시)", "url": null},
+        {"kind": "통계", "label": "미국 기준금리·국채 금리(예시)", "url": null},
+        {"kind": "보도", "label": "백신·경기 부양책 관련 보도(예시)", "url": null}
+      ]
+    },
+    "keyPoints": [
+      "판단일까지 두 배가 올랐지만, 회복 기대는 그 뒤로도 더 커졌어요.",
+      "백신 접종이 빨라지며 매장 영업이 정상으로 돌아올 시점이 앞당겨졌어요.",
+      "높은 부채는 위험이었지만, 매출이 회복되자 이익이 더 빠르게 늘 수 있는 구조이기도 했어요."
+    ],
+    "learningPoints": [
+      {
+        "conceptId": "industry-cycle",
+        "rank": 1,
+        "linkSentence": "영업 제한으로 바닥까지 내려간 업종은 회복 국면 초입에 이익이 크게 늘 여지가 있었어요."
+      },
+      {
+        "conceptId": "recency-bias",
+        "rank": 2,
+        "linkSentence": "판단일까지 두 배 오른 흐름만 보면 '너무 올랐다'고 느끼기 쉽지만, 그 흐름이 다음 결과를 정하지는 않았어요."
+      }
+    ]
+  },
+  "internal": {
+    "notes": "예시 자료(실측 아님). 새로 만든 예시 카드(2021 리오프닝 소비주). 결과 방향은 당시 흐름을 참고했지만 수치는 설명용 값이라 실제와 다르고, 실측으로 다시 계산하면 결과 상태가 바뀔 수 있다. 실제 카드로 바꿀 때 공시 원문·공개 통계로 다시 만들고 flow_index.py·outcome.py로 다시 계산한다.",
+    "leakTerms": ["메이시스", "Macy's", "Macys", "M", "블루밍데일스", "Bloomingdale's"],
+    "dataCutoff": "2021-01-15",
+    "example": true
+  }
+}

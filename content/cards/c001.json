@@ -1,0 +1,133 @@
+{
+  "id": "ed0fb5a1-f3d4-4d00-9f24-3851ade5eca3",
+  "version": 1,
+  "status": "live",
+  "deckOrder": 6,
+  "public": {
+    "yearPublic": 2023,
+    "sectorPublic": "소프트웨어",
+    "sizeBucket": "대형",
+    "horizonDays": 180,
+    "difficulty": 2,
+    "panels": {
+      "flow": {
+        "index14": [100, 97, 101, 104, 99, 103, 106, 102, 108, 111, 109, 113, 110, 115],
+        "market14": [100, 101, 102, 101, 103, 104, 105, 104, 106, 107, 107, 109, 110, 111],
+        "volumeTrend": "유지",
+        "windowDays": 180
+      },
+      "numbers": {
+        "growth": {"revYoy": "+23%", "opm": "31% → 34%", "epsYoy": "+28%", "guidance": "상향"},
+        "valuation": {"per": "38", "perSector": "27", "pbr": "9.1", "psr": null},
+        "health": {"debtRatio": "42%", "netCash": "보유", "fcf": "양수"},
+        "asOfRelative": "판단일 D-1(공시 기준)"
+      },
+      "then": {
+        "rate": "5.25~5.50%",
+        "rateTrend": "상승기",
+        "fxNote": null,
+        "commodityNote": "국제유가가 석 달 사이 20% 넘게 올랐어요.",
+        "notes": [
+          {"when": "판단일 D-51", "text": "기준금리가 0.25%p 올라 5.25~5.50%가 됐어요.", "sourceKind": "통계"},
+          {
+            "when": "판단일 D-30",
+            "text": "생성형 AI 기대로 대형 소프트웨어주가 크게 올라, 업종 밸류에이션이 과거 평균보다 높다는 분석이 많았어요.",
+            "sourceKind": "보도"
+          },
+          {"when": "판단일 D-25", "text": "장기 국채 금리가 16년 만에 가장 높은 수준까지 올랐어요.", "sourceKind": "통계"},
+          {"when": "판단일 D-1", "text": "이 회사는 직전 분기 실적 발표에서 매출 전망을 올렸어요.", "sourceKind": "공시"}
+        ]
+      }
+    },
+    "evidenceOptions": [
+      {"id": "ev1", "label": "매출 +23%", "why": "매출이 얼마나 빨리 느는지는 성장 기대의 출발점이에요.", "panel": "numbers"},
+      {
+        "id": "ev2",
+        "label": "PER 38 vs 27",
+        "why": "업종 중앙값과의 차이는 성장 기대가 가격에 얼마나 들어 있는지 보여 줘요.",
+        "panel": "numbers"
+      },
+      {"id": "ev3", "label": "순현금 보유", "why": "빚보다 현금이 많으면 금리가 올라도 이자 부담이 작아요.", "panel": "numbers"},
+      {
+        "id": "ev4",
+        "label": "금리 5.25~5.50%",
+        "why": "금리가 높으면 먼 미래 이익의 현재 가치가 줄어 성장주 가격에 부담이 돼요.",
+        "panel": "then"
+      },
+      {"id": "ev5", "label": "가이던스 상향", "why": "회사가 전망을 올리면 시장의 기대치도 함께 움직여요.", "panel": "numbers"},
+      {
+        "id": "ev6",
+        "label": "6개월 +15%, 시장 +11%",
+        "why": "판단일까지 시장보다 얼마나 더 올랐는지는 기대가 얼마나 먼저 반영됐는지 보여 줘요.",
+        "panel": "flow"
+      }
+    ],
+    "riskOptions": [
+      {"id": "rk1", "label": "밸류에이션 프리미엄"},
+      {"id": "rk2", "label": "금리 상승"},
+      {"id": "rk3", "label": "성장 둔화"}
+    ]
+  },
+  "reveal": {
+    "outcome": {
+      "companyName": "어도비",
+      "ticker": "ADBE",
+      "period": "2023 Q3 → 2024 Q1",
+      "startDate": "2023-09-15",
+      "endDate": "2024-03-15",
+      "returnPct": 4.8,
+      "benchReturnPct": 7.1,
+      "benchName": "S&P 500",
+      "pricePath": [100, 99, 103, 101, 104, 102, 106, 104, 103, 105, 107, 104, 106, 104.8],
+      "benchPath": [100, 101, 102, 103, 103, 104, 105, 105, 106, 106, 107, 107, 107, 107.1],
+      "sources": [
+        {"kind": "예시", "label": "예시 자료(실측 아님) — 수치·날짜·문장은 설명용으로 만든 값이에요", "url": null},
+        {
+          "kind": "가격",
+          "label": "파생 지수 14점(판단일 = 100) · 총수익 기준(배당 재투자·분할 반영, 이 기간 배당·분할 없음) · 예시 값",
+          "url": null
+        },
+        {"kind": "공시", "label": "직전 분기 실적 발표 자료(예시 — 원문 위치는 실제 카드에서 기재)", "url": null},
+        {"kind": "통계", "label": "미국 기준금리 결정·장기 국채 금리(예시)", "url": null},
+        {"kind": "보도", "label": "당시 업종 분석 보도(예시)", "url": null}
+      ]
+    },
+    "keyPoints": [
+      "PER이 업종 중앙값의 1.4배라, 좋은 실적과 전망 상향이 이미 가격에 들어 있었어요.",
+      "같은 기간 시장 전체가 오르면서, 주가 상승의 대부분은 시장 흐름으로 설명됐어요.",
+      "전망 상향은 판단일 전에 알려진 정보라 이후 결과를 크게 바꾸지 못했어요."
+    ],
+    "learningPoints": [
+      {
+        "conceptId": "abs-vs-relative",
+        "rank": 1,
+        "linkSentence": "이 회사는 4.8% 올랐지만 시장이 7.1% 올라, 시장 대비로는 2.3%p 뒤졌어요."
+      },
+      {
+        "conceptId": "growth-vs-valuation",
+        "rank": 2,
+        "linkSentence": "매출이 23% 늘었지만 PER이 업종 중앙값의 1.4배라 성장 기대가 이미 가격에 들어 있었어요."
+      }
+    ]
+  },
+  "internal": {
+    "notes": "예시 자료(실측 아님). 프로토타입 data.js의 c001를 옮겼다. 수치·「그때」 문장은 설명용 예시라 실제 주가·재무와 다를 수 있다(금리 값과 날짜만 당시 공개 자료에 가깝게 고쳤다). 실제 카드로 바꿀 때 공시 원문·공개 통계로 다시 만들고 flow_index.py·outcome.py로 다시 계산한다.",
+    "leakTerms": [
+      "어도비",
+      "Adobe",
+      "ADBE",
+      "포토샵",
+      "Photoshop",
+      "아크로뱃",
+      "Acrobat",
+      "파이어플라이",
+      "Firefly",
+      "크리에이티브 클라우드",
+      "Creative Cloud",
+      "피그마",
+      "Figma"
+    ],
+    "dataCutoff": "2023-09-15",
+    "example": true
+  }
+}

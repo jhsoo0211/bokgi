@@ -1,0 +1,80 @@
+{
+  "id": "994ebb34-1442-48cf-a776-2ea3b1003108",
+  "version": 1,
+  "status": "live",
+  "deckOrder": 3,
+  "public": {
+    "yearPublic": 2022,
+    "sectorPublic": "반도체",
+    "sizeBucket": "중형",
+    "horizonDays": 180,
+    "difficulty": 2,
+    "panels": {
+      "flow": {
+        "index14": [100, 96, 93, 95, 90, 88, 91, 86, 84, 87, 82, 80, 83, 79],
+        "market14": [100, 100, 99, 101, 100, 102, 101, 103, 102, 104, 103, 105, 104, 106],
+        "volumeTrend": "증가",
+        "windowDays": 180
+      },
+      "numbers": {
+        "growth": {"revYoy": "−8%", "opm": "12% → 9%", "epsYoy": "−21%", "guidance": "하향"},
+        "valuation": {"per": "15", "perSector": "22", "pbr": "1.6", "psr": "1.2"},
+        "health": {"debtRatio": "88%", "netCash": "순부채", "fcf": "음수"},
+        "asOfRelative": "판단일 D-9(공시 기준)"
+      },
+      "then": {
+        "rate": "5.25%",
+        "rateTrend": "상승기",
+        "fxNote": null,
+        "commodityNote": null,
+        "notes": [
+          {"when": "판단일 D-50", "text": "기준금리 인상 속도가 빨라지면서 금리에 민감한 기술주가 시장보다 약했어요.", "sourceKind": "통계"},
+          {"when": "판단일 D-27", "text": "PC·스마트폰 수요가 줄어 반도체 재고가 쌓이고 있다는 업계 보도가 이어졌어요.", "sourceKind": "보도"},
+          {"when": "판단일 D-9", "text": "이 회사는 직전 분기 실적 발표에서 다음 분기 매출 전망을 낮추고 설비 투자를 줄이겠다고 밝혔어요.", "sourceKind": "공시"}
+        ]
+      }
+    },
+    "evidenceOptions": [
+      {"id": "ev-rev", "label": "매출 −8%", "why": "수요가 줄고 있는지 보여 줘요.", "panel": "numbers"},
+      {"id": "ev-per", "label": "PER 15 vs 22", "why": "업종보다 싸게 거래되는지 볼 수 있어요.", "panel": "numbers"},
+      {"id": "ev-debt", "label": "부채비율 88%", "why": "금리가 오를 때 이자 부담을 가늠할 수 있어요.", "panel": "numbers"},
+      {"id": "ev-fcf", "label": "FCF 음수", "why": "현금을 벌기보다 쓰고 있는지 보여 줘요.", "panel": "numbers"},
+      {"id": "ev-guide", "label": "가이던스 하향", "why": "회사가 직접 밝힌 다음 분기 기대예요.", "panel": "numbers"},
+      {"id": "ev-flow", "label": "시장보다 약한 흐름", "why": "판단일까지 시장 지수보다 낮게 움직였어요.", "panel": "flow"}
+    ],
+    "riskOptions": [
+      {"id": "rk-int", "label": "이자 부담"},
+      {"id": "rk-inv", "label": "재고 조정 장기화"},
+      {"id": "rk-trap", "label": "저평가 함정"}
+    ]
+  },
+  "reveal": {
+    "outcome": {
+      "companyName": "마이크론",
+      "ticker": "MU",
+      "period": "2022 Q3 → 2023 Q1",
+      "startDate": "2022-09-30",
+      "endDate": "2023-03-29",
+      "returnPct": -12.4,
+      "benchReturnPct": 3.2,
+      "benchName": "S&P 500",
+      "pricePath": [100, 95, 92, 90, 88, 85, 87, 84, 86, 83, 85, 88, 86, 87.6],
+      "benchPath": [100, 99, 98, 100, 101, 100, 102, 101, 103, 102, 103, 104, 103, 103.2],
+      "sources": [
+        {"kind": "예시", "label": "예시 자료(실측 아님) — 프로토타입 data.js의 c002", "url": null},
+        {"kind": "가격", "label": "예시 파생 지수(판단일 = 100), 배당·분할 반영 가정", "url": null}
+      ]
+    },
+    "keyPoints": ["재고 조정이 길어지며 이익 전망이 더 낮아졌어요.", "금리 상승기에 높은 부채가 부담으로 읽혔어요."],
+    "learningPoints": [
+      {"conceptId": "debt-and-cycle", "rank": 1, "linkSentence": "매출 감소와 높은 부채가 겹친 시기에 하방 위험이 커졌어요."},
+      {"conceptId": "base-rate", "rank": 2, "linkSentence": "한 번의 결과만으로 근거의 힘을 판단하기는 어려워요."}
+    ]
+  },
+  "internal": {
+    "notes": "예시 자료(실측 아님) — 프로토타입 data.js c002를 카드 형식으로 옮겼다. 수치는 예시다.",
+    "leakTerms": ["마이크론", "MU", "Micron"],
+    "dataCutoff": "2022-09-30",
+    "example": true
+  }
+}

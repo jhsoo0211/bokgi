@@ -1,0 +1,115 @@
+# 복기(bokgi) 운영 스택 — web(Next standalone) + db(Postgres 16) + migrate(1회용, 프로필 migrate)
+#
+# 진입점은 scripts/deploy.sh 다: env 검증 → build(태그 = git sha) → pg_dump -Fc → migrate → up → /api/health 대기
+# → 실패 시 직전 태그. 손으로 칠 때(이 디렉터리에서):
+#   상태  docker compose ps                  로그  docker compose logs -f web
+#   정지  docker compose down                (볼륨 유지. `down -v`는 DB를 지운다 — 치지 않는다)
+#   DB    docker exec -it bokgi-db psql -U bokgi bokgi
+#
+# 시크릿은 이 파일에 없다. 같은 디렉터리의 .env(권한 600, git 제외)에서 온다 — README "운영".
+# `docker compose config`는 .env 값을 평문으로 펼쳐 출력한다. 화면 공유·로그에 붙이지 않는다(검증은 `config -q`).
+#
+# 맥미니 한 대에 IfSave 운영(ifsave: 3000/5432)·데모(ifsave-demo: 3120)와 같이 돈다. 이 스택은 beta 슬롯
+# (127.0.0.1:3100)을 물려받는다 — ifsave-beta를 먼저 내린다(ops/TUNNEL.md). 이름은 고정이다:
+# 컨테이너 bokgi-web·bokgi-db(백업 패치가 bokgi-db를 이름으로 찾는다), 볼륨 bokgi_pgdata.
+name: bokgi
+
+x-logging: &default-logging
+  # IfSave 프론트와 같은 회전: 컨테이너당 10MB × 3. 재생성하면 이전 로그는 사라진다
+  # (deploy.sh가 교체 직전 web 로그 끝부분을 backups/에 남긴다).
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  web:
+    build:
+      context: .
+      target: runner
+      args:
+        APP_VERSION: ${BOKGI_TAG:-current}   # /api/health의 version(src/lib/server/env.ts)
+    # 태그는 deploy.sh가 BOKGI_TAG(기본 git sha)로 준다. 비우면 `current` = 마지막으로 성공한 배포의 별칭.
+    image: bokgi-web:${BOKGI_TAG:-current}
+    container_name: bokgi-web
+    user: nextjs
+    init: true
+    env_file:
+      - .env
+    environment:
+      # ↓ compose가 고정한다(environment가 env_file을 이긴다). DB는 항상 옆 컨테이너라 사람이 주소를
+      #   관리할 이유가 없다 — .env에는 POSTGRES_PASSWORD만 둔다(URL에 들어가므로 hex로 만든다).
+      NODE_ENV: production
+      DATABASE_URL: postgresql://bokgi:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required — see README 운영}@db:5432/bokgi
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      TZ: Asia/Seoul
+    ports:
+      # 127.0.0.1에만 묶는다 — 같은 기기의 cloudflared만 본다. "3100:3000"으로 쓰면 집 LAN 전체에 열린다.
+      - "127.0.0.1:3100:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    # Node 22는 cgroup 한도를 읽어 V8 힙 상한을 정한다(512m → 약 259MiB, IfSave 실측 2026-09-05).
+    mem_limit: 512m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+    restart: unless-stopped
+    logging: *default-logging
+    # healthcheck는 이미지(Dockerfile HEALTHCHECK, /api/health의 ok===true)에 있다.
+
+  db:
+    image: postgres:16
+    container_name: bokgi-db
+    # 한 문장 15초 상한(오래 잡힌 쿼리가 연결을 말리는 것을 막는다). pg_dump·pg_restore는 자기 세션에서
+    # statement_timeout=0으로 바꾸므로 백업에는 영향이 없다. 무거운 마이그레이션은 그 파일 맨 위에
+    # `SET LOCAL statement_timeout = 0;`을 둔다(ops/BACKUP.md).
+    command: ["postgres", "-c", "statement_timeout=15s"]
+    environment:
+      POSTGRES_DB: bokgi
+      POSTGRES_USER: bokgi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required — see README 운영}
+      TZ: Asia/Seoul
+    # 포트를 게시하지 않는다. 접속은 docker exec(psql·pg_dump) 또는 compose 네트워크 안(migrate)에서만.
+    volumes:
+      - bokgi_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bokgi -d bokgi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # IfSave 베타 postgres와 같은 값. 지인 10명 베타에는 넉넉하다(shared_buffers 128MB + 연결당 work_mem).
+    mem_limit: 512m
+    stop_grace_period: 30s
+    restart: unless-stopped
+    logging: *default-logging
+
+  migrate:
+    # 1회용: `docker compose --profile migrate run --rm migrate` (deploy.sh가 부른다). `up`으로는 뜨지 않는다.
+    # 기본 명령은 prisma migrate deploy 하나(scripts/migrate.sh). migrate dev·db push·reset은 운영에서 쓰지 않는다.
+    profiles: ["migrate"]
+    build:
+      context: .
+      target: migrate
+    image: bokgi-migrate:${BOKGI_TAG:-current}
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://bokgi:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required — see README 운영}@db:5432/bokgi
+      TZ: Asia/Seoul
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    mem_limit: 512m
+    logging: *default-logging
+
+volumes:
+  # 이름을 고정한다(프로젝트 접두사 없이 정확히 bokgi_pgdata). 이름을 바꾸면 빈 볼륨이 새로 생기고
+  # 기존 데이터는 지워지지 않은 채 안 보이게 된다 — "DB가 초기화됐다"로 오진하기 쉽다.
+  bokgi_pgdata:
+    name: bokgi_pgdata

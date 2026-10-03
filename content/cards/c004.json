@@ -1,0 +1,146 @@
+{
+  "id": "14ac4383-4054-4751-9bc0-21eb4cc87eba",
+  "version": 1,
+  "status": "live",
+  "deckOrder": 1,
+  "public": {
+    "yearPublic": 2020,
+    "sectorPublic": "항공",
+    "sizeBucket": "대형",
+    "horizonDays": 180,
+    "difficulty": 3,
+    "panels": {
+      "flow": {
+        "index14": [100, 103, 105, 107, 104, 101, 96, 70, 46, 44, 47, 43, 41, 39],
+        "market14": [100, 101, 103, 104, 105, 108, 103, 82, 74, 84, 89, 92, 91, 92],
+        "volumeTrend": "증가",
+        "windowDays": 180
+      },
+      "numbers": {
+        "growth": {"revYoy": "−18%", "opm": "10% → −6%", "epsYoy": "적자 전환", "guidance": "대폭 하향"},
+        "valuation": {"per": "4", "perSector": "7", "pbr": "0.9", "psr": "0.3"},
+        "health": {"debtRatio": "370%", "netCash": "순부채", "fcf": "음수"},
+        "asOfRelative": "판단일 D-23(공시 기준)"
+      },
+      "then": {
+        "rate": "0.00~0.25%",
+        "rateTrend": "하락기",
+        "fxNote": null,
+        "commodityNote": "국제유가가 판단일 D-25에 한때 마이너스까지 떨어졌다가 반등했어요.",
+        "notes": [
+          {"when": "판단일 D-61", "text": "기준금리가 긴급 인하로 0.00~0.25%까지 내려갔어요.", "sourceKind": "통계"},
+          {"when": "판단일 D-49", "text": "정부가 항공사 급여 지원을 포함한 대규모 경기 부양책을 통과시켰어요.", "sourceKind": "보도"},
+          {
+            "when": "판단일 D-31",
+            "text": "공항 보안 검색대를 통과한 승객 수가 1년 전보다 90% 넘게 줄었어요.",
+            "sourceKind": "통계"
+          },
+          {
+            "when": "판단일 D-23",
+            "text": "이 회사는 직전 분기 실적 발표에서 다음 분기 매출이 90% 가까이 줄 것이라고 밝혔어요.",
+            "sourceKind": "공시"
+          },
+          {"when": "판단일 D-13", "text": "한 유명 투자회사가 보유하던 항공주를 모두 팔았다고 밝혔어요.", "sourceKind": "보도"}
+        ]
+      }
+    },
+    "evidenceOptions": [
+      {
+        "id": "ev1",
+        "label": "매출 −18%",
+        "why": "분기 매출이 얼마나 줄었는지는 충격의 크기를 보여 줘요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev2",
+        "label": "다음 분기 매출 −90% 전망",
+        "why": "회사가 직접 낸 전망은 시장이 이미 알고 있는 나쁜 소식의 기준점이에요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev3",
+        "label": "PER 4 vs 7",
+        "why": "지난 이익으로 잰 PER은 이익이 급변할 때 실제보다 싸거나 비싸 보일 수 있어요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev4",
+        "label": "부채비율 370%",
+        "why": "빚이 많으면 매출이 끊긴 기간을 버티는 비용이 커져요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev5",
+        "label": "6개월 −61%, 시장 −8%",
+        "why": "판단일까지 얼마나 빠졌는지는 나쁜 소식이 가격에 얼마나 들어 있는지 따져 볼 단서예요.",
+        "panel": "flow"
+      },
+      {
+        "id": "ev6",
+        "label": "승객 수 −90% 이상",
+        "why": "실제 수요가 얼마나 줄었는지는 회복이 얼마나 멀리 있는지 가늠하는 출발점이에요.",
+        "panel": "then"
+      },
+      {
+        "id": "ev7",
+        "label": "급여 지원 부양책",
+        "why": "정부 지원은 버틸 시간을 벌어 줘 파산 위험을 낮출 수 있어요.",
+        "panel": "then"
+      }
+    ],
+    "riskOptions": [
+      {"id": "rk1", "label": "추가 자금 조달과 지분 희석"},
+      {"id": "rk2", "label": "수요 회복 지연"},
+      {"id": "rk3", "label": "부채 부담"},
+      {"id": "rk4", "label": "유가 반등"}
+    ]
+  },
+  "reveal": {
+    "outcome": {
+      "companyName": "델타항공",
+      "ticker": "DAL",
+      "period": "2020 Q2 → 2020 Q4",
+      "startDate": "2020-05-15",
+      "endDate": "2020-11-11",
+      "returnPct": 57.8,
+      "benchReturnPct": 24.3,
+      "benchName": "S&P 500",
+      "pricePath": [100, 121, 149, 127, 119, 124, 117, 121, 133, 125, 119, 129, 134, 157.8],
+      "benchPath": [100, 104, 110, 108, 110, 112, 116, 118, 124, 115, 120, 123, 115, 124.3],
+      "sources": [
+        {"kind": "예시", "label": "예시 자료(실측 아님) — 수치·날짜·문장은 설명용으로 만든 값이에요", "url": null},
+        {
+          "kind": "가격",
+          "label": "파생 지수 14점(판단일 = 100) · 총수익 기준(배당 재투자·분할 반영, 이 기간 배당·분할 없음) · 예시 값",
+          "url": null
+        },
+        {"kind": "공시", "label": "직전 분기 실적 발표 자료(예시)", "url": null},
+        {"kind": "통계", "label": "미국 기준금리 결정·공항 검색대 통과 승객 통계(예시)", "url": null},
+        {"kind": "보도", "label": "경기 부양책·투자회사 지분 매각 보도(예시)", "url": null}
+      ]
+    },
+    "keyPoints": [
+      "판단일까지 이미 크게 빠져 있어, 나쁜 실적이 확인돼도 더 내려갈 여지가 작았어요.",
+      "다음 분기 매출이 90% 가까이 줄 거라는 전망은 판단일 전에 이미 알려진 정보였어요.",
+      "기간 막바지의 백신 소식처럼 판단일 뒤의 사건이 결과를 크게 흔들었어요."
+    ],
+    "learningPoints": [
+      {
+        "conceptId": "guidance-and-expectations",
+        "rank": 1,
+        "linkSentence": "다음 분기 매출 −90%라는 나쁜 전망이 판단일 전에 이미 알려져 있어, 그보다 덜 나쁜 소식에도 주가가 크게 움직일 수 있었어요."
+      },
+      {
+        "conceptId": "horizon-and-volatility",
+        "rank": 2,
+        "linkSentence": "6개월 동안 주가가 크게 오르내렸고, 마지막 몇 주의 움직임이 결과를 크게 바꿨어요."
+      }
+    ]
+  },
+  "internal": {
+    "notes": "예시 자료(실측 아님). 새로 만든 예시 카드(2020 항공, 팬데믹 피해 업종). 결과 방향은 당시 흐름을 참고했지만 수치는 설명용 값이라 실제와 다르고, 실측으로 다시 계산하면 결과 상태가 바뀔 수 있다. 실제 카드로 바꿀 때 공시 원문·공개 통계로 다시 만들고 flow_index.py·outcome.py로 다시 계산한다.",
+    "leakTerms": ["델타항공", "델타", "Delta Air Lines", "Delta", "DAL", "스카이마일스", "SkyMiles"],
+    "dataCutoff": "2020-05-15",
+    "example": true
+  }
+}

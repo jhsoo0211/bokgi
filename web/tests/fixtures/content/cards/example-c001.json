@@ -1,0 +1,80 @@
+{
+  "id": "0bde43b6-e233-4bcc-b6af-320c84f10330",
+  "version": 1,
+  "status": "live",
+  "deckOrder": 2,
+  "public": {
+    "yearPublic": 2023,
+    "sectorPublic": "소프트웨어",
+    "sizeBucket": "대형",
+    "horizonDays": 180,
+    "difficulty": 2,
+    "panels": {
+      "flow": {
+        "index14": [100, 97, 101, 104, 99, 103, 106, 102, 108, 111, 109, 113, 110, 115],
+        "market14": [100, 101, 102, 101, 103, 104, 105, 104, 106, 107, 107, 109, 110, 111],
+        "volumeTrend": "유지",
+        "windowDays": 180
+      },
+      "numbers": {
+        "growth": {"revYoy": "+23%", "opm": "31% → 34%", "epsYoy": "+28%", "guidance": "상향"},
+        "valuation": {"per": "38", "perSector": "27", "pbr": "9.1", "psr": null},
+        "health": {"debtRatio": "42%", "netCash": "보유", "fcf": "양수"},
+        "asOfRelative": "판단일 D-21(공시 기준)"
+      },
+      "then": {
+        "rate": "5.25%",
+        "rateTrend": "상승기",
+        "fxNote": null,
+        "commodityNote": null,
+        "notes": [
+          {"when": "판단일 D-48", "text": "기준금리가 0.25%p 올라 5.25%가 됐어요.", "sourceKind": "통계"},
+          {"when": "판단일 D-30", "text": "생성형 AI 기대로 대형 소프트웨어주가 크게 올라, 업종 밸류에이션이 과거 평균보다 높다는 분석이 많았어요.", "sourceKind": "보도"},
+          {"when": "판단일 D-12", "text": "이 회사는 직전 분기 실적 발표에서 매출 전망을 올렸어요.", "sourceKind": "공시"}
+        ]
+      }
+    },
+    "evidenceOptions": [
+      {"id": "ev-rev", "label": "매출 +23%", "why": "성장 속도가 판단의 출발점이 될 수 있어요.", "panel": "numbers"},
+      {"id": "ev-per", "label": "PER 38 vs 27", "why": "성장이 가격에 얼마나 반영됐는지 볼 수 있어요.", "panel": "numbers"},
+      {"id": "ev-cash", "label": "순현금 보유", "why": "금리가 오를 때 버틸 힘을 보여 줘요.", "panel": "numbers"},
+      {"id": "ev-rate", "label": "금리 5.25%", "why": "할인율이 성장주 가격에 주는 압력을 볼 수 있어요.", "panel": "then"},
+      {"id": "ev-guide", "label": "가이던스 상향", "why": "회사가 직접 밝힌 다음 분기 기대예요.", "panel": "numbers"},
+      {"id": "ev-flow", "label": "시장보다 강한 흐름", "why": "판단일까지 시장 지수보다 높게 움직였어요.", "panel": "flow"}
+    ],
+    "riskOptions": [
+      {"id": "rk-val", "label": "밸류에이션 프리미엄"},
+      {"id": "rk-rate", "label": "금리 상승"},
+      {"id": "rk-slow", "label": "성장 둔화"}
+    ]
+  },
+  "reveal": {
+    "outcome": {
+      "companyName": "어도비",
+      "ticker": "ADBE",
+      "period": "2023 Q3 → 2024 Q1",
+      "startDate": "2023-09-15",
+      "endDate": "2024-03-13",
+      "returnPct": 4.8,
+      "benchReturnPct": 7.1,
+      "benchName": "S&P 500",
+      "pricePath": [100, 99, 103, 101, 104, 102, 106, 104, 103, 105, 107, 104, 106, 104.8],
+      "benchPath": [100, 101, 102, 103, 103, 104, 105, 105, 106, 106, 107, 107, 107, 107.1],
+      "sources": [
+        {"kind": "예시", "label": "예시 자료(실측 아님) — 프로토타입 data.js의 c001", "url": null},
+        {"kind": "가격", "label": "예시 파생 지수(판단일 = 100), 배당·분할 반영 가정", "url": null}
+      ]
+    },
+    "keyPoints": ["성장은 확인됐지만 PER 프리미엄이 이미 컸어요.", "같은 기간 시장 전체가 더 크게 올랐어요."],
+    "learningPoints": [
+      {"conceptId": "abs-vs-relative", "rank": 1, "linkSentence": "주가는 올랐지만 시장이 더 올라 시장 대비로는 뒤졌어요."},
+      {"conceptId": "growth-vs-valuation", "rank": 2, "linkSentence": "높은 성장률이 이미 높은 PER에 반영돼 있었을 수 있어요."}
+    ]
+  },
+  "internal": {
+    "notes": "예시 자료(실측 아님) — 프로토타입 data.js c001을 카드 형식으로 옮겼다. 수치는 예시다.",
+    "leakTerms": ["어도비", "ADBE", "Adobe", "포토샵", "Photoshop"],
+    "dataCutoff": "2023-09-15",
+    "example": true
+  }
+}

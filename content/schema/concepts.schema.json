@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:bokgi:schema:concepts:v1",
+  "title": "복기 개념 트리",
+  "description": "개념 트리 v1(기획안 §7): 네 갈래 20개. 개념 하나 = 제목, 세 문장 설명, 확인 문제. answerIndex·explanation은 서버 전용(contract QuizPublic에는 정답이 없다). 사례별 연결 문장은 카드 reveal.learningPoints[].linkSentence에 둔다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "branches", "concepts"],
+  "properties": {
+    "version": {"type": "integer", "minimum": 1},
+    "branches": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title"],
+        "properties": {
+          "id": {"enum": ["outcome", "numbers", "then", "self"]},
+          "title": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "concepts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/concept"}}
+  },
+  "$defs": {
+    "concept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "branch", "title", "body", "quizzes"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+        "branch": {"enum": ["outcome", "numbers", "then", "self"]},
+        "title": {"type": "string", "minLength": 1, "maxLength": 40},
+        "body": {"description": "정확히 세 문장(check_case.py가 센다).", "type": "string", "minLength": 1, "maxLength": 400},
+        "quizzes": {"type": "array", "minItems": 2, "maxItems": 3, "items": {"$ref": "#/$defs/quiz"}}
+      }
+    },
+    "quiz": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quizId", "question", "options", "answerIndex", "explanation"],
+      "properties": {
+        "quizId": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
+        "question": {"type": "string", "minLength": 1, "maxLength": 120},
+        "options": {"type": "array", "minItems": 2, "maxItems": 4, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 60}},
+        "answerIndex": {"type": "integer", "minimum": 0, "maximum": 3},
+        "explanation": {"type": "string", "minLength": 1, "maxLength": 200}
+      }
+    }
+  }
+}

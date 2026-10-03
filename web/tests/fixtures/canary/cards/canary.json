@@ -1,0 +1,75 @@
+{
+  "id": "8be0bf0e-3014-4d6a-9021-f3b3dad37688",
+  "version": 1,
+  "status": "live",
+  "deckOrder": 1,
+  "public": {
+    "yearPublic": 2099,
+    "sectorPublic": "시험 업종",
+    "sizeBucket": "중형",
+    "horizonDays": 180,
+    "difficulty": 2,
+    "panels": {
+      "flow": {
+        "index14": [100, 101, 99, 102, 103, 101, 104, 105, 103, 106, 107, 105, 108, 109],
+        "market14": [100, 100, 101, 101, 102, 102, 103, 103, 104, 104, 105, 105, 106, 106],
+        "volumeTrend": "유지",
+        "windowDays": 180
+      },
+      "numbers": {
+        "growth": {"revYoy": "+11%", "opm": "15% → 16%", "epsYoy": "+13%", "guidance": "유지"},
+        "valuation": {"per": "19", "perSector": "21", "pbr": "2.4", "psr": null},
+        "health": {"debtRatio": "55%", "netCash": "순부채", "fcf": "양수"},
+        "asOfRelative": "판단일 D-14(공시 기준)"
+      },
+      "then": {
+        "rate": "3.00%",
+        "rateTrend": "동결",
+        "fxNote": null,
+        "commodityNote": null,
+        "notes": [
+          {"when": "판단일 D-30", "text": "기준금리가 몇 달째 같은 수준에 머물렀어요.", "sourceKind": "통계"},
+          {"when": "판단일 D-10", "text": "이 회사는 직전 분기 실적 발표에서 연간 전망을 유지했어요.", "sourceKind": "공시"}
+        ]
+      }
+    },
+    "evidenceOptions": [
+      {"id": "ev-a", "label": "매출 +11%", "why": "성장 속도를 보여 줘요.", "panel": "numbers"},
+      {"id": "ev-b", "label": "PER 19 vs 21", "why": "업종보다 싸게 거래되는지 볼 수 있어요.", "panel": "numbers"},
+      {"id": "ev-c", "label": "시장과 비슷한 흐름", "why": "판단일까지 시장 지수와 비슷하게 움직였어요.", "panel": "flow"},
+      {"id": "ev-d", "label": "금리 동결", "why": "할인율이 크게 바뀌지 않은 시기예요.", "panel": "then"}
+    ],
+    "riskOptions": [
+      {"id": "rk-a", "label": "부채 부담"},
+      {"id": "rk-b", "label": "성장 둔화"}
+    ]
+  },
+  "reveal": {
+    "outcome": {
+      "companyName": "CANARY-회사",
+      "ticker": "CNRY",
+      "period": "2099 Q1 → 2099 Q3",
+      "startDate": "2099-01-02",
+      "endDate": "2099-07-01",
+      "returnPct": 42.42,
+      "benchReturnPct": 3.1,
+      "benchName": "카나리 지수",
+      "pricePath": [100, 104, 108, 111, 115, 119, 122, 126, 129, 133, 136, 139, 141, 142.42],
+      "benchPath": [100, 100, 101, 101, 101, 102, 102, 102, 102, 103, 103, 103, 103, 103.1],
+      "sources": [
+        {"kind": "예시", "label": "예시 자료(실측 아님) — 카나리 시험용 가짜 카드 CANARY-회사(CNRY) 2099-01-02 42.42%", "url": null},
+        {"kind": "가격", "label": "가짜 파생 지수", "url": null}
+      ]
+    },
+    "keyPoints": ["CANARY-회사(CNRY)는 2099-01-02부터 42.42% 올랐어요."],
+    "learningPoints": [
+      {"conceptId": "abs-vs-relative", "rank": 1, "linkSentence": "CANARY-회사는 시장보다 크게 앞섰어요(42.42%)."}
+    ]
+  },
+  "internal": {
+    "notes": "예시 자료(실측 아님) — 카나리 시험용 가짜 카드. 판단 전 응답(카드·오늘·결과 대기 일지·질문자·오류)에 CANARY-회사·CNRY·2099-01-02·42.42가 나오면 시험이 실패한다.",
+    "leakTerms": ["CANARY-회사", "CNRY", "CANARY-제품"],
+    "dataCutoff": "2099-01-02",
+    "example": true
+  }
+}

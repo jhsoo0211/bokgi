@@ -1,0 +1,79 @@
+{
+  "id": "696bab49-3ad3-4cde-93b3-a4cd832586c2",
+  "version": 1,
+  "status": "live",
+  "deckOrder": 4,
+  "public": {
+    "yearPublic": 2023,
+    "sectorPublic": "소비재",
+    "sizeBucket": "대형",
+    "horizonDays": 365,
+    "difficulty": 1,
+    "panels": {
+      "flow": {
+        "index14": [100, 101, 103, 102, 105, 107, 106, 109, 112, 110, 114, 116, 118, 121],
+        "market14": [100, 102, 103, 105, 106, 108, 107, 110, 112, 113, 115, 116, 118, 119],
+        "volumeTrend": "유지",
+        "windowDays": 365
+      },
+      "numbers": {
+        "growth": {"revYoy": "+6%", "opm": "18% → 18%", "epsYoy": "+7%", "guidance": "유지"},
+        "valuation": {"per": "24", "perSector": "21", "pbr": "5.2", "psr": "3.1"},
+        "health": {"debtRatio": "35%", "netCash": "보유", "fcf": "양수"},
+        "asOfRelative": "판단일 D-6(공시 기준)"
+      },
+      "then": {
+        "rate": "4.50%",
+        "rateTrend": "동결",
+        "fxNote": null,
+        "commodityNote": null,
+        "notes": [
+          {"when": "판단일 D-41", "text": "기준금리가 4.50%에서 동결됐고, 물가 상승률은 몇 달째 낮아지고 있었어요.", "sourceKind": "통계"},
+          {"when": "판단일 D-22", "text": "경기 둔화 우려 속에 필수소비재가 방어 업종으로 자주 언급됐어요.", "sourceKind": "보도"},
+          {"when": "판단일 D-6", "text": "이 회사는 직전 분기 실적 발표에서 연간 전망을 바꾸지 않았어요.", "sourceKind": "공시"}
+        ]
+      }
+    },
+    "evidenceOptions": [
+      {"id": "ev-rev", "label": "매출 +6%", "why": "성장 속도가 판단의 출발점이 될 수 있어요.", "panel": "numbers"},
+      {"id": "ev-per", "label": "PER 24 vs 21", "why": "업종보다 비싸게 거래되는지 볼 수 있어요.", "panel": "numbers"},
+      {"id": "ev-opm", "label": "영업이익률 유지", "why": "이익의 질이 흔들리지 않는지 보여 줘요.", "panel": "numbers"},
+      {"id": "ev-cash", "label": "순현금 보유", "why": "경기 둔화를 버틸 힘을 보여 줘요.", "panel": "numbers"},
+      {"id": "ev-defense", "label": "방어 업종 언급", "why": "당시 시장이 이 업종을 어떻게 보고 있었는지 알려 줘요.", "panel": "then"}
+    ],
+    "riskOptions": [
+      {"id": "rk-flat", "label": "성장 정체"},
+      {"id": "rk-val", "label": "밸류에이션 프리미엄"},
+      {"id": "rk-cons", "label": "소비 둔화"}
+    ]
+  },
+  "reveal": {
+    "outcome": {
+      "companyName": "코카콜라",
+      "ticker": "KO",
+      "period": "2023 Q1 → 2024 Q1",
+      "startDate": "2023-03-15",
+      "endDate": "2024-03-14",
+      "returnPct": 2.1,
+      "benchReturnPct": 26.5,
+      "benchName": "S&P 500",
+      "pricePath": [100, 101, 100, 102, 99, 98, 97, 99, 98, 100, 99, 101, 102, 102.1],
+      "benchPath": [100, 103, 105, 108, 110, 112, 111, 114, 117, 119, 121, 124, 125, 126.5],
+      "sources": [
+        {"kind": "예시", "label": "예시 자료(실측 아님) — 프로토타입 data.js의 c003", "url": null},
+        {"kind": "가격", "label": "예시 파생 지수(판단일 = 100), 배당·분할 반영 가정", "url": null}
+      ]
+    },
+    "keyPoints": ["시장 전체가 크게 오르는 동안 방어 업종은 상대적으로 덜 올랐어요."],
+    "learningPoints": [
+      {"conceptId": "base-rate", "rank": 1, "linkSentence": "안정적인 숫자도 시장 흐름이 바뀌면 시장 대비 결과가 크게 달라질 수 있어요."},
+      {"conceptId": "abs-vs-relative", "rank": 2, "linkSentence": "주가는 조금 올랐지만 시장은 훨씬 더 올랐어요."}
+    ]
+  },
+  "internal": {
+    "notes": "예시 자료(실측 아님) — 프로토타입 data.js c003을 카드 형식으로 옮겼다. 수치는 예시다.",
+    "leakTerms": ["코카콜라", "KO", "Coca-Cola", "코카-콜라"],
+    "dataCutoff": "2023-03-15",
+    "example": true
+  }
+}

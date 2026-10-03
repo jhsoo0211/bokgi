@@ -1,0 +1,151 @@
+{
+  "id": "d6619cfe-7783-40a1-8aa6-0a3701a6299a",
+  "version": 1,
+  "status": "live",
+  "deckOrder": 2,
+  "public": {
+    "yearPublic": 2022,
+    "sectorPublic": "인터넷 서비스",
+    "sizeBucket": "대형",
+    "horizonDays": 180,
+    "difficulty": 2,
+    "panels": {
+      "flow": {
+        "index14": [100, 103, 104, 108, 109, 107, 109, 113, 114, 112, 111, 110, 106, 101],
+        "market14": [100, 101, 103, 104, 103, 101, 104, 106, 107, 106, 108, 109, 108, 106],
+        "volumeTrend": "유지",
+        "windowDays": 180
+      },
+      "numbers": {
+        "growth": {"revYoy": "+41%", "opm": "22% → 32%", "epsYoy": "+71%", "guidance": "제시 안 함"},
+        "valuation": {"per": "26", "perSector": "22", "pbr": "7.5", "psr": "7.6"},
+        "health": {"debtRatio": "43%", "netCash": "보유", "fcf": "양수"},
+        "asOfRelative": "판단일 D-84(공시 기준)"
+      },
+      "then": {
+        "rate": "0.00~0.25%",
+        "rateTrend": "동결",
+        "fxNote": null,
+        "commodityNote": "국제유가가 7년 만에 가장 높은 수준에 가까웠어요.",
+        "notes": [
+          {
+            "when": "판단일 D-84",
+            "text": "이 회사는 직전 분기 실적 발표에서 광고 매출이 1년 전보다 크게 늘었다고 밝혔어요.",
+            "sourceKind": "공시"
+          },
+          {
+            "when": "판단일 D-34",
+            "text": "중앙은행이 자산 매입 축소를 서두르고 올해 금리 인상을 여러 차례 예고했어요.",
+            "sourceKind": "통계"
+          },
+          {
+            "when": "판단일 D-13",
+            "text": "회의록 공개 뒤 금리 인상이 예상보다 빨라질 수 있다는 전망에 성장주가 크게 내렸어요.",
+            "sourceKind": "보도"
+          },
+          {"when": "판단일 D-6", "text": "소비자물가 상승률이 7.0%로 약 40년 만에 가장 높았어요.", "sourceKind": "통계"},
+          {"when": "판단일 D-4", "text": "장기 국채 금리가 2년 만에 가장 높은 수준에 가까워졌어요.", "sourceKind": "통계"}
+        ]
+      }
+    },
+    "evidenceOptions": [
+      {"id": "ev1", "label": "매출 +41%", "why": "매출이 얼마나 빨리 느는지는 성장 기대의 출발점이에요.", "panel": "numbers"},
+      {
+        "id": "ev2",
+        "label": "영업이익률 22% → 32%",
+        "why": "이익률이 오르면 같은 매출에서 남는 이익이 커져요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev3",
+        "label": "PER 26 vs 22",
+        "why": "업종 중앙값과의 차이는 성장 기대가 가격에 얼마나 들어 있는지 보여 줘요.",
+        "panel": "numbers"
+      },
+      {"id": "ev4", "label": "순현금 보유", "why": "현금이 많으면 금리가 올라도 이자 부담이 거의 없어요.", "panel": "numbers"},
+      {
+        "id": "ev5",
+        "label": "금리 인상 예고",
+        "why": "금리가 오르면 먼 미래 이익의 현재 가치가 줄어 성장주 가격에 부담이 돼요.",
+        "panel": "then"
+      },
+      {"id": "ev6", "label": "물가 7.0%", "why": "물가가 높으면 중앙은행이 금리를 더 빨리 올릴 수 있어요.", "panel": "then"},
+      {
+        "id": "ev7",
+        "label": "6개월 +1%, 고점 대비 −11%",
+        "why": "고점에서 얼마나 내려왔는지는 시장 분위기가 바뀌었는지 보는 단서예요.",
+        "panel": "flow"
+      }
+    ],
+    "riskOptions": [
+      {"id": "rk1", "label": "금리 인상 속도"},
+      {"id": "rk2", "label": "광고 경기 둔화"},
+      {"id": "rk3", "label": "규제·소송"},
+      {"id": "rk4", "label": "밸류에이션 부담"}
+    ]
+  },
+  "reveal": {
+    "outcome": {
+      "companyName": "알파벳(구글)",
+      "ticker": "GOOGL",
+      "period": "2022 Q1 → 2022 Q3",
+      "startDate": "2022-01-18",
+      "endDate": "2022-07-18",
+      "returnPct": -16.9,
+      "benchReturnPct": -16.3,
+      "benchName": "S&P 500",
+      "pricePath": [100, 95, 111, 101, 97, 107, 98, 89, 84, 90, 82, 84, 89, 83.1],
+      "benchPath": [100, 94, 99, 93, 91, 101, 95, 87, 86, 90, 80, 84, 85, 83.7],
+      "sources": [
+        {"kind": "예시", "label": "예시 자료(실측 아님) — 수치·날짜·문장은 설명용으로 만든 값이에요", "url": null},
+        {
+          "kind": "가격",
+          "label": "파생 지수 14점(판단일 = 100) · 총수익 기준(배당 재투자·분할 반영, 이 기간 20대1 주식 분할 반영, 배당 없음) · 예시 값",
+          "url": null
+        },
+        {"kind": "공시", "label": "직전 분기 실적 발표 자료(예시)", "url": null},
+        {"kind": "통계", "label": "미국 기준금리 결정·소비자물가·국채 금리(예시)", "url": null},
+        {"kind": "보도", "label": "금리 인상 전망과 성장주 관련 보도(예시)", "url": null}
+      ]
+    },
+    "keyPoints": [
+      "주가는 17% 가까이 내렸지만 시장도 비슷하게 내려, 시장 대비로는 비슷했어요.",
+      "금리 인상 예고는 성장주 전반을 끌어내렸지만, 순현금과 높은 이익률을 가진 이 회사는 시장과 비슷하게 움직였어요.",
+      "기간 중 실적 발표 두 번에 주가가 크게 오르내렸어요."
+    ],
+    "learningPoints": [
+      {
+        "conceptId": "abs-vs-relative",
+        "rank": 1,
+        "linkSentence": "주가는 16.9% 내렸지만 시장도 16.3% 내려, 시장 대비 0.6%p 차이인 비슷함이었어요."
+      },
+      {
+        "conceptId": "rates-and-growth-discount",
+        "rank": 2,
+        "linkSentence": "금리 인상이 예고된 시기라 성장주 전반이 약했지만, 이 회사의 낙폭은 시장 수준에 머물렀어요."
+      }
+    ]
+  },
+  "internal": {
+    "notes": "예시 자료(실측 아님). 새로 만든 예시 카드(2022 금리 인상기 성장주, 기간 중 주식 분할). 결과 방향은 당시 흐름을 참고했지만 수치는 설명용 값이라 실제와 다르고, 실측으로 다시 계산하면 결과 상태가 바뀔 수 있다. 실제 카드로 바꿀 때 공시 원문·공개 통계로 다시 만들고 flow_index.py·outcome.py로 다시 계산한다.",
+    "leakTerms": [
+      "알파벳(구글)",
+      "알파벳",
+      "Alphabet",
+      "구글",
+      "Google",
+      "GOOGL",
+      "GOOG",
+      "유튜브",
+      "YouTube",
+      "안드로이드",
+      "Android",
+      "크롬",
+      "Chrome",
+      "웨이모",
+      "Waymo"
+    ],
+    "dataCutoff": "2022-01-18",
+    "example": true
+  }
+}

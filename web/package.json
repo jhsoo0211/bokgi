@@ -3,12 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "prisma generate",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prebuild": "prisma generate",
+    "pretest": "prisma generate",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:api": "vitest run --project api",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "seed": "node --conditions=react-server --import tsx scripts/seed.ts",
+    "invite": "node --conditions=react-server --import tsx scripts/invite.ts",
+    "e2e": "playwright test",
+    "e2e:real": "E2E_REAL_API=1 playwright test"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "next": "16.3.8",
     "prisma": "^7.10.0",

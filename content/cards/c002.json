@@ -1,0 +1,137 @@
+{
+  "id": "3cf7cce6-fd87-4e83-bd42-3c29e8acaee2",
+  "version": 1,
+  "status": "live",
+  "deckOrder": 3,
+  "public": {
+    "yearPublic": 2022,
+    "sectorPublic": "반도체",
+    "sizeBucket": "중형",
+    "horizonDays": 180,
+    "difficulty": 2,
+    "panels": {
+      "flow": {
+        "index14": [100, 96, 93, 95, 90, 88, 91, 86, 84, 87, 82, 80, 83, 79],
+        "market14": [100, 100, 99, 101, 100, 102, 101, 103, 102, 104, 103, 105, 104, 106],
+        "volumeTrend": "증가",
+        "windowDays": 180
+      },
+      "numbers": {
+        "growth": {"revYoy": "−8%", "opm": "12% → 9%", "epsYoy": "−21%", "guidance": "하향"},
+        "valuation": {"per": "15", "perSector": "22", "pbr": "1.6", "psr": "1.2"},
+        "health": {"debtRatio": "88%", "netCash": "순부채", "fcf": "음수"},
+        "asOfRelative": "판단일 D-49(공시 기준)"
+      },
+      "then": {
+        "rate": "2.25~2.50%",
+        "rateTrend": "상승기",
+        "fxNote": "달러가 20년 만에 가장 강한 수준이었어요.",
+        "commodityNote": null,
+        "notes": [
+          {
+            "when": "판단일 D-49",
+            "text": "이 회사는 직전 분기 실적 발표에서 다음 분기 매출 전망을 낮추고 설비 투자를 줄이겠다고 밝혔어요.",
+            "sourceKind": "공시"
+          },
+          {
+            "when": "판단일 D-27",
+            "text": "PC·스마트폰 수요가 줄어 반도체 재고가 쌓이고 있다는 업계 보도가 이어졌어요.",
+            "sourceKind": "보도"
+          },
+          {"when": "판단일 D-22", "text": "기준금리가 0.75%p 올라 2.25~2.50%가 됐어요.", "sourceKind": "통계"},
+          {
+            "when": "판단일 D-9",
+            "text": "이 회사는 다음 분기 매출이 앞서 낸 전망 범위의 하단에 못 미칠 수 있다고 밝혔어요.",
+            "sourceKind": "공시"
+          }
+        ]
+      }
+    },
+    "evidenceOptions": [
+      {
+        "id": "ev1",
+        "label": "매출 −8%",
+        "why": "매출이 줄기 시작하면 고정비 때문에 이익은 더 크게 줄 수 있어요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev2",
+        "label": "PER 15 vs 22",
+        "why": "업종보다 낮은 PER은 싸다는 뜻일 수도, 이익이 줄 거라는 걱정일 수도 있어요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev3",
+        "label": "부채비율 88%",
+        "why": "빚이 많으면 매출이 흔들릴 때 이익이 더 크게 흔들려요.",
+        "panel": "numbers"
+      },
+      {
+        "id": "ev4",
+        "label": "FCF 음수",
+        "why": "벌어들인 현금보다 쓰는 돈이 많으면 외부 자금에 기대야 해요.",
+        "panel": "numbers"
+      },
+      {"id": "ev5", "label": "가이던스 하향", "why": "회사가 전망을 낮추면 시장의 기대치도 함께 내려가요.", "panel": "numbers"},
+      {
+        "id": "ev6",
+        "label": "6개월 −21%, 시장 +6%",
+        "why": "판단일까지 시장보다 얼마나 더 빠졌는지는 나쁜 소식이 얼마나 반영됐는지 보여 줘요.",
+        "panel": "flow"
+      }
+    ],
+    "riskOptions": [
+      {"id": "rk1", "label": "이자 부담"},
+      {"id": "rk2", "label": "재고 조정 장기화"},
+      {"id": "rk3", "label": "저평가 함정"}
+    ]
+  },
+  "reveal": {
+    "outcome": {
+      "companyName": "마이크론",
+      "ticker": "MU",
+      "period": "2022 Q3 → 2023 Q1",
+      "startDate": "2022-08-18",
+      "endDate": "2023-02-14",
+      "returnPct": -12.4,
+      "benchReturnPct": 3.2,
+      "benchName": "S&P 500",
+      "pricePath": [100, 95, 92, 90, 88, 85, 87, 84, 86, 83, 85, 88, 86, 87.6],
+      "benchPath": [100, 99, 98, 100, 101, 100, 102, 101, 103, 102, 103, 104, 103, 103.2],
+      "sources": [
+        {"kind": "예시", "label": "예시 자료(실측 아님) — 수치·날짜·문장은 설명용으로 만든 값이에요", "url": null},
+        {
+          "kind": "가격",
+          "label": "파생 지수 14점(판단일 = 100) · 총수익 기준(배당 재투자·분할 반영, 이 기간 분기 배당 포함, 분할 없음) · 예시 값",
+          "url": null
+        },
+        {"kind": "공시", "label": "직전 분기 실적 발표와 매출 전망 수정 공시(예시)", "url": null},
+        {"kind": "통계", "label": "미국 기준금리 결정(예시)", "url": null},
+        {"kind": "보도", "label": "반도체 재고 관련 업계 보도(예시)", "url": null}
+      ]
+    },
+    "keyPoints": [
+      "업종보다 낮은 PER은 이익이 더 줄어들 위험을 반영한 값이었어요.",
+      "재고가 쌓이는 하강 국면에서는 낮은 밸류에이션이 바닥 신호가 되지 못했어요.",
+      "높은 부채와 줄어드는 매출이 겹쳐 이익 전망이 계속 낮아졌어요."
+    ],
+    "learningPoints": [
+      {
+        "conceptId": "debt-and-cycle",
+        "rank": 1,
+        "linkSentence": "부채비율 88%에 매출이 줄고 금리가 오르던 때라, 이익과 주가가 시장보다 크게 흔들렸어요."
+      },
+      {
+        "conceptId": "base-rate",
+        "rank": 2,
+        "linkSentence": "이번 한 번의 결과로 '낮은 PER은 함정'이라고 일반화하기는 이르고, 같은 근거의 판단을 여러 번 모아 봐야 해요."
+      }
+    ]
+  },
+  "internal": {
+    "notes": "예시 자료(실측 아님). 프로토타입 data.js의 c002를 옮겼다. 수치·「그때」 문장은 설명용 예시라 실제 주가·재무와 다를 수 있다(금리 값과 날짜만 당시 공개 자료에 가깝게 고쳤다). 실제 카드로 바꿀 때 공시 원문·공개 통계로 다시 만들고 flow_index.py·outcome.py로 다시 계산한다.",
+    "leakTerms": ["마이크론", "Micron", "MU", "크루셜", "Crucial"],
+    "dataCutoff": "2022-08-18",
+    "example": true
+  }
+}
