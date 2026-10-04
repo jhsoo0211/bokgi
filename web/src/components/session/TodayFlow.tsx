@@ -15,9 +15,10 @@ import { CardScreen } from "@/components/prereveal/CardScreen";
 import { RevealScreen } from "@/components/reveal/RevealScreen";
 import { api, errorText, isApiError } from "@/lib/client/api";
 import { logEvent } from "@/lib/client/events";
-import { localDayKey } from "@/lib/client/format";
-import { dayLog, settled } from "@/lib/client/session";
+import { addDays, localDayKey } from "@/lib/client/format";
+import { dayLog, sessionReviews, settled } from "@/lib/client/session";
 import type { ConceptListItem, PublicCase, Reveal, ReviewItem, Today } from "@/lib/client/types";
+import type { SessionReviews } from "@/components/common/TodayTop";
 import { SESSION_REVIEWS_MAX } from "@/shared/contract";
 import { DoneScreen } from "./DoneScreen";
 import { ReviewScreen } from "./ReviewScreen";
@@ -26,9 +27,9 @@ type Screen =
   | { kind: "loading" }
   | { kind: "error"; message: string }
   | { kind: "cards"; today: Today; judged: number; cards: PublicCase[]; extra: boolean }
-  | { kind: "reveal"; reveal: Reveal; judged: number; nextLabel: string }
+  | { kind: "reveal"; reveal: Reveal; judged: number; reviews: SessionReviews; nextLabel: string }
   | { kind: "review"; today: Today; judged: number; item: ReviewItem; concept: ConceptListItem | null; done: number; total: number }
-  | { kind: "done"; today: Today; judged: number; summary: ConceptListItem[] };
+  | { kind: "done"; today: Today; judged: number; summary: ConceptListItem[]; tomorrowReviews: number };
 
 const caseCache = new Map<string, PublicCase>();
 async function getCase(id: string, version: number): Promise<PublicCase> {
@@ -46,7 +47,7 @@ const NO_EXTRA = "지금은 한 장 더를 볼 수 없어요.";
 async function revealScreen(judgmentId: string, today: Today, judged: number): Promise<Screen> {
   const reveal = await api.reveal(judgmentId);
   const remaining = today.cards.filter((c) => !c.judgmentId && c.caseId !== reveal.caseId).length;
-  return { kind: "reveal", reveal, judged, nextLabel: remaining > 0 ? "다음 카드 →" : "계속 →" };
+  return { kind: "reveal", reveal, judged, reviews: sessionReviews(localDayKey(), today.reviews.length), nextLabel: remaining > 0 ? "다음 카드 →" : "계속 →" };
 }
 
 /** 지금 오늘 탭에 보여 줄 화면을 고른다 */
@@ -77,8 +78,11 @@ async function nextScreen(): Promise<Screen> {
     };
   }
   const seen = dayLog(date).concepts;
-  const list = seen.length ? (await api.concepts()).concepts : [];
-  return { kind: "done", today, judged, summary: seen.map((id) => list.find((c) => c.id === id)).filter((c): c is ConceptListItem => !!c) };
+  const list = (await api.concepts()).concepts;
+  // 돌아올 이유 한 줄: 내일 복습할 개념 수(지난 것 포함, 하루 2개까지 — 내일 입장 띠와 같은 수)
+  const tomorrow = addDays(date, 1);
+  const tomorrowReviews = Math.min(SESSION_REVIEWS_MAX, list.filter((c) => c.dueOn !== null && c.dueOn <= tomorrow).length);
+  return { kind: "done", today, judged, tomorrowReviews, summary: seen.map((id) => list.find((c) => c.id === id)).filter((c): c is ConceptListItem => !!c) };
 }
 
 export function TodayFlow() {
@@ -133,10 +137,10 @@ export function TodayFlow() {
     case "cards":
       return <CardScreen key={screen.cards[0].id} cards={screen.cards} extra={screen.extra} today={screen.today} judged={screen.judged} onFinalized={onFinalized} />;
     case "reveal":
-      return <RevealScreen key={screen.reveal.judgmentId} reveal={screen.reveal} judged={screen.judged} nextLabel={screen.nextLabel} onNext={go} />;
+      return <RevealScreen key={screen.reveal.judgmentId} reveal={screen.reveal} judged={screen.judged} reviews={screen.reviews} nextLabel={screen.nextLabel} onNext={go} />;
     case "review":
       return <ReviewScreen key={screen.item.conceptId} today={screen.today} item={screen.item} concept={screen.concept} done={screen.done} total={screen.total} judged={screen.judged} onNext={go} />;
     case "done":
-      return <DoneScreen today={screen.today} summary={screen.summary} judged={screen.judged} onMore={onMore} />;
+      return <DoneScreen today={screen.today} summary={screen.summary} judged={screen.judged} tomorrowReviews={screen.tomorrowReviews} onMore={onMore} />;
   }
 }

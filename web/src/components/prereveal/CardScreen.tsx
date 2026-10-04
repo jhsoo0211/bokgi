@@ -20,7 +20,7 @@ import { useSwipeStack } from "@/hooks/useSwipeStack";
 import { api, errorText } from "@/lib/client/api";
 import { logEvent } from "@/lib/client/events";
 import { DEFAULT_PANEL, DIR, localDayKey } from "@/lib/client/format";
-import { dropDraft, firstView, freshDraft, getDraft, markExtraJudged, saveDraft, track, type Draft } from "@/lib/client/session";
+import { draftKey, dropDraft, firstView, freshDraft, getDraft, markExtraJudged, sanitizeDraft, saveDraft, sessionReviews, track, type Draft } from "@/lib/client/session";
 import type { Direction, EvidenceOption, GestureMeta, JudgmentBody, PanelKind, PublicCase, RiskOption, Today } from "@/lib/client/types";
 import { CardFace } from "./CardFace";
 
@@ -44,7 +44,8 @@ export function CardScreen({ cards, extra, today, judged, onFinalized }: Props) 
   const reduced = useReducedMotion();
   const card = cards[0];
   const months = Math.round(card.horizonDays / 30);
-  const [draft, setDraft] = useState<Draft>(() => getDraft(card.id));
+  const dkey = draftKey(card.id, card.version);
+  const [draft, setDraft] = useState<Draft>(() => sanitizeDraft(getDraft(dkey), card.evidenceOptions.map((o) => o.id), card.riskOptions.map((o) => o.id)));
   const [locked, setLocked] = useState(false);
   const [blockedHint, setBlockedHint] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast>(null);
@@ -62,7 +63,7 @@ export function CardScreen({ cards, extra, today, judged, onFinalized }: Props) 
   const update = (patch: Partial<Draft>) => {
     const next = { ...draft, ...patch };
     setDraft(next);
-    saveDraft(card.id, next);
+    saveDraft(dkey, next);
     setBlockedHint(null);
   };
   const ev = (name: Parameters<typeof logEvent>[0], payload: Record<string, unknown> | null = null) =>
@@ -133,7 +134,7 @@ export function CardScreen({ cards, extra, today, judged, onFinalized }: Props) 
     try {
       const created = await track(api.createJudgment(p.body));
       pending.current = null;
-      dropDraft(card.id);
+      dropDraft(dkey);
       if (extra) markExtraJudged(localDayKey(), card.id);
       onFinalized(created.judgmentId, card);
     } catch (e) {
@@ -176,7 +177,7 @@ export function CardScreen({ cards, extra, today, judged, onFinalized }: Props) 
     stack.undo();
     const next = { ...freshDraft(), panelsViewed: draft.panelsViewed };   // 되돌리면 고른 것도 지우고 같은 카드로
     setDraft(next);
-    saveDraft(card.id, next);
+    saveDraft(dkey, next);
     setLocked(false);
     setBlockedHint(null);
     setToast({ kind: "undone" });
@@ -196,8 +197,10 @@ export function CardScreen({ cards, extra, today, judged, onFinalized }: Props) 
     const f = focusNext.current;
     if (!f) return;
     focusNext.current = null;
-    const el = f === "now" ? document.getElementById("now") : document.querySelector<HTMLElement>("#ev .ds-chip");
-    el?.focus({ preventScroll: true });
+    // 알림 단추는 화면에 고정돼 있어 스크롤하지 않는다. 되돌린 뒤의 첫 근거 칩은 보이게 스크롤한다
+    // (스와이프로 판단했다면 칩이 아래 탭 밑에 있을 수 있다 — scroll-padding-bottom이 탭 높이만큼 비켜 준다)
+    if (f === "now") document.getElementById("now")?.focus({ preventScroll: true });
+    else document.querySelector<HTMLElement>("#ev .ds-chip")?.focus();
   });
 
   /* 알림 위 초점·포인터 → 타이머 멈춤 */
@@ -231,7 +234,7 @@ export function CardScreen({ cards, extra, today, judged, onFinalized }: Props) 
     if (!p || p.finalizing) return;
     pending.current = null;
     timer.cancel();
-    dropDraft(card.id);
+    dropDraft(dkey);
     if (extra) markExtraJudged(localDayKey(), card.id);
     track(api.createJudgment(p.body, { keepalive })).catch(() => { /* 다시 열면 같은 카드가 다시 나온다 */ });
   });
@@ -254,7 +257,7 @@ export function CardScreen({ cards, extra, today, judged, onFinalized }: Props) 
   return (
     <>
       <h1 id="screen-title" className="sr-only">{extra ? "한 장 더 — 판단 카드" : "오늘의 판단 카드"}</h1>
-      <TodayTop judged={judged} label={extra ? "한 장 더" : "판단"} />
+      <TodayTop judged={judged} label={extra ? "한 장 더" : "판단"} reviews={extra ? undefined : sessionReviews(localDayKey(), today.reviews.length)} />
       <EntryStrip today={today} judged={judged} extraMode={extra} />
       <div className="stage" id="stage" ref={stack.stageRef}>
         {visible.map(({ c, depth }) => (
@@ -334,7 +337,7 @@ export function CardScreen({ cards, extra, today, judged, onFinalized }: Props) 
             {toast.error && <><br />{toast.error}</>}
             <span className="toast-acts">
               <button type="button" id="undo" disabled={toast.busy} onClick={undo}>되돌리기</button>
-              <button type="button" id="now" disabled={toast.busy} onClick={() => { void finalize(true); }}>바로 공개</button>
+              <button type="button" id="now" disabled={toast.busy} onClick={() => { void finalize(true); }}>{toast.error ? "다시 보내기" : "바로 공개"}</button>
             </span>
           </>
         )}

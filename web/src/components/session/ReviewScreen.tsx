@@ -1,6 +1,9 @@
 "use client";
 
-/** 오늘: 복습 문제(복습일이 된 개념, 하루 2개까지). 답하면 '계속'이 열리고 초점이 옮겨 간다 */
+/**
+ * 오늘: 복습 문제(복습일이 된 개념, 하루 2개까지). 답하면 '계속'이 열리고 초점이 옮겨 간다.
+ * '계속'은 아래 탭 위에 붙는 주 행동 막대(.act-bar)에 둔다 — 답하기 전에는 닫혀 있어 문제를 건너뛰는 단추가 아니다.
+ */
 import { useEffect, useRef, useState } from "react";
 import { EntryStrip } from "@/components/common/EntryStrip";
 import { QuizBlock } from "@/components/common/QuizBlock";
@@ -32,7 +35,7 @@ export function ReviewScreen({ today, item, concept, done, total, judged, onNext
   return (
     <>
       <h1 id="screen-title" className="sr-only">복습 문제</h1>
-      <TodayTop judged={judged} label={`복습 ${done + 1}/${total}`} />
+      <TodayTop judged={judged} label={`복습 ${done + 1}/${total}`} reviews={{ done, total }} />
       <EntryStrip today={today} judged={judged} extraMode={false} />
       <h2 className="q ds-head">복습 · {item.title}</h2>
       <div className="ds-card concept">
@@ -45,8 +48,10 @@ export function ReviewScreen({ today, item, concept, done, total, judged, onNext
           </details>
         )}
       </div>
-      <button type="button" className="ds-btn ds-btn--primary wide" id="next" ref={nextRef} disabled={!answered && !!quiz} onClick={onNext}>계속 →</button>
       <p className="hint">복습은 하루 {SESSION_REVIEWS_MAX}개까지예요. 맞히면 다음 간격(1·3·7·21일)으로, 틀리면 내일 다시 나와요.</p>
+      <div className="act-bar">
+        <button type="button" className="ds-btn ds-btn--primary wide" id="next" ref={nextRef} disabled={!answered && !!quiz} onClick={onNext}>계속 →</button>
+      </div>
     </>
   );
 }

@@ -60,6 +60,15 @@
   --ds-shadow: none;          /* 이 테마에 그림자는 없다 */
 }
 
+/* 웹 보조 토큰(2026-10-04 UX 감사): 프로토타입 app.css에 16곳 하드코딩돼 있던 값을 이름으로 묶었다(값은 그대로).
+   tokens.json에는 아직 없다 — 디자인 토큰 원본에 옮길 때 같은 이름을 쓴다. */
+:root {
+  --rule-dot: #9a9890;              /* 점선 괘선(항목 행·목록·해설 줄) */
+  --desk: #e9e8e2;                  /* 폰 틀 바깥 책상(넓은 화면) */
+  --scrim: rgba(28, 27, 26, .45);   /* 시트 뒤 가림막 */
+  --nav-h: 45.5px;                  /* 아래 탭 높이(괘선 1.5 + 칸 44) — 위에 붙는 막대·초점 여백 계산용 */
+}
+
 /* 타입 스케일 */
 .b-display { font: 700 26px/32px var(--font-sans); letter-spacing: -0.01em; }
 .b-title   { font: 700 18px/24px var(--font-sans); letter-spacing: -0.01em; }

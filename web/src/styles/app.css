@@ -2,13 +2,21 @@
    규칙: 이 파일은 상승·하락 색 변수를 쓰지 않는다(결과 색은 공개 화면에서 컴포넌트 클래스로만 칠한다).
    학습지 모양 유지: 그림자 없음, 각진 답란, 선택은 빨간 펜 링.
    프로토타입과 다른 점(React 이식): 제목 선택자를 h5/h6 대신 클래스로(.blk-h · .stats-h — 화면별 h1·h2·h3 구조),
-   스와이프 도장 글자를 마크업에 직접, aria-disabled 판단 버튼, 근거 칩 설명(.ds-chip-why), 개념 갈래, 불러오기·오류·초대 화면. */
+   스와이프 도장 글자를 마크업에 직접, aria-disabled 판단 버튼, 근거 칩 설명(.ds-chip-why), 개념 갈래, 불러오기·오류·초대 화면.
+   2026-10-04 UX 감사(docs/reviews/2026-10-04_ecc_ux_review_webapp.md): 세션 진행 칸(.ds-bar.seg), 주 행동 막대(.act-bar),
+   공개 화면 되짚기 카드 먼저, 누르는 자리 44px, 눌림 표시, 글자 200% 넘침, 당겨서 새로고침(카드 화면), 보조 토큰. */
 html, body { height: 100%; margin: 0; }
-html { scroll-padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)); }   /* Tab으로 옮긴 초점이 아래 고정 탭(44px)에 가리지 않게 */
+/* Tab으로 옮긴 초점이 아래 고정 탭과 그 위에 붙는 주 행동 막대(.act-bar)에 가리지 않게(탭 45.5 + 막대 70 + 여유) */
+html { scroll-padding-bottom: calc(var(--nav-h) + 76px + env(safe-area-inset-bottom, 0px)); }
+/* 당겨서 새로고침 막기: 카드 화면(고르던 근거·확신도가 메모리에만 있다)에서만, 문서 스크롤러에 건다.
+   (.stage에 건 overscroll-behavior는 .stage가 스크롤 상자가 아니라 효과가 없었다) */
+html:has(#stage) { overscroll-behavior-y: contain; }
+.ds-root { -webkit-tap-highlight-color: transparent; }   /* 회색 탭 번쩍임 대신 아래 :active 눌림 표시 */
 body { box-sizing: border-box; word-break: keep-all; overflow-wrap: break-word; }   /* 여백 32px 때문에 생기던 빈 스크롤 제거, 한국어는 어절 단위로 줄바꿈 */
-body { display: flex; justify-content: center; align-items: flex-start; padding: 16px 0 calc(16px + env(safe-area-inset-bottom, 0px)); background: #e9e8e2; }
+body { display: flex; justify-content: center; align-items: flex-start; padding: 16px 0 calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--desk); }
 .phone { width: 100%; max-width: 380px; min-height: calc(100vh - 32px); background: var(--bg-000); display: flex; flex-direction: column; border: 1.5px solid var(--ink-900); }
-.screen { flex: 1; padding: 16px 16px 24px; overflow-y: auto; }
+/* 화면 틀은 스크롤 상자가 아니다(문서가 스크롤한다) — 스크롤 상자면 안의 sticky(.act-bar)가 붙지 않는다. 가로 넘침만 자른다 */
+.screen { flex: 1; padding: 16px 16px 24px; overflow-x: clip; }
 #view:focus { outline: none; }   /* 화면이 바뀔 때 초점을 받는 틀(누르는 곳이 아님) — 링은 그 안의 컨트롤에만 */
 #nav { position: sticky; bottom: 0; z-index: 2; display: flex; border-top: 1.5px solid var(--ink-900); background: var(--bg-100); }
 #nav[hidden] { display: none; }
@@ -21,7 +29,19 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--ink-500); border-bottom: 1.5px solid var(--ink-900); padding-bottom: 8px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
 .top b { color: var(--ink-900); }
 .ds-bar { margin: 0 0 12px; }
-.ds-entry { margin: 0 0 8px; }   /* 입장 카드: 머리줄 아래, 카드 스택·복습·마침 위 */
+/* 오늘 세션 진행: 카드 3칸 + 그날 복습 0~2칸(조금 짧게, 사이를 띄워 묶음을 나눈다). 잉크 한 색, 움직임 없음 */
+.ds-bar.seg { display: flex; gap: 3px; background: none; overflow: visible; }
+.ds-bar.seg i { flex: 1; height: 100%; background: var(--ink-200); }
+.ds-bar.seg i.on { background: var(--ink-900); }
+.ds-bar.seg i.rv { flex: .6; }
+.ds-bar.seg i:not(.rv) + i.rv { margin-left: 5px; }
+/* 입장 띠: 머리줄 아래, 카드 스택·복습·마침 위. 첫 줄은 학습(개념 이해·복습 예정)이 한 줄을 다 쓰고,
+   둘째 줄 왼쪽 '오늘 남은 카드', 오른쪽 스트릭(caption). 좁거나 글자가 크면 스트릭이 다음 줄 오른쪽으로 내려간다
+   (격자였을 때는 스트릭이 첫 줄을 먼저 차지해 학습 줄이 접히거나, 글자 200%에서 밖으로 밀렸다) */
+.ds-entry { margin: 0 0 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
+.ds-entry-lead { flex: 1 0 100%; }
+.ds-entry-sub { flex: 1 1 auto; }
+.ds-entry .ds-streak { flex: 0 1 auto; margin-left: auto; text-align: right; white-space: normal; }
 .meta { margin: 0 0 8px; font-size: 12px; color: var(--ink-500); }
 .meta b { color: var(--ink-900); font-weight: 600; }
 
@@ -55,7 +75,7 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .panel-note { margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--ink-500); }
 /* 그때 판 */
 .ctx-notes { list-style: none; margin: 0; padding: 0; }
-.ctx-notes li { padding: 6px 0; border-bottom: 1px dotted #9a9890; }
+.ctx-notes li { padding: 6px 0; border-bottom: 1px dotted var(--rule-dot); }
 .ctx-notes li:last-child { border-bottom: 0; }
 .ctx-when { margin-right: 6px; font-size: 12px; font-weight: 700; }
 .ctx-notes p { margin: 3px 0 0; font-size: 13px; line-height: 1.5; }
@@ -71,7 +91,8 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .check input:checked::before { transform: scale(1); }
 .q { font-size: 16px; margin: 6px 0 8px; }
 .q small { font-size: 12px; font-weight: 400; }
-.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.chips .ds-chip::before { inset: -5px; }   /* 칩 간격 10px의 절반씩 → 누르는 자리 44px(이웃 칩과 겹치지 않는다) */
 /* 근거 칩 + 한 줄 설명(왜 중요?): 칩마다 설명이 붙어 한 줄에 하나씩 세운다. 선택은 같은 빨간 펜 고리(넓은 칩이라 덜 기울인다) */
 .chips--why { flex-direction: column; align-items: stretch; }
 .ds-chip--why { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
@@ -80,7 +101,9 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .ds-chip--why[aria-pressed="true"]::after { inset: -5px -7px; border-radius: 999px; transform: rotate(-1deg); }
 .shake { animation: shake 320ms ease; }
 @keyframes shake { 25% { transform: translateX(-4px) } 75% { transform: translateX(4px) } }
-.ds-conf { margin: 4px 0 6px; }
+.ds-conf { margin: 4px 0 6px; flex-wrap: wrap; gap: 8px 12px; }   /* 글자를 키우면 '얼마나 확신하나요'와 다섯 칸이 두 줄로 */
+/* 확신도 칸의 누르는 자리: 가상 요소는 안쪽(테두리 안) 기준이라 테두리 두께만큼 더 넓혀야 44px(간격 18px의 절반씩, 겹침 없음) */
+.ds-conf .dots button::before { inset: calc(-9px - var(--ds-border)); }
 .ds-conf .conf-label { font-size: 12px; color: var(--ink-500); }
 .conf-scale { margin: 0 0 14px; font-size: 12px; color: var(--ink-500); text-align: right; }
 .swipe { display: flex; gap: 10px; }
@@ -95,6 +118,9 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .toast-acts button { position: relative; padding: 6px 14px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-900); background: var(--bg-100); border: 1.5px solid var(--ink-900); border-radius: 0; cursor: pointer; }
 .toast-acts button::before { content: ""; position: absolute; inset: -6px -4px; }   /* 2.5초 안에 눌러야 하는 버튼: 누르는 자리 44px 이상 */
 .toast-acts button:disabled { opacity: .45; cursor: default; }
+/* 되돌리기 알림(단추가 있는 동안)에는 화면 끝(판단 단추·안내)을 알림 위로 올려 볼 수 있게 아래 여백을 더한다(초점·내용이 가리지 않게).
+   '되돌렸어요' 한 줄 알림에는 더하지 않는다 — 2초 뒤 여백이 빠지며 화면이 튀지 않게 */
+#view:has(> .toast .toast-acts) { padding-bottom: 150px; }
 
 /* 결과 공개 */
 .reveal { margin: 4px 0 10px; }
@@ -111,19 +137,24 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .legend { display: flex; gap: 12px; font-size: 12px; color: var(--ink-500); margin-bottom: 10px; }
 .legend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin-right: 4px; background: var(--ink-900); }
 .legend i.ln-bench { background: var(--ink-500); }
-.mine .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px dotted #9a9890; font-size: 13px; }
+.mine .row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; padding: 6px 0; border-bottom: 1px dotted var(--rule-dot); font-size: 13px; }
 .mine .row:last-child { border: 0; }
 .mine .row span { color: var(--ink-500); flex: none; }
-.mine .row b { font-weight: 700; text-align: right; }
-/* 사후에 중요했던 것: 개념 이름(형광펜) 행 + 카드의 keyPoints(있을 때만, 강조 없이). 자기 평가는 이 묶음 바로 아래 */
-.mine .after > .row:last-child { border-bottom: 1px dotted #9a9890; }
-.mine > .after:last-child > .row:last-child { border-bottom: 0; }
-.kp-list { margin: 0; padding: 4px 0 8px 18px; font-size: 12px; line-height: 1.5; color: var(--ink-500); border-bottom: 1px dotted #9a9890; }
-.mine > .after:last-child > .kp-list { border-bottom: 0; }
+.mine .row b { min-width: 0; margin-left: auto; font-weight: 700; text-align: right; }   /* 글자를 키워 줄이 넘치면 값이 다음 줄 오른쪽으로 */
+/* 내 판단 되짚기(공개 화면 첫 카드): 사후에 중요했던 것(개념 이름 형광펜) → 카드의 keyPoints → 내 근거 → ○△✕ → 나머지 내 판단 */
+.mine .after > .row:last-child { border-bottom: 1px dotted var(--rule-dot); }
+.kp-list { margin: 0; padding: 4px 0 8px 18px; font-size: 12px; line-height: 1.5; color: var(--ink-500); border-bottom: 1px dotted var(--rule-dot); }
 .kp-list li + li { margin-top: 2px; }
+.selfcheck + .mine-rest { margin-top: 6px; border-top: 1px dotted var(--rule-dot); }
+/* 시장 대비 결과: 한 줄(도장) → 수치 3칸 → 경로. 되짚기 카드 다음에 온다(점수가 첫 정보가 되지 않게) */
+.result .verdict { margin-top: 4px; }
+.result .ds-nums { margin-top: 10px; }
+/* 글자를 키워도 세 칸이 화면 밖으로 밀리지 않게(칸은 줄고 숫자는 칸 안에서 줄을 바꾼다) */
+.ds-nums { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ds-nums small, .ds-nums b { overflow-wrap: anywhere; }
 /* 출처: '예시 자료' 꼬리표(설명용 값)와 경로 아래 짧은 목록(가격·공시·통계·보도) */
-.sample-tag { display: inline-block; padding: 0 5px; font-size: 11px; line-height: 16px; border: 1px solid var(--ink-500); color: var(--ink-500); vertical-align: 1px; }
-.sources { list-style: none; margin: -4px 0 12px; padding: 0; font-size: 11px; line-height: 1.5; color: var(--ink-500); }
+.sample-tag { display: inline-block; padding: 0 5px; font-size: 12px; line-height: 16px; border: 1px solid var(--ink-500); color: var(--ink-500); vertical-align: 1px; }
+.sources { list-style: none; margin: -4px 0 12px; padding: 0; font-size: 12px; line-height: 1.5; color: var(--ink-500); }
 .sources li + li { margin-top: 2px; }
 .src-kind { display: inline-block; min-width: 26px; margin-right: 6px; font-weight: 600; color: var(--ink-900); }
 .sources a { color: inherit; }
@@ -135,7 +166,7 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 /* 해설 세 줄: 작은 머리글 + 문장 라벨. 개념 연결이 마지막이고 가장 진하다 */
 .explain { margin-bottom: 10px; }
 .explain .ds-bubble { max-width: 100%; }
-.ex-line { padding: 8px 0; border-top: 1px dotted #9a9890; }
+.ex-line { padding: 8px 0; border-top: 1px dotted var(--rule-dot); }
 .ex-line:first-of-type { padding-top: 2px; border-top: 0; }
 .ex-h { margin: 0 0 4px; font-size: 12px; font-weight: 700; color: var(--ink-500); letter-spacing: -0.01em; }
 .ex-s { margin: 0; font-size: 13px; line-height: 1.6; }
@@ -147,10 +178,11 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .ex-line--concept .ds-hl { font-weight: 700; }
 .concept p { margin: 0 0 8px; font-size: 13px; line-height: 1.55; }
 .concept .concept-link { color: var(--ink-500); }
-.quiz { border-top: 1px dotted #9a9890; padding-top: 8px; font-size: 13px; }
+.quiz { border-top: 1px dotted var(--rule-dot); padding-top: 8px; font-size: 13px; }
+.ds-card > .quiz:first-child { border-top: 0; padding-top: 0; }   /* 복습 화면처럼 카드 첫 줄이면 카드 테두리와 겹선이 되지 않게 */
 .quiz .quiz-q { margin: 0; }
-.quiz .opt { position: relative; display: block; width: 100%; text-align: left; padding: 8px 10px; border: 1.5px solid var(--ink-900); background: var(--bg-100); margin-top: 6px; font: inherit; font-size: 13px; color: var(--ink-900); cursor: pointer; }
-.quiz .opt::before { content: ""; position: absolute; inset: -3px 0; }   /* 보기 사이 6px의 절반씩 → 누르는 자리 44px */
+.quiz .opt { position: relative; display: block; width: 100%; text-align: left; padding: 8px 10px; border: 1.5px solid var(--ink-900); background: var(--bg-100); margin-top: 8px; font: inherit; font-size: 13px; color: var(--ink-900); cursor: pointer; }
+.quiz .opt::before { content: ""; position: absolute; inset: -4px 0; }   /* 보기 사이 8px의 절반씩 → 누르는 자리 44px */
 .quiz .opt:disabled, .quiz .opt[aria-disabled="true"] { cursor: default; }
 .quiz .opt.ok { outline: 2px solid var(--select); outline-offset: -4px; }
 .quiz .opt.no { text-decoration: line-through; color: var(--ink-500); }
@@ -158,19 +190,19 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .report-line { display: flex; justify-content: flex-end; margin: 0 0 10px; }
 .report-line p { margin: 0; }
 .ds-btn.ghost { position: relative; padding: 8px 12px; font-size: 13px; font-weight: 600; background: var(--bg-000); }
-.ds-btn.ghost::before { content: ""; position: absolute; inset: -6px 0; }
+.ds-btn.ghost::before { content: ""; position: absolute; inset: -7px 0; }
 .ds-btn.wide { width: 100%; margin-top: 4px; }
 .row2 { display: flex; gap: 8px; margin-top: 8px; }
 .row2 .ds-btn { position: relative; flex: 1; padding: 10px; font-size: 13px; }
 .row2 .ds-btn::before { content: ""; position: absolute; inset: -4px 0; }
 
 /* 정보 신고 시트 */
-.sheet-back { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; background: rgba(28, 27, 26, .45); }
+.sheet-back { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; background: var(--scrim); }
 .sheet { width: 100%; max-width: 380px; max-height: 92vh; overflow-y: auto; background: var(--bg-000); border: 1.5px solid var(--ink-900); border-bottom: 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
 .sheet h2 { margin: 0 0 4px; font-size: 18px; }
 .sheet-form > p { margin: 0 0 10px; }
 .sheet fieldset { margin: 0 0 12px; padding: 0; min-width: 0; border: 0; border-top: 1.5px solid var(--ink-900); }
-.radio { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 9px 2px; border-bottom: 1px dotted #9a9890; font-size: 14px; cursor: pointer; }
+.radio { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 9px 2px; border-bottom: 1px dotted var(--rule-dot); font-size: 14px; cursor: pointer; }
 .radio input { appearance: none; -webkit-appearance: none; flex: none; width: 18px; height: 18px; margin: 0; border: 1.5px solid var(--ink-900); border-radius: 50%; background: var(--bg-100); display: grid; place-content: center; cursor: pointer; }
 .radio input::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--select); transform: scale(0); }
 .radio input:checked::before { transform: scale(1); }
@@ -188,7 +220,7 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .cal-nav:disabled { color: var(--ink-200); border-color: var(--ink-200); cursor: default; }
 .cal-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .cal-grid th { padding: 4px 0 5px; font-size: 11px; font-weight: 600; color: var(--ink-500); text-align: center; border-bottom: 1.5px solid var(--ink-900); }
-.cal-grid td { height: 34px; padding: 2px 0 0; text-align: center; vertical-align: top; border-bottom: 1px dotted #9a9890; }
+.cal-grid td { height: 34px; padding: 2px 0 0; text-align: center; vertical-align: top; border-bottom: 1px dotted var(--rule-dot); }
 .cal-grid tbody tr:last-child td { border-bottom: 0; }
 .cal-n { position: relative; display: inline-block; min-width: 20px; font-size: 13px; line-height: 20px; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
 .cal-day--future .cal-n { color: var(--ink-500); }
@@ -201,15 +233,17 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .cal-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 10px; margin-top: 4px; padding-top: 6px; border-top: 1.5px solid var(--ink-900); }
 .cal-cap { margin: 0; font-size: 12px; color: var(--ink-500); }
 .cal-cap b { color: var(--ink-900); font-weight: 700; font-variant-numeric: tabular-nums; }
-.cal-key { display: flex; gap: 8px; margin: 0; font-size: 11px; color: var(--ink-500); }
+.cal-key { display: flex; gap: 8px; margin: 0; font-size: 12px; color: var(--ink-500); }
 .cal-key span { display: inline-flex; align-items: center; gap: 3px; }
 .cal-key .cal-mk { display: inline-block; margin: 0; }
+.cal-err { margin: 0; font-size: 12px; color: var(--ink-900); }   /* 늘 있는 상태 칸(비면 높이 0) — 숨기면 읽기 프로그램이 새 문장을 놓친다 */
 .cal-ring { display: inline-block; width: 13px; height: 10px; border: 1.5px solid var(--select); border-radius: 50%; transform: rotate(-4deg); }
 
 /* 일지 */
 .empty { margin: 16px 0; font-size: 13px; color: var(--ink-500); }
+.empty p { margin: 0 0 10px; }
 .jlist { list-style: none; margin: 0 0 14px; padding: 0; }
-.jrow { padding: 10px 0; border-bottom: 1px dotted #9a9890; }
+.jrow { padding: 10px 0; border-bottom: 1px dotted var(--rule-dot); }
 .jrow-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .jrow-date { font-size: 12px; color: var(--ink-500); }
 .jrow-title { font-size: 14px; font-weight: 700; }
@@ -221,7 +255,7 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .jrow-body { margin-top: 4px; font-size: 13px; color: var(--ink-500); }
 .jrow-body b { color: var(--ink-900); font-weight: 600; }
 .stats { margin: 0 0 12px; border: 1.5px solid var(--ink-900); background: var(--bg-100); }
-.stats summary { padding: 10px 12px; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
+.stats summary { padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }   /* 누르는 자리 44px */
 .stats summary::-webkit-details-marker { display: none; }
 /* 펼침 표시는 그림일 뿐 — 대체 글자를 비워 이름에 '▸'가 읽히지 않게 (열림 상태는 details가 알린다). 첫 줄은 대체 글자 문법을 모르는 브라우저용 */
 .stats summary::before { content: "▸"; content: "▸" / ""; display: inline-block; width: 16px; }
@@ -236,29 +270,32 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .cbranch { margin: 0 0 6px; }
 .cbranch-h { margin: 14px 0 2px; font-size: 13px; color: var(--ink-500); letter-spacing: -0.01em; }
 .cbranch:first-of-type .cbranch-h { margin-top: 4px; }
-.cbranch-empty { margin: 0 0 8px; padding: 10px 2px; font-size: 12px; color: var(--ink-500); border-bottom: 1px dotted #9a9890; }
+.cbranch-empty { margin: 0 0 8px; padding: 10px 2px; font-size: 12px; color: var(--ink-500); border-bottom: 1px dotted var(--rule-dot); }
 .clist { list-style: none; margin: 0 0 12px; padding: 0; }
-.crow { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 10px; width: 100%; padding: 12px 2px; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px dotted #9a9890; cursor: pointer; }
+.crow { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 10px; width: 100%; padding: 12px 2px; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px dotted var(--rule-dot); cursor: pointer; }
 .crow b { font-size: 15px; }
 .crow small { grid-column: 1 / -1; font-size: 12px; color: var(--ink-500); }
 .cstate { padding: 1px 7px; font-size: 12px; font-weight: 700; border: 1.5px solid var(--ink-900); white-space: nowrap; }
 .back { position: relative; padding: 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--ink-900); background: none; border: 0; cursor: pointer; }
 .back::before { content: ""; position: absolute; inset: -13px -8px; }   /* 글자 링크 모양 그대로, 누르는 자리 44px */
-/* '개념 다시 보기': 글자 줄(19.5px)에 위아래 8px를 더하고, 누르는 자리는 위 2px·아래 4px만 더 넓힌다(41.5px).
-   위 보기와는 여백이 겹쳐(마진 상쇄) 6px뿐이라 보기 쪽 확장 3px와 겹치지 않게 */
+/* '개념 다시 보기': 글자 줄(19.5px)에 위아래 8px를 더하고, 누르는 자리는 위 4px·아래 5px 더 넓힌다(44.5px).
+   위 보기와는 8px 떨어져 있고 보기 쪽 확장이 4px라 겹치지 않는다 */
 .peek { margin-top: 4px; font-size: 13px; }
 .peek summary { position: relative; padding: 8px 0; cursor: pointer; color: var(--ink-500); }
-.peek summary::before { content: ""; position: absolute; inset: -2px 0 -4px; }
+.peek summary::before { content: ""; position: absolute; inset: -4px 0 -5px; }
 .peek p { margin: 6px 0 0; }
 
 /* 오늘은 여기까지 */
 .done-title { margin: 12px 0 6px; font-size: 22px; }
 .done > p { margin: 0 0 12px; font-size: 13px; }
 .csum { list-style: none; margin: 0; padding: 0; }
-.csum li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 8px; padding: 6px 0; border-bottom: 1px dotted #9a9890; font-size: 13px; }
+.csum li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 8px; padding: 6px 0; border-bottom: 1px dotted var(--rule-dot); font-size: 13px; }
 .csum li:last-child { border-bottom: 0; }
 .csum small { grid-column: 1 / -1; font-size: 12px; color: var(--ink-500); }
 .exhausted { margin: 16px 0; padding: 12px; border: 1.5px dashed var(--ink-200); font-size: 13px; color: var(--ink-500); text-align: center; }
+/* 오늘 끝의 '내일' 한 줄 — 입장 띠와 짝(가는 잉크 테두리). 재촉·비난 없이 사실만 */
+.comeback { margin: 0 0 12px; padding: var(--space-2) var(--space-3); border: var(--border-hair) solid var(--ink-900); background: var(--bg-100); font-size: 13px; }
+.comeback b { font-weight: 700; font-variant-numeric: tabular-nums; }
 
 /* 첫 실행 안내 */
 .onb { display: flex; flex-direction: column; min-height: calc(100vh - 76px); padding: 16px 4px 0; }
@@ -289,7 +326,20 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .err-title { margin: 0 0 6px; font-size: 18px; }
 .err p { margin: 0 0 12px; font-size: 13px; color: var(--ink-500); }
 
+/* 주 행동 막대(듀오링고식 '계속' 자리, 화면당 하나): 아래 탭 바로 위에 붙는다(sticky). 복습 화면은 처음부터,
+   공개 화면은 .reveal-tail(개념 카드부터) 안에 있어 개념에 닿은 뒤부터 붙는다 — 개념을 건너뛰는 단추가 되지 않게.
+   종이색 띠로 아래로 지나가는 글을 가린다(그림자 없음, 괘선 한 줄) */
+.act-bar { position: sticky; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px)); z-index: 1; margin: 6px -16px 0; padding: 8px 16px; background: var(--bg-000); border-top: var(--border-hair) solid var(--ink-200); }
+.act-bar .ds-btn.wide { margin-top: 0; }
+
+/* 눌림 표시: --bg-200은 토큰 정의상 '눌림' 색이다. 누른 순간에만(움직임 없음), 막힌 단추·선택된(잉크로 채운) 칸은 제외 */
+.ds-btn:not(.ds-btn--primary):not([aria-disabled="true"]):not(:disabled):active,
+.ds-chip:active, .ds-lens button:not([aria-pressed="true"]):active, .ds-conf .dots button:not([aria-pressed="true"]):active,
+.ds-selfcheck button:active, .quiz .opt:not([aria-disabled="true"]):active, .crow:active, #nav button:active,
+.toast-acts button:not(:disabled):active, .cal-nav:not(:disabled):active, .stats summary:active, .radio:active { background-color: var(--bg-200); }
+.ds-btn--primary:not([aria-disabled="true"]):not(:disabled):active { opacity: .82; }
+
 /* 줄바꿈 다듬기: 제목·가운데 맞춘 짧은 안내는 줄 길이를 고르게(balance), 짧은 본문은 마지막 줄에 한 어절만 남지 않게(pretty).
    숫자 칸·표에는 쓰지 않는다. 지원하지 않는 브라우저는 지금처럼 줄을 바꾼다 */
 .onb-title, .done-title, .reveal .name, .sheet h2, .q, .selfcheck-q, .hint, .toast, .exhausted, .err-title { text-wrap: balance; }
-.onb-body, .panel-note, .ctx-notes p, .verdict span, .ex-s, .explain .warn, .concept p, .selfcheck-fb, .quiz-fb, .stats-body p, .ds-insight p, .done > p, .empty, .ds-chip-why, .kp-list, .sources li { text-wrap: pretty; }
+.onb-body, .panel-note, .ctx-notes p, .verdict span, .ex-s, .explain .warn, .concept p, .selfcheck-fb, .quiz-fb, .stats-body p, .ds-insight p, .done > p, .empty, .ds-chip-why, .kp-list, .sources li, .comeback { text-wrap: pretty; }

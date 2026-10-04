@@ -13,6 +13,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: "#fbfbf9",
+  // 학습지 테마는 밝은 종이 하나뿐이다. 'only light'로 브라우저의 강제 어둡게 하기(안드로이드 크롬 등)를 막는다 —
+  // 강제 반전되면 빨강·파랑 결과색과 빨간 펜 표시의 뜻이 흐려진다(2026-10-04 UX 감사)
+  colorScheme: "only light",
 };
 
 /** 학습지 테마(docs/06 §8): <html data-theme="worksheet">, 본문은 .ds-root */

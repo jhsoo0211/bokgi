@@ -15,7 +15,7 @@ import { api, errorText, initApi, isApiError } from "@/lib/client/api";
 import { flushEvents, logEvent } from "@/lib/client/events";
 import { localOnboarded, setLocalOnboarded } from "@/lib/client/session";
 import type { Me } from "@/lib/client/types";
-import { AppContext } from "./AppContext";
+import { AppContext, type View } from "./AppContext";
 import { InviteScreen } from "./InviteScreen";
 import { Onboarding } from "./Onboarding";
 
@@ -26,7 +26,6 @@ type Boot =
   | { kind: "invite" }
   | { kind: "onboarding"; user: User }
   | { kind: "ready"; user: User };
-type View = "today" | "journal" | "concepts";
 
 const NAV: readonly (readonly [View, string])[] = [["today", "오늘"], ["journal", "일지"], ["concepts", "개념"]];
 
@@ -66,7 +65,7 @@ export function BokgiApp() {
     setVisit((n) => n + 1);
   };
 
-  const ctx = { onUnauthorized: () => setBoot({ kind: "invite" }) };
+  const ctx = { onUnauthorized: () => setBoot({ kind: "invite" }), navigate: go };
 
   return (
     <AppContext value={ctx}>

@@ -42,6 +42,7 @@ test("되돌리기 창 중 다른 탭 → 결과 대기 → 돌아오면 공개 
   let en = await entry(page);
   expect(en.sub).toBe("오늘 끝 · 한 장 더 가능");
   expect(en.streak).toBe("스트릭 1일");
+  await expect(page.locator(".comeback"), "남은 카드가 있을 때만 새 카드를 약속한다").toHaveText("내일은 새 카드가 준비돼요.");
 
   await page.click("#more");
   await page.waitForSelector("#stage .sc");

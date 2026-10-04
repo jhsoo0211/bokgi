@@ -3,6 +3,8 @@
 /**
  * 개념 탭: 네 갈래(결과 읽기·숫자 읽기·그때 읽기·내 판단 읽기) 아래 개념 목록, 숙련도 뱃지(테두리만), 복습 예정일.
  * 누르면 설명과 확인 문제(풀면 복습 일정이 정해진다). 형광펜·결과색은 쓰지 않는다(공개 화면 전용).
+ * 상세에서 '← 개념 목록'으로 돌아오면 연 개념 줄로 초점·스크롤을 돌려준다(목록 맨 위로 튀지 않게).
+ * (곧 들어올 '길' 보기는 같은 목록 자료를 갈래별 단원 길로 그리는 다른 보기다 — ConceptList 자리에서 바꿔 끼운다.)
  */
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useApp } from "@/components/app/AppContext";
@@ -16,15 +18,27 @@ import type { ConceptListItem, ConceptState } from "@/lib/client/types";
 
 export function ConceptsScreen() {
   const [open, setOpen] = useState<ConceptListItem | null>(null);
-  return open ? <ConceptDetail key={open.id} item={open} onBack={() => setOpen(null)} /> : <ConceptList onOpen={setOpen} />;
+  const [returnTo, setReturnTo] = useState<string | null>(null);
+  return open
+    ? <ConceptDetail key={open.id} item={open} onBack={() => { setReturnTo(open.id); setOpen(null); }} />
+    : <ConceptList onOpen={setOpen} returnTo={returnTo} />;
 }
 
-function ConceptList({ onOpen }: { onOpen: (c: ConceptListItem) => void }) {
+function ConceptList({ onOpen, returnTo }: { onOpen: (c: ConceptListItem) => void; returnTo: string | null }) {
   useScreenFocus();
   const { onUnauthorized } = useApp();
   const [list, setList] = useState<ConceptListItem[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const restored = useRef(false);
   const today = localDayKey();
+
+  useEffect(() => {
+    if (!list || !returnTo || restored.current) return;
+    restored.current = true;
+    const row = [...document.querySelectorAll<HTMLElement>(".crow")].find((e) => e.dataset.c === returnTo);
+    row?.focus({ preventScroll: true });
+    row?.scrollIntoView({ block: "center" });
+  }, [list, returnTo]);
 
   const load = () => {
     api.concepts().then((l) => setList(l.concepts), (e: unknown) => {

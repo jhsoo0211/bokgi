@@ -40,20 +40,31 @@ type ErrorBody = { error: { code: string; message: string } };
 const isErrorBody = (v: unknown): v is ErrorBody =>
   typeof v === "object" && v !== null && "error" in v && typeof (v as { error: unknown }).error === "object" && (v as { error: unknown }).error !== null;
 
+/** 응답을 기다리는 한도. 넘으면 '불러오는 중…'에 갇히지 않고 다시 시도할 수 있는 오류로 바꾼다(페이지를 떠날 때의 keepalive 전송은 제외).
+ *  판단·퀴즈·이벤트는 서버가 멱등(유일 키·clientAttemptId·clientEventId)이라 시간 초과 뒤 다시 보내도 두 번 세지 않는다. */
+const TIMEOUT_MS = 15_000;
+
 async function http<T>(method: "GET" | "POST" | "PUT", path: string, body?: unknown, opts?: CallOpts): Promise<T> {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
+  const ctl = opts?.keepalive ? null : new AbortController();
+  const timer = ctl ? setTimeout(() => ctl.abort(), TIMEOUT_MS) : null;
   let res: Response;
+  let text: string;
   try {
     res = await fetch(path, {
       method, headers, credentials: "same-origin", cache: "no-store",
       body: body !== undefined ? JSON.stringify(body) : undefined,
       keepalive: opts?.keepalive,
+      signal: ctl?.signal,
     });
+    text = res.status === 204 ? "" : await res.text();
   } catch {
+    if (ctl?.signal.aborted) throw new ApiError(0, "timeout", "응답이 늦어요. 잠시 뒤에 다시 시도해 주세요.");
     throw new ApiError(0, "network", "인터넷 연결을 확인해 주세요.");
+  } finally {
+    if (timer) clearTimeout(timer);
   }
-  const text = res.status === 204 ? "" : await res.text();
   let data: unknown;
   if (text) {
     try { data = JSON.parse(text); } catch { data = undefined; }

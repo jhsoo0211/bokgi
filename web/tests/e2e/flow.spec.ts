@@ -28,7 +28,11 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   /* ---------- 카드 화면 (판단 전) ---------- */
   expect(await top(page)).toMatch(/^오늘 0\/3/);
   let en = await entry(page);
-  expect(en).toEqual({ lead: "개념 이해 0/4 · 복습 예정 0개", sub: "오늘 남은 카드 3장", streak: "스트릭 0일" });
+  // 스트릭 0일은 '0'을 내세우지 않고 비난 없는 초대 문구로(2026-10-04 UX 감사, 02 §6-4)
+  expect(en).toEqual({ lead: "개념 이해 0/4 · 복습 예정 0개", sub: "오늘 남은 카드 3장", streak: "오늘 연습하면 스트릭 1일" });
+  // 세션 진행: 카드 3칸(복습 기한 없음 → 복습 칸 없음), 보조기술에는 progressbar 하나
+  await expect(page.locator('[role="progressbar"]')).toHaveAttribute("aria-valuetext", "카드 0/3");
+  await expect(page.locator(".ds-bar.seg i")).toHaveCount(3);
   expect(await page.evaluate(() => {
     const e = document.querySelector(".ds-entry"), s = document.querySelector("#stage");
     return !!e && !!s && !!(e.compareDocumentPosition(s) & Node.DOCUMENT_POSITION_FOLLOWING) && !e.querySelector("button, a");
@@ -82,9 +86,9 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   await expect(page.locator("#btnR")).toHaveAttribute("aria-disabled", "true");
   await expect(page.locator("#hint")).toHaveText("확신도를 고르면 판단할 수 있어요");
   await page.keyboard.press("ArrowRight");
+  await expect(page.locator("#conf")).toHaveClass(/shake/);   // 흔들림(320ms)이 끝나면 클래스가 빠지므로 기다리기 전에 본다
   await page.waitForTimeout(300);
   await expect(page.locator("#toast")).toBeEmpty();
-  await expect(page.locator("#conf")).toHaveClass(/shake/);
   await page.check("#recog");
   await page.locator("#risk .ds-chip").first().click();
   await page.locator("#conf button").nth(2).click();
@@ -93,16 +97,26 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   await expectNoOutcomeInDom(page);
 
   // 다른 탭에 다녀와도 고르던 것이 남는다(draft 보존), card_view는 다시 세지 않는다
+  // (일지는 아직 비어 있다: 내보내기 대신 '오늘 카드 판단하러 가기' 안내 단추 하나 — 그 단추로 돌아온다)
   await page.click('#nav button[data-v="journal"]');
   await page.waitForSelector("#cal");
-  await page.click('#nav button[data-v="today"]');
+  await expect(page.locator("#export"), "기록이 없으면 내보내기를 숨긴다").toHaveCount(0);
+  await expect(page.locator(".empty #go-today")).toHaveText("오늘 카드 판단하러 가기");
+  await page.click("#go-today");
   await page.waitForSelector("#stage .sc");
+  await expect(page.locator('#nav button[data-v="today"]')).toHaveAttribute("aria-current", "true");
   await expect(page.locator('#ev .ds-chip[aria-pressed="true"]')).toHaveCount(1);
   await expect(page.locator('#ev .ds-chip[aria-pressed="true"]')).toContainText("매출 +23%");
   await expect(page.locator('#risk .ds-chip[aria-pressed="true"]')).toHaveText("밸류에이션 프리미엄");
   await expect(page.locator('#conf button[aria-pressed="true"]')).toHaveText("3");
   await expect(page.locator("#recog")).toBeChecked();
   expect(await eventsOf(page, "card_view")).toHaveLength(1);
+  // 같은 탭에서 새로고침해도 고르던 것이 남는다(sessionStorage, 카드 id@버전 열쇠)
+  await page.reload();
+  await page.waitForSelector("#stage .sc");
+  await expect(page.locator('#ev .ds-chip[aria-pressed="true"]')).toContainText("매출 +23%");
+  await expect(page.locator('#conf button[aria-pressed="true"]')).toHaveText("3");
+  await expect(page.locator("#recog")).toBeChecked();
 
   /* ---------- → 버튼으로 판단, 2.5초 뒤 자동 공개 ---------- */
   await page.click("#btnR");
@@ -118,6 +132,12 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
 
   /* ---------- 공개 ---------- */
   await expectHeadingOrder(page, "공개");
+  // 학습 먼저: '내 판단 되짚기'(사후에 중요했던 것·내 근거)가 시장 대비 결과(도장·수치)보다 앞에 온다. '다음'은 개념 카드부터 붙는 막대 안
+  expect(await page.evaluate(() => {
+    const after = (a: string, b: string) => !!(document.querySelector(a)!.compareDocumentPosition(document.querySelector(b)!) & Node.DOCUMENT_POSITION_FOLLOWING);
+    return [after(".mine", ".verdict"), after(".verdict", ".ds-nums"), after("#after-row", ".ds-nums"), !!document.querySelector(".reveal-tail .concept ~ .act-bar #next"), getComputedStyle(document.querySelector(".act-bar")!).position];
+  })).toEqual([true, true, true, true, "sticky"]);
+  await expect(page.locator(".mine .ds-card-title")).toHaveText("내 판단 되짚기");
   await expect(page.locator("#explain .ex-line--read")).toContainText("시장 대비 −2.3%p");
   await expect(page.locator(".ds-nums b")).toHaveText(["▲+4.8%", "▲+7.1%", "▼−2.3%p"]);
   await expect(page.locator(".ds-nums b.ds-up")).toHaveCount(2);
@@ -304,6 +324,9 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   expect(await page.locator(".csum li").count()).toBeGreaterThanOrEqual(3);
   await expect(page.locator(".exhausted")).toContainText("준비된 카드를 모두 봤어요");
   await expect(page.locator("#more")).toHaveCount(0);
+  // 돌아올 이유 한 줄: 내일 복습 2개(정답 1·오답 1 모두 내일), 덱이 바닥나 새 카드는 약속하지 않는다
+  await expect(page.locator(".comeback")).toHaveText("내일은 복습 2개가 준비돼요.");
+  await expect(page.locator('[role="progressbar"]')).toHaveAttribute("aria-valuetext", "카드 3/3");
   en = await entry(page);
   expect(en.sub).toBe("오늘 끝");
   expect(en.streak).toBe("스트릭 1일");
@@ -395,6 +418,7 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   expect(await eventsOf(page, "concept_view")).toHaveLength(1);
   // 같은 날 다시 맞혀도 간격이 부풀지 않는다
   await page.click("#back");
+  await expect(page.locator('.crow[data-c="growth-vs-valuation"]'), "목록으로 돌아오면 연 개념 줄로 초점이 돌아온다").toBeFocused();
   await page.click('.crow[data-c="growth-vs-valuation"]');
   await page.click('.concept .opt[data-i="1"]');
   await expect(page.locator(".concept .quiz-fb")).toHaveText(/^맞아요\./);

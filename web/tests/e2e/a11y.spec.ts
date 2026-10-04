@@ -1,6 +1,6 @@
 /**
  * 접근성(ecc UX 감사의 '고친 것' 유지 + '남은 것' 구현): 키보드만으로 카드 한 장, 알림 초점 동안 되돌리기 타이머 멈춤,
- * 모션 감소, 화면별 h1·제목 순서, axe(WCAG 2.x A·AA), 누르는 자리 40px 이상, 초점이 아래 탭에 가리지 않음. 목 모드 전용.
+ * 모션 감소, 화면별 h1·제목 순서, axe(WCAG 2.x A·AA), 누르는 자리 44px(02 §4 — 0.25px 단위로 재므로 43.5 이상), 초점이 아래 탭에 가리지 않음. 목 모드 전용.
  */
 import path from "node:path";
 import type { Page } from "@playwright/test";
@@ -41,9 +41,9 @@ async function expectHits(page: Page, sels: string[]) {
   for (const s of sels) {
     const list = await hitAreas(page, s);
     expect(list.length, `${s} 있음`).toBeGreaterThan(0);
-    list.filter((x) => x.w < 40 || x.h < 40).forEach((x) => small.push(`${s} "${x.name}" ${x.w}×${x.h}`));
+    list.filter((x) => x.w < 43.5 || x.h < 43.5).forEach((x) => small.push(`${s} "${x.name}" ${x.w}×${x.h}`));
   }
-  expect(small, "누르는 자리 40px 미만 없음").toEqual([]);
+  expect(small, "누르는 자리 44px 미만 없음").toEqual([]);
 }
 
 async function tabTo(page: Page, selector: string, max = 40) {
@@ -158,7 +158,7 @@ test("모션 감소: 카드가 날아가는 애니메이션 없이 바로 넘어
   await ctx.close();
 });
 
-test("화면별 h1 하나·제목 순서·axe(WCAG A·AA)·누르는 자리 40px", async ({ page }) => {
+test("화면별 h1 하나·제목 순서·axe(WCAG A·AA)·누르는 자리 44px", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector("#onb-next");
   await expectHeadingOrder(page, "온보딩");
@@ -183,6 +183,8 @@ test("화면별 h1 하나·제목 순서·axe(WCAG A·AA)·누르는 자리 40px
   await expectHeadingOrder(page, "공개");
   await axe(page, "공개");
   await expectHits(page, [".ds-selfcheck button", ".concept .opt", "#flag", "#next"]);
+  // 세션 진행 바는 이름 있는 progressbar 하나(axe가 이름·값 속성을 함께 검사한다)
+  await expect(page.locator('[role="progressbar"]')).toHaveAttribute("aria-label", "오늘 세션 진행");
   await page.click("#flag");
   await page.waitForSelector(".sheet");
   await axe(page, "신고 시트");

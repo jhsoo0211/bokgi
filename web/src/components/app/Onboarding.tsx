@@ -1,6 +1,10 @@
 "use client";
 
-/** 첫 실행 안내 3장 → [시작]. 2·3장은 '다음' 버튼에 초점을 이어 준다(키보드로 Enter만 이어 누르면 된다) */
+/**
+ * 첫 실행 안내 3장 → [시작]. 2·3장은 '다음' 버튼에 초점을 이어 준다(키보드로 Enter만 이어 누르면 된다).
+ * 틀은 div다 — 화면 틀(#view, region)이 이미 같은 h1을 이름으로 쓰므로 section+aria-labelledby를 겹치면
+ * 같은 이름의 랜드마크가 둘이 된다(axe landmark-unique). 장 수는 ONBOARDING 배열 길이를 따른다(넷째 장을 더해도 그대로 돈다).
+ */
 import { useState } from "react";
 import { useScreenFocus } from "@/hooks/useScreenFocus";
 import { ONBOARDING } from "@/lib/client/format";
@@ -21,13 +25,13 @@ function Slide({ i, onNext }: { i: number; onNext: () => void }) {
   const s = ONBOARDING[i];
   const last = i === ONBOARDING.length - 1;
   return (
-    <section className="onb" aria-labelledby="screen-title">
+    <div className="onb">
       <p className="onb-step ds-num">{i + 1} / {ONBOARDING.length}</p>
       <div className="onb-art" aria-hidden="true"><Art kind={s.art} /></div>
       <h1 className="onb-title ds-head" id="screen-title">{s.title}</h1>
       <p className="onb-body">{s.body}</p>
       <div className="onb-dots" aria-hidden="true">{ONBOARDING.map((_, k) => <i key={k} className={k === i ? "on" : ""} />)}</div>
       <button type="button" className="ds-btn ds-btn--primary wide" id="onb-next" aria-describedby="screen-title" onClick={onNext}>{last ? "시작" : "다음"}</button>
-    </section>
+    </div>
   );
 }

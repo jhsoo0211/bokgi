@@ -2,6 +2,8 @@
 
 /**
  * 일지: 연습 달력(‹ 달 ›) → 판단 기록(최신순, 공개 전 행은 업종·규모와 '결과 대기') → 통계(접힘, 20장 뒤에 인사이트 카드) → 내보내기.
+ * 행 둘째 줄은 근거부터(근거 · 확신 · 방향) — 일지에서도 첫 정보가 결과가 아니라 근거가 되게. 기록이 없으면 내보내기는 숨기고
+ * '오늘 카드 판단하러 가기' 안내 단추를 둔다(빈 상태에 다음 행동 하나).
  * 결과색·형광펜을 쓰지 않는다(상태는 낱말 + 모양). 적중률을 숫자로 보이지 않는다. ○△✕는 기록만, 합산 없음.
  * 실제 앱에는 '세션 초기화'가 없다(판단 기록은 불변).
  */
@@ -48,16 +50,17 @@ function JournalRow({ it }: { it: JournalItem }) {
           ? <span className="jstate"><span aria-hidden="true">{SHAPE[it.result.state]}</span> {RESULT[it.result.state]}</span>
           : <span className="jstate jstate--wait">결과 대기</span>}
       </div>
-      <div className="jrow-body">{DIR[it.direction]} · 근거 <b>{it.keyEvidence}</b> · 확신 <b className="ds-num">{it.confidence}/5</b></div>
+      <div className="jrow-body">근거 <b>{it.keyEvidence}</b> · 확신 <b className="ds-num">{it.confidence}/5</b> · {DIR[it.direction]}</div>
     </li>
   );
 }
 
 export function JournalScreen() {
   useScreenFocus();
-  const { onUnauthorized } = useApp();
+  const { onUnauthorized, navigate } = useApp();
   const [state, setState] = useState<State>({ kind: "loading" });
   const focusAfter = useRef<"cal-prev" | "cal-next" | null>(null);
+  const [calErr, setCalErr] = useState<string | null>(null);   // 달 넘기기 실패(연결 등) — 눌렀는데 아무 일 없는 것처럼 보이지 않게
   const today = localDayKey();
 
   const load = () => {
@@ -95,10 +98,12 @@ export function JournalScreen() {
     try {
       const j = await api.journal(target);
       focusAfter.current = step < 0 ? "cal-prev" : "cal-next";
+      setCalErr(null);
       setState({ kind: "ready", journal: j, concepts, cal: calendarFor(j, concepts, target, today) });
       logEvent("calendar_month", { payload: { month: target, shift: monthIndex(target) - monthIndex(monthOf(today)) } });
     } catch (e) {
       if (isApiError(e, 401)) onUnauthorized();
+      else setCalErr(`달을 넘기지 못했어요. ${errorText(e)}`);
     }
   };
 
@@ -121,12 +126,16 @@ export function JournalScreen() {
           canPrev={curIdx > monthIndex(range.min)} canNext={curIdx < monthIndex(range.max)}
           onPrev={() => { void changeMonth(-1); }} onNext={() => { void changeMonth(1); }}
         />
+        <p className="cal-err" role="status">{calErr}</p>
       </section>
       <h2 className="sr-only">판단 기록</h2>
       {items.length ? (
         <ul className="jlist">{items.map((it) => <JournalRow key={it.judgmentId} it={it} />)}</ul>
       ) : (
-        <p className="empty">아직 남긴 판단이 없어요. 오늘 탭에서 첫 카드를 판단해 보세요.</p>
+        <div className="empty">
+          <p>아직 남긴 판단이 없어요. 카드 한 장을 판단하면 근거·확신도와 함께 여기에 쌓여요.</p>
+          <button type="button" className="ds-btn wide" id="go-today" onClick={() => navigate("today")}>오늘 카드 판단하러 가기</button>
+        </div>
       )}
       <h2 className="sr-only">통계</h2>
       <details className="stats" onToggle={(e) => logEvent("stats_toggle", { payload: { open: e.currentTarget.open, unlocked: !locked, n: total } })}>
@@ -153,7 +162,7 @@ export function JournalScreen() {
           )}
         </div>
       </details>
-      <div className="row2"><button type="button" className="ds-btn" id="export" onClick={exportJson}>연구 로그 내보내기</button></div>
+      {items.length > 0 && <div className="row2"><button type="button" className="ds-btn" id="export" onClick={exportJson}>연구 로그 내보내기</button></div>}
       <p className="hint">적중률은 점수가 아니에요. 근거·확신도·개념이 먼저예요.</p>
     </>
   );
