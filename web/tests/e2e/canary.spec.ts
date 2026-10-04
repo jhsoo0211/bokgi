@@ -1,7 +1,7 @@
 /**
  * 카나리 시험(실제 API 전용, E2E_REAL_API=1): 패키지 A가 시드한 가짜 카드(tests/fixtures/canary — 회사 "CANARY-회사", 티커 "CNRY",
  * 시작일 "2099-01-02", 수익률 42.42)의 결과급 값이 공개 전에는 어디에도 없어야 한다.
- * 확인 범위: 페이지 HTML(RSC 페이로드 포함)·이후 모든 fetch/XHR 응답(오늘·카드·개념·일지·질문자·오류 응답)·DOM·
+ * 확인 범위: 페이지 HTML(RSC 페이로드 포함)·이후 모든 fetch/XHR 응답(오늘·카드·개념·일지·질문자·오류 응답, 정보 수준 저장)·DOM·
  * 되돌리기 창 중 떠나 보낸 판단의 '결과 대기' 일지 행. 마지막에 공개해 카나리가 실제로 그 카드였는지 확인한다(양성 대조).
  *
  * 실행: 시험 DB에 카나리 카드를 시드하고(deckOrder 1) 새 초대 코드로
@@ -51,6 +51,7 @@ test("공개 전: HTML·RSC·XHR·DOM·결과 대기 행에 카나리 값이 없
     await page.waitForSelector("#onb-next, #stage .sc, .done-title", { timeout: 15_000 });
   }
   for (let i = 0; i < 3 && (await page.locator("#onb-next").count()); i++) await page.click("#onb-next");
+  if (await page.locator(".onb-opt").count()) await page.click('.onb-opt[data-level="standard"]');   // 넷째 장: 정보 수준(PUT /api/me/prefs)
   await page.waitForSelector("#stage .sc", { timeout: 15_000 });
   expect(await domHasCanary(page)).toEqual([]);
 
@@ -81,7 +82,7 @@ test("공개 전: HTML·RSC·XHR·DOM·결과 대기 행에 카나리 값이 없
   await page.click('#nav button[data-v="journal"]');
   await page.waitForSelector("#cal");
   await page.click('#nav button[data-v="concepts"]');
-  await page.waitForSelector(".clist");
+  await page.waitForSelector("#cpath, .clist");   // 개념 탭 기본은 길 보기
   await page.click('#nav button[data-v="today"]');
   await page.waitForSelector("#stage .sc");
 

@@ -16,18 +16,29 @@ export const CASE = {
 };
 
 export type MockResult = { relativePp: number; state: "ahead" | "behind" | "even"; hit: boolean | null };
+export type Level = "basic" | "standard" | "advanced" | "custom";
+export const GROUPS = ["marketLine", "volume", "growthDetail", "healthBasic", "valuationDetail", "healthDetail", "allNotes", "fxCommodity", "riskChips"] as const;
+export type Group = (typeof GROUPS)[number];
+export type MockPrefs = { infoLevel: Level; panelPrefs: Record<Group, boolean>; undoSeconds: 2.5 | 5 | 10 };
+/** 계약 INFO_PRESETS와 같은 값(시험이 계약 모듈을 읽지 않고 기대값을 따로 갖는다) */
+export const PRESET: Record<Exclude<Level, "custom">, Record<Group, boolean>> = {
+  basic: Object.fromEntries(GROUPS.map((g) => [g, false])) as Record<Group, boolean>,
+  standard: { marketLine: true, volume: true, growthDetail: true, healthBasic: true, valuationDetail: false, healthDetail: false, allNotes: true, fxCommodity: false, riskChips: true },
+  advanced: Object.fromEntries(GROUPS.map((g) => [g, true])) as Record<Group, boolean>,
+};
 export type MockJudgment = {
   id: string; caseId: string; caseVersion: number; keyEvidenceId: string; keyEvidence: string; riskId: string | null; risk: string | null;
   direction: "outperform" | "underperform"; confidence: number; recognized: boolean; panelsViewed: string[];
   gesture: { via: string; dx?: number; ms?: number; v?: number; flips?: number } | null; isExtra: boolean;
+  infoLevel?: Level; hiddenGroups?: Group[];
   createdAt: string; localDate: string; revealedAt: string | null; selfCheck: "o" | "tri" | "x" | null; result: MockResult | null;
 };
 export type MockState = {
-  v: 1; onboarded: boolean; judgments: MockJudgment[];
+  v: 1; onboarded: boolean; prefs?: MockPrefs; judgments: MockJudgment[];
   progress: Record<string, { state: string; level: number; dueOn: string | null; correct: number; total: number }>;
   attempts: { clientAttemptId: string; conceptId: string; via: string; localDate: string }[];
   sessions: Record<string, { cards: string[]; extras: string[] }>;
-  reports: { caseId: string; caseVersion: number; category: string; note: string | null }[];
+  reports: { clientReportId: string; caseId: string; caseVersion: number; category: string; note: string | null }[];
   events: { event: string; caseId: string | null; payload: Record<string, unknown> | null }[];
 };
 
@@ -68,6 +79,29 @@ export async function skipOnboarding(page: Page, extra: Record<string, string> =
       for (const [k, v] of Object.entries(kv)) localStorage.setItem(k, v);
     } catch { /* 무시 */ }
   }, extra);
+}
+
+/** 처음 한 번만 목 상태를 넣는다(새로고침해도 다시 덮지 않게). 정보 수준만 바꾸려면 prefsOf() */
+export async function seedMock(page: Page, state: Partial<MockState>) {
+  await page.addInitScript(({ k, s }) => {
+    if (localStorage.getItem(k)) return;
+    localStorage.setItem(k, JSON.stringify({ v: 1, onboarded: true, judgments: [], progress: {}, attempts: [], sessions: {}, reports: [], events: [], ...s }));
+  }, { k: MOCK_KEY, s: state });
+}
+export const prefsOf = (infoLevel: Level, panelPrefs?: Record<Group, boolean>, undoSeconds: MockPrefs["undoSeconds"] = 2.5): MockPrefs =>
+  ({ infoLevel, panelPrefs: panelPrefs ?? PRESET[infoLevel === "custom" ? "standard" : infoLevel], undoSeconds });
+
+/** 안내 1~3장을 넘기고 넷째 장(정보 수준)에서 고른다 */
+export async function finishOnboarding(page: Page, level: Exclude<Level, "custom"> = "standard") {
+  for (let i = 0; i < 3; i++) await page.click("#onb-next");
+  await page.click(`.onb-opt[data-level="${level}"]`);
+  await page.waitForSelector("#stage .sc");
+}
+
+/** 카드 앞면(지금 카드)의 판 글자 */
+export async function panelText(page: Page, panel: "flow" | "numbers" | "then") {
+  await page.locator(`#stage .sc:last-child .panel-tabs button[data-panel="${panel}"]`).click();
+  return (await page.locator("#stage .sc:last-child .panel").innerText()).replace(/\s+/g, " ");
 }
 
 export async function entry(page: Page) {

@@ -2,7 +2,7 @@ import "server-only";
 import type { PrismaClient } from "@/server/generated/prisma/client";
 import { Prisma } from "@/server/generated/prisma/client";
 import { toDbDate } from "@/lib/server/time";
-import { ContentError, splitCard, validateContent, type Content, type SplitCard } from "./cards";
+import { ContentError, conceptOrders, splitCard, validateContent, type Content, type SplitCard } from "./cards";
 
 /**
  * 시드: upsert만(deleteMany 금지, 05 §3). 카드 버전·uuid는 원본 JSON에 고정돼 있다.
@@ -10,6 +10,7 @@ import { ContentError, splitCard, validateContent, type Content, type SplitCard 
  * 내린 카드는 지우지 않고 status만 바꾼다(원본에서 status를 draft·retired로).
  * retireMissing: DB의 live 카드 중 이번 콘텐츠에 없는 것을 retired로 바꾼다(삭제가 아니라 상태 변경).
  *   콘텐츠 폴더를 통째로 바꿀 때(예: 예시 자료 → 실제 카드) live 덱 순서가 겹치지 않게 쓴다.
+ * 개념 ord는 갈래 안 나열 순서(1부터, cards.conceptOrders) — 계약 ConceptListItem.order.
  */
 export interface SeedReport {
   dryRun: boolean;
@@ -72,11 +73,12 @@ export async function seedContent(prisma: PrismaClient, contents: Content[], opt
   };
   if (opts.dryRun) return report;
 
+  const orders = conceptOrders(concepts);
   await prisma.$transaction(
     async (tx) => {
-      // 개념·문제
-      for (const [i, c] of concepts.entries()) {
-        const data = { branch: c.branch, title: c.title, bodyMd: c.body, ord: i, active: true };
+      // 개념·문제. ord = 갈래 안 나열 순서(1부터) — 순서를 바꾼 개념 파일을 다시 시드하면 기존 행도 갱신된다
+      for (const c of concepts) {
+        const data = { branch: c.branch, title: c.title, bodyMd: c.body, ord: orders.get(c.id) ?? 1, active: true };
         await tx.concept.upsert({ where: { id: c.id }, create: { id: c.id, ...data }, update: data });
       }
       if (opts.retireMissing && conceptIds.length) {

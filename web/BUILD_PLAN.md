@@ -64,3 +64,15 @@
   - 출처 표시(C 관례): `kind "예시"` → 기간 줄에 '예시 자료' 꼬리표, 나머지 kind(가격·공시·통계·보도)는 경로 아래 짧은 목록(label + url). `keyPoints`는 '사후에 중요했던 것' 아래, `linkSentence`는 개념 카드 본문 앞.
   - 목 모드(`NEXT_PUBLIC_USE_MOCK=1`)는 `next dev` 전용: `api.ts`의 `NODE_ENV !== "production"` 가지에서만 `./mock`을 읽어 운영 빌드에는 목·예시 결과 자료가 없다(빌드 산출물 grep 0건). 목은 A 서버 규칙(세트 고정·extra·onboarding_done·퀴즈 해설 문구·roundPp)을 따르고 모든 응답을 계약 스키마로 검사한다.
   - e2e: `npm run e2e`(목, `next dev -p 3210`을 직접 띄움 — 같은 폴더의 다른 `next dev`는 먼저 내린다), `npm run e2e:real`(canary.spec.ts만: 카나리 카드 deckOrder 1로 시드한 DB, 새 초대 코드 `E2E_INVITE_CODE`, 떠 있는 서버를 쓰려면 `E2E_BASE_URL` + 그 서버의 `PUBLIC_ORIGIN`). 2026-10-04 별도 DB(`bokgi_e2e_d`, 끝나고 삭제)에 예시 3장 + 카나리를 시드해 통과 확인.
+
+## 2차 분담 (2026-10-04, 결정 D16·D17·D18 — 정보 수준·듀오링고 흐름)
+
+계약 `src/shared/contract.ts`를 조정자가 먼저 바꿨다(아래 기록). 두 패키지는 이 계약을 그대로 구현한다. 1차와 같은 규칙(경로 소유, git 금지, 서명 없음, 카나리 유지).
+
+| 패키지 | 소유 경로 | 산출물 |
+|---|---|---|
+| **A2 서버** | 1차 A와 같음(`prisma/**`, `src/server/**`, `src/app/api/**`, `src/lib/server/**`, `tests/unit/**`, `tests/api/**`, `scripts/seed.ts`) | 추가형 마이그레이션(`users.info_level`·`panel_prefs`·`undo_seconds`, `judgments.info_level`·`hidden_groups`, `reports.client_report_id` + `unique(user_id, client_report_id)`), `PUT /api/me/prefs`(정규화 규칙), `Me`·`Today`(`extraJudged`·`conceptsToday`)·`JournalItem`(`conceptTitle`·`infoLevel`)·`QuizResult.answerIndex`·`ConceptListItem.order`·`ReportBody.clientReportId`·새 UI 이벤트, 시드가 개념 `order`(갈래 안 나열 순서) 저장, 테스트 갱신 |
+| **D2 클라이언트** | 1차 D와 같음(`src/components/**`, `src/hooks/**`, `src/styles/**`, `src/lib/client/**`, `src/app/{globals.css,layout.tsx,page.tsx}`, `tests/e2e/**`) | 정보 수준: 온보딩 4번째 장, 머리줄 설정 단추 + 공용 `Sheet`(프리셋 3 + 토글 9 + 되돌리기 시간), 세 판 묶음 가림 + "핵심만 보고 있어요 · 더 보기", 판단에 `infoLevel`·`hiddenGroups`, 일지 행 표시. 길 보기: 개념 탭 '길/목록' 토글, 네 갈래 세로 길(`order`), 노드 네 모양, 다음 복습 노드 강조, 잠금 없음. ecc 남은 것: 판단 버튼 좌우 대칭 강조, 되돌리기 시간 설정 연동, 하단 고정 판단 막대(게이트 열리면 활성), 알림에서 '망설임 n회' 제거, 되돌리기 뒤 근거·확신도 유지, 신고 `clientReportId`, 서버 `conceptsToday`·`extraJudged`로 기기 기록 대체, 퀴즈 정답 표시는 `answerIndex`. 목(`mock.ts`)도 계약대로 |
+
+## 계약 변경 기록 (2차)
+- 2026-10-04 (조정자) `InfoLevel`·`INFO_GROUPS`(9)·`PanelPrefs`·`INFO_PRESETS`(basic/standard/advanced)·`presetPrefs`·`levelForPrefs`·`hiddenGroupsOf`·`UndoSeconds`(2.5/5/10). `Me.user` + `infoLevel`·`panelPrefs`·`undoSeconds`. `PrefsBody`(PUT /api/me/prefs → Me; custom이 아니면 prefs는 프리셋으로 정규화, custom이면 prefs 필수, 프리셋과 같으면 그 수준으로). `JudgmentBody` + `infoLevel`(기본 standard)·`hiddenGroups`(기본 []). `Today` + `extraJudged`·`conceptsToday`. `QuizResult` + `answerIndex`. `ConceptListItem` + `order`. `JournalItem` + `conceptTitle`(공개 전 null)·`infoLevel`. `ReportBody` + `clientReportId`(필수, 멱등). `UI_EVENTS` + `info_level_open`·`panel_expand`·`concept_path_view`. `PublicCase`·`Reveal`은 그대로(카나리 시험 불변).

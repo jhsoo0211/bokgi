@@ -89,6 +89,22 @@ export async function loadOutcomeHeads(keys: { caseId: string; version: number }
   return out;
 }
 
+/**
+ * 공개된 판단에만: 그 카드(버전)의 1순위 학습 포인트 개념(id·제목) — 일지의 conceptTitle, 오늘의 conceptsToday.
+ * 학습 포인트는 공개 뒤 자료다. 호출자는 공개 전 판단의 카드 키를 넘기지 않는다(넘기면 학습 포인트가 공개 전에 샌다).
+ * 키 = `${caseId}:${version}`.
+ */
+export async function loadLeadConcepts(keys: { caseId: string; version: number }[], client: Db = db()): Promise<Map<string, { conceptId: string; title: string }>> {
+  const out = new Map<string, { conceptId: string; title: string }>();
+  if (keys.length === 0) return out;
+  const rows = await client.caseLearningPoint.findMany({
+    where: { rank: 1, OR: keys.map((k) => ({ caseId: k.caseId, version: k.version })) },
+    select: { caseId: true, version: true, conceptId: true, concept: { select: { title: true } } },
+  });
+  for (const r of rows) out.set(`${r.caseId}:${r.version}`, { conceptId: r.conceptId, title: r.concept.title });
+  return out;
+}
+
 // ---------- 누수 사전 (server-only) ----------
 
 interface DictCache {

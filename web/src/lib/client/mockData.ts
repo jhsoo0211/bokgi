@@ -11,6 +11,11 @@ export type MockConcept = {
   quiz: { quizId: string; question: string; options: string[]; answer: number };
 };
 
+/**
+ * 개념 20개(네 갈래 × 5) — 콘텐츠(content/concepts.json)의 나열 순서 그대로다. 갈래 안 순서(ConceptListItem.order)는 이 순서에서 나온다.
+ * 예시 카드 3장의 학습 포인트인 넷(abs-vs-relative·growth-vs-valuation·debt-and-cycle·base-rate)은 1차 목의 문장·문제를 그대로 둔다
+ * (시험이 그 문장·정답 위치를 읽는다). 나머지 16개는 콘텐츠의 첫 문제를 옮겼다.
+ */
 export const MOCK_CONCEPTS: MockConcept[] = [
   {
     id: "abs-vs-relative", branch: "outcome", title: "절대수익과 시장 대비",
@@ -18,9 +23,39 @@ export const MOCK_CONCEPTS: MockConcept[] = [
     quiz: { quizId: "q-abs-vs-relative-1", question: "기업 +10%, 시장 +15%면 이 판단은?", options: ["성공 — 주가가 올랐으니까", "하회 — 시장을 못 따라갔으니까"], answer: 1 },
   },
   {
+    id: "base-rate", branch: "outcome", title: "기저확률과 노이즈",
+    body: "6개월 주가 방향은 절반 가까이가 시장 흐름과 우연으로 설명됩니다. 한두 번의 적중은 실력이 아닐 수 있습니다. 근거가 같은 판단을 여러 번 반복했을 때의 평균이 실력입니다.",
+    quiz: { quizId: "q-base-rate-1", question: "3연속 적중 후 가장 정확한 해석은?", options: ["판단력이 검증됐다", "표본이 작아 아직 알 수 없다"], answer: 1 },
+  },
+  {
+    id: "horizon-and-volatility", branch: "outcome", title: "기간과 변동성",
+    body: "같은 판단이라도 결과를 재는 기간이 바뀌면 앞섬과 뒤짐이 뒤바뀔 수 있습니다. 기간이 짧을수록 주가 움직임에서 우연과 소음이 차지하는 몫이 커집니다. 판단할 때는 몇 개월 뒤를 묻는지와 그 사이 얼마나 크게 흔들릴 수 있는 회사인지를 함께 봐야 합니다.",
+    quiz: { quizId: "horizon-and-volatility-q1", question: "6개월 판단에서 앞선 회사가 3개월 시점에는 시장보다 뒤져 있었다. 알맞은 해석은?", options: ["3개월 결과가 진짜 결과다", "6개월 판단이 틀렸다", "잰 기간에 따라 결과가 달라질 수 있다"], answer: 2 },
+  },
+  {
+    id: "survivorship-bias", branch: "outcome", title: "생존 편향",
+    body: "지금 눈에 보이는 성공 사례는 살아남은 회사들만 모은 것이라 실제보다 성공 확률이 높아 보입니다. 같은 전략을 썼다가 사라진 회사와 투자자는 기록에 잘 남지 않습니다. 사례에서 교훈을 얻을 때는 같은 조건에서 실패한 경우가 얼마나 많았는지를 함께 물어야 합니다.",
+    quiz: { quizId: "survivorship-bias-q1", question: "'위기 때 산 종목이 크게 올랐다'는 이야기만 듣고 같은 전략을 쓰려 한다. 먼저 확인할 것은?", options: ["그 종목의 이후 주가", "같은 때 같은 이유로 샀다가 실패한 경우", "이야기한 사람의 유명세"], answer: 1 },
+  },
+  {
+    id: "recency-bias", branch: "outcome", title: "최근성 편향",
+    body: "최근 몇 달의 흐름이 앞으로도 이어질 것이라고 여기는 경향을 최근성 편향이라고 합니다. 크게 오른 뒤에는 더 오를 것 같고, 크게 내린 뒤에는 더 내릴 것 같은 느낌이 근거를 대신하기 쉽습니다. 최근 흐름은 이미 가격에 들어 있을 수 있으니 그 흐름을 바꿀 만한 정보가 있는지를 따로 봐야 합니다.",
+    quiz: { quizId: "recency-bias-q1", question: "판단일까지 6개월 동안 60% 내린 회사를 보고 '계속 내릴 것'이라고 판단했다. 이 판단에서 빠진 질문은?", options: ["최근 6개월에 얼마나 내렸나", "업종 이름이 무엇인가", "이미 가격에 들어간 비관이 얼마나 큰가"], answer: 2 },
+  },
+  {
+    id: "earnings-quality", branch: "numbers", title: "매출 성장과 이익의 질",
+    body: "매출이 빠르게 늘어도 비용이 더 빨리 늘면 이익은 오히려 줄 수 있습니다. 이익의 질은 늘어난 이익이 본업에서 반복해서 나오는지, 일회성 항목이나 회계 처리로 생긴 것인지로 판단합니다. 매출 성장률과 영업이익률 추이를 함께 보면 성장이 실제로 돈이 되는 성장인지 가늠할 수 있습니다.",
+    quiz: { quizId: "earnings-quality-q1", question: "매출 +20%, 영업이익률 15% → 9%. 알맞은 해석은?", options: ["이익이 매출보다 빠르게 늘었다", "성장이 이익으로 이어지지 않고 있다", "알 수 없다"], answer: 1 },
+  },
+  {
     id: "growth-vs-valuation", branch: "numbers", title: "높은 성장률과 높은 밸류에이션",
     body: "성장률이 높아도 그 성장이 이미 가격에 반영돼 있으면 시장 대비 초과수익은 남지 않습니다. 업종 중앙값 대비 PER 프리미엄이 얼마나 큰지가 핵심입니다.",
     quiz: { quizId: "q-growth-vs-valuation-1", question: "매출 +23%인데 PER이 업종의 1.4배라면?", options: ["성장이 확인됐으니 유리하다", "성장이 이미 가격에 반영됐을 수 있다"], answer: 1 },
+  },
+  {
+    id: "earnings-vs-cash-flow", branch: "numbers", title: "회계이익과 현금흐름",
+    body: "회계이익은 거래가 생긴 시점에 기록하기 때문에 실제로 현금이 들어온 시점과 차이가 날 수 있습니다. 이익은 나는데 영업현금흐름이나 잉여현금흐름이 계속 마이너스라면 외상 매출이나 재고가 쌓이고 있는지 살펴봐야 합니다. 빚을 갚고 투자하고 배당하는 돈은 결국 현금흐름에서 나옵니다.",
+    quiz: { quizId: "earnings-vs-cash-flow-q1", question: "순이익은 3년째 흑자인데 잉여현금흐름은 3년째 적자다. 먼저 확인할 것은?", options: ["PER", "매출채권·재고 증가와 설비 투자", "최근 주가 흐름"], answer: 1 },
   },
   {
     id: "debt-and-cycle", branch: "numbers", title: "높은 부채와 경기 민감도",
@@ -28,9 +63,59 @@ export const MOCK_CONCEPTS: MockConcept[] = [
     quiz: { quizId: "q-debt-and-cycle-1", question: "부채비율 88%, 매출 −8%, 금리 상승기. 가장 큰 위험은?", options: ["이자 부담으로 이익이 빠르게 줄 수 있다", "PER이 낮아서 안전하다"], answer: 0 },
   },
   {
-    id: "base-rate", branch: "outcome", title: "기저확률과 노이즈",
-    body: "6개월 주가 방향은 절반 가까이가 시장 흐름과 우연으로 설명됩니다. 한두 번의 적중은 실력이 아닐 수 있습니다. 근거가 같은 판단을 여러 번 반복했을 때의 평균이 실력입니다.",
-    quiz: { quizId: "q-base-rate-1", question: "3연속 적중 후 가장 정확한 해석은?", options: ["판단력이 검증됐다", "표본이 작아 아직 알 수 없다"], answer: 1 },
+    id: "guidance-and-expectations", branch: "numbers", title: "가이던스와 기대치",
+    body: "주가는 실적이 좋고 나쁨보다 시장이 이미 기대하던 수준과 비교해 움직입니다. 회사가 내놓는 가이던스는 그 기대치를 만드는 기준점이라, 나쁜 전망이라도 이미 알려져 있다면 가격에 들어 있을 수 있습니다. 그래서 판단할 때는 숫자 자체보다 그 숫자가 기대보다 나아질지 나빠질지를 물어야 합니다.",
+    quiz: { quizId: "guidance-and-expectations-q1", question: "회사가 다음 분기 매출이 크게 줄 거라고 미리 밝혔고, 실제로도 그만큼 줄었다. 발표 뒤 주가 반응으로 그럴듯한 것은?", options: ["반드시 크게 떨어진다", "이미 알려진 정보라 반응이 작을 수 있다", "반드시 오른다"], answer: 1 },
+  },
+  {
+    id: "rates-and-growth-discount", branch: "then", title: "금리와 성장주 할인율",
+    body: "주식의 가치는 앞으로 벌 이익을 지금 가치로 할인한 값이라 금리가 오르면 할인율도 함께 오릅니다. 이익의 많은 부분을 먼 미래에 기대하는 성장주일수록 할인율 변화에 가격이 더 크게 반응합니다. 다만 금리 인상이 이미 예고돼 가격에 들어 있다면 실제 인상 때의 반응은 작을 수 있습니다.",
+    quiz: { quizId: "rates-and-growth-discount-q1", question: "금리 인상 예고가 이어질 때 가격이 가장 크게 흔들리기 쉬운 회사는?", options: ["현재 이익과 배당이 안정적인 저PER 회사", "이익 대부분을 먼 미래에 기대하는 고PER 성장주", "둘 다 같다"], answer: 1 },
+  },
+  {
+    id: "inflation-and-commodities", branch: "then", title: "인플레이션과 원자재",
+    body: "물가와 원자재 가격이 오르면 원가가 늘어나는 회사와 판매 가격을 올릴 수 있는 회사의 처지가 갈립니다. 값을 올려도 고객이 떠나지 않는 힘, 곧 가격 결정력이 있는 회사는 이익률을 지키기 쉽습니다. 높은 물가는 금리 인상으로 이어지기 쉬워 원가뿐 아니라 할인율 경로로도 주가에 영향을 줍니다.",
+    quiz: { quizId: "inflation-and-commodities-q1", question: "유가가 크게 오른 시기, 연료비 비중이 큰 항공사의 이익률에 먼저 생기는 일은?", options: ["매출이 자동으로 늘어 이익률이 오른다", "영향이 없다", "원가가 늘어 이익률이 눌린다"], answer: 2 },
+  },
+  {
+    id: "fx-rates", branch: "then", title: "환율",
+    body: "해외 매출 비중이 큰 회사는 자국 통화가 강해지면 같은 해외 매출도 자국 통화로 바꾼 금액이 줄어듭니다. 반대로 원자재나 부품을 수입하는 회사는 자국 통화가 강해질 때 원가 부담이 줄 수 있습니다. 그래서 환율 메모는 회사의 매출과 원가가 어느 통화로 나뉘는지와 함께 읽어야 합니다.",
+    quiz: { quizId: "fx-rates-q1", question: "해외 매출이 절반인 미국 회사에 달러 강세가 이어지면?", options: ["해외 매출이 늘어난다", "달러로 바꾼 해외 매출이 줄어든다", "영향이 없다"], answer: 1 },
+  },
+  {
+    id: "industry-cycle", branch: "then", title: "업종 사이클",
+    body: "반도체·여행·소매처럼 경기에 민감한 업종은 수요와 공급이 몇 년 주기로 늘었다 줄었다를 반복합니다. 사이클의 바닥에서는 이익이 크게 줄어 PER이 높아 보이고, 꼭대기에서는 이익이 많아 PER이 낮아 보이는 착시가 생깁니다. 그래서 업종 사이클 카드에서는 지금 숫자보다 수요와 재고가 어느 방향으로 바뀌고 있는지를 봐야 합니다.",
+    quiz: { quizId: "industry-cycle-q1", question: "사이클 꼭대기에서 이익이 가장 많을 때 PER이 낮아 보이는 이유는?", options: ["일시적으로 큰 이익이 분모에 들어가서", "회사가 저평가돼서", "금리가 낮아서"], answer: 0 },
+  },
+  {
+    id: "event-risk", branch: "then", title: "이벤트(실적 발표·규제)",
+    body: "실적 발표, 규제 결정, 소송 결과 같은 이벤트는 정해진 날 정보가 한꺼번에 풀려 주가를 크게 움직일 수 있습니다. 판단 기간 안에 이런 이벤트가 있으면 결과의 상당 부분이 그날 시장의 기대와 실제의 차이로 정해집니다. 판단할 때는 기간 안에 어떤 이벤트가 예정돼 있는지와 그 결과가 양쪽으로 얼마나 갈릴 수 있는지를 함께 봐야 합니다.",
+    quiz: { quizId: "event-risk-q1", question: "판단 기간 안에 실적 발표가 두 번 있다. 이것이 판단에 주는 의미는?", options: ["실적 발표는 주가와 무관하다", "결과가 발표 내용과 기대의 차이에 크게 좌우될 수 있다", "결과가 이미 정해져 있다"], answer: 1 },
+  },
+  {
+    id: "confidence-calibration", branch: "self", title: "확신도 보정",
+    body: "확신도 보정이란 확신도를 높게 준 판단일수록 실제로도 더 자주 맞는지를 보는 것입니다. 확신도 5를 준 판단과 2를 준 판단의 결과가 비슷하다면 확신도가 정보를 담고 있지 않다는 뜻입니다. 판단이 20장 쌓이면 일지의 통계에서 확신도별 결과를 글로 확인할 수 있습니다.",
+    quiz: { quizId: "confidence-calibration-q1", question: "확신도 5를 준 판단 10번 중 시장보다 앞선 것이 5번이었다. 알맞은 해석은?", options: ["확신도를 잘 쓰고 있다", "확신도가 결과를 잘 구분하지 못하고 있다", "표본이 충분해 결론이 났다"], answer: 1 },
+  },
+  {
+    id: "evidence-specificity", branch: "self", title: "근거의 구체성",
+    body: "'좋은 회사라서'처럼 막연한 근거는 결과가 어떻게 나와도 맞았다고 해석할 수 있어 배울 것이 남지 않습니다. 'PER이 업종보다 40% 높다'처럼 숫자와 비교 대상이 있는 근거는 결과와 대조해 무엇이 틀렸는지 확인할 수 있습니다. 근거가 구체적일수록 다음 판단에서 다시 쓸 수 있는 개념으로 남습니다.",
+    quiz: { quizId: "evidence-specificity-q1", question: "다음 중 가장 구체적인 근거는?", options: ["좋은 회사 같다", "요즘 분위기가 좋다", "PER 38로 업종 중앙값 27보다 높다"], answer: 2 },
+  },
+  {
+    id: "invalidation-condition", branch: "self", title: "판단 무효화 조건",
+    body: "판단 무효화 조건은 '이런 일이 생기면 내 판단은 틀린 것'이라고 미리 적어 두는 기준입니다. 미리 적어 두면 결과를 본 뒤 이유를 끼워 맞추는 것을 막고, 판단의 전제가 무엇이었는지 분명해집니다. 좋은 무효화 조건은 '다음 실적에서 매출이 줄면'처럼 관찰할 수 있고 기간이 정해진 사건입니다.",
+    quiz: { quizId: "invalidation-condition-q1", question: "다음 중 좋은 무효화 조건은?", options: ["분위기가 나빠지면", "다음 실적에서 매출 성장률이 한 자릿수로 떨어지면", "주가가 마음에 안 들면"], answer: 1 },
+  },
+  {
+    id: "narrative-fallacy", branch: "self", title: "사후 서사 오류",
+    body: "결과를 알고 나면 그 결과로 이어진 이야기가 처음부터 뻔했던 것처럼 보입니다. 하지만 판단 시점에는 다른 이야기도 똑같이 그럴듯했고, 결과에는 그 뒤에 생긴 사건과 우연이 섞여 있습니다. 공개 뒤에는 '왜 그렇게 됐나'보다 '그때 알 수 있었던 것 중 무엇을 놓쳤나'를 물어야 합니다.",
+    quiz: { quizId: "narrative-fallacy-q1", question: "공개 뒤 '그때 이미 다 보였는데'라는 생각이 들었다. 먼저 해 볼 질문은?", options: ["다음엔 확신도를 5로 고를까", "판단일에 알 수 있었던 정보만으로도 그렇게 말할 수 있었나", "회사 이름을 외워 둘까"], answer: 1 },
+  },
+  {
+    id: "diversification", branch: "self", title: "분산과 개별 종목 위험",
+    body: "한 회사의 주가에는 시장 전체의 움직임과 그 회사만의 사건이 함께 담겨 있습니다. 여러 회사에 나눠 담으면 회사마다의 사건은 서로 상쇄되고 시장 전체의 움직임이 주로 남습니다. 그래서 한 종목의 결과로 판단력을 평가하기보다 여러 판단을 모아 근거별로 보는 편이 정확합니다.",
+    quiz: { quizId: "diversification-q1", question: "서로 다른 업종의 회사 20곳에 나눠 담으면 주로 줄어드는 위험은?", options: ["시장 전체의 위험", "회사마다의 개별 위험", "모든 위험"], answer: 1 },
   },
 ];
 

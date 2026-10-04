@@ -121,6 +121,16 @@ enum AiSource {
   @@map("ai_source")
 }
 
+/// 정보 수준(D16, 계약 InfoLevel). custom이면 users.panel_prefs에 묶음 토글이 있다.
+enum InfoLevel {
+  basic
+  standard
+  advanced
+  custom
+
+  @@map("info_level")
+}
+
 // ---------- ① 판단 전 ----------
 
 /// 카드 한 장 = 사례 하나. 판단 시점의 절대 날짜는 여기 없다(case_outcomes.start_date가 유일한 원본).
@@ -173,7 +183,8 @@ model Concept {
   branch    ConceptBranch
   title     String
   bodyMd    String        @map("body_md")
-  ord       Int           @default(0)
+  /// 갈래 안 순서(1부터, 개념 파일의 나열 순서) = 계약 ConceptListItem.order. 시드가 매번 다시 계산한다(CHECK ord >= 1 — 마이그레이션 SQL).
+  ord       Int           @default(1)
   /// 개념 파일에서 빠지면 false(시드 --retire-missing). 지우지 않는다(진행·학습 포인트가 참조).
   active    Boolean       @default(true)
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -279,12 +290,18 @@ model CaseInternal {
 
 // ---------- 사용자·인증 ----------
 
+/// 정보 수준: panel_prefs가 NULL이면 info_level의 프리셋(계약 INFO_PRESETS)이고, custom일 때만 묶음 토글을 저장한다
+/// (CHECK (info_level = 'custom') = (panel_prefs IS NOT NULL) — 마이그레이션 SQL). PUT /api/me/prefs가 정규화해 저장한다.
 model User {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   nickname    String
   tz          String    @default("Asia/Seoul")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   onboardedAt DateTime? @map("onboarded_at") @db.Timestamptz(3)
+  infoLevel   InfoLevel @default(standard) @map("info_level")
+  panelPrefs  Json?     @map("panel_prefs") @db.JsonB
+  /// 되돌리기 알림 시간(초): 2.5·5·10만(CHECK — 마이그레이션 SQL)
+  undoSeconds Decimal   @default(2.5) @map("undo_seconds") @db.Decimal(3, 1)
 
   invite          Invite?           @relation("InviteUsedBy")
   recoveryInvites Invite[]          @relation("InviteForUser")
@@ -362,6 +379,9 @@ model Judgment {
   isExtra       Boolean    @default(false) @map("is_extra")
   panelsViewed  Json       @default("[]") @map("panels_viewed") @db.JsonB
   gesture       Json?      @db.JsonB
+  /// 판단 때의 정보 수준과 숨겨져 있던 묶음(계약 InfoGroup 이름 배열, 분석용). '더 보기'로 펼쳤으면 빈 배열.
+  infoLevel     InfoLevel  @default(standard) @map("info_level")
+  hiddenGroups  Json       @default("[]") @map("hidden_groups") @db.JsonB
   createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   revealedAt    DateTime?  @map("revealed_at") @db.Timestamptz(3)
 
@@ -483,15 +503,18 @@ model DailySession {
 
 // ---------- 신고·이벤트 ----------
 
+/// client_report_id: 재전송 멱등 키. (user_id, client_report_id)는 NULL이 아닐 때만 유일
+/// (부분 유일 인덱스 reports_user_client_report_key — 마이그레이션 SQL). 예전 행은 NULL.
 model Report {
-  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId      String         @map("user_id") @db.Uuid
-  caseId      String         @map("case_id") @db.Uuid
-  caseVersion Int            @map("case_version")
-  category    ReportCategory
-  note        String?
-  status      ReportStatus   @default(open)
-  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String         @map("user_id") @db.Uuid
+  caseId         String         @map("case_id") @db.Uuid
+  caseVersion    Int            @map("case_version")
+  category       ReportCategory
+  note           String?
+  status         ReportStatus   @default(open)
+  clientReportId String?        @map("client_report_id") @db.Uuid
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   case Case @relation(fields: [caseId], references: [id], onDelete: Restrict)

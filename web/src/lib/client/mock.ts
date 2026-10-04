@@ -4,7 +4,11 @@
  * 세트 고정(하루 카드 3장), 같은 카드 재판단은 기존 판단, 공개는 반복해도 같은 응답(공개 때 채점해 붙임),
  * 세 상태(roundPp 뒤 ±1.0%p), 간격 복습(1·3·7·21일, 기한 전 정답은 그대로), 하루 복습 2개, 스트릭,
  * 한 장 더(today?extra=1), 온보딩 완료(onboarding_done 이벤트), 일지(결과 대기 행은 판단 전 값만, ?month=),
- * 통계 20장 잠금·인사이트(횟수만), 퀴즈 해설 문구('맞아요.' / '아니에요. 정답: ‘…’.'), 템플릿 해설·질문자.
+ * 통계 20장 잠금·인사이트(횟수만), 퀴즈 해설 문구('맞아요.' / '아니에요. 정답: ‘…’.') + answerIndex, 템플릿 해설·질문자.
+ * 2차(2026-10-04, A2 서버와 같게): 정보 수준(PUT /api/me/prefs — 프리셋이면 묶음은 프리셋으로, custom인데 프리셋과 같으면 그 수준으로,
+ * custom에 묶음이 없으면 422, undoSeconds를 빼면 그대로), 판단의 infoLevel·hiddenGroups, 오늘의 extraJudged(오늘 한 장 더 판단 수)·
+ * conceptsToday(오늘 공개한 판단의 1순위 개념, 처음 공개한 순서, 한 번씩), 개념 목록은 갈래(결과→숫자→그때→내 판단) 다음 order 순,
+ * 일지의 conceptTitle(공개된 행만)·infoLevel, 신고 clientReportId(같은 id 재전송은 같은 신고, 다른 카드에 같은 id면 409 report_conflict).
  * 모든 응답은 계약 스키마(.strict())로 한 번 더 걸러 보낸다 — 목이 계약에서 벗어나면 바로 깨진다.
  * 상태는 localStorage('bokgi.mock.v1')에 남아 새로고침해도 이어진다.
  */
@@ -13,22 +17,26 @@ import * as C from "@/shared/contract";
 import type { BokgiApi } from "./api";
 import { ApiError } from "./errors";
 import { buildMonth, dueCounts } from "./calendar";
-import { addDays, DIR, josa, localDayKey, monthOf, uuid } from "./format";
+import { addDays, BRANCHES, dayKeyOf, DIR, josa, localDayKey, monthOf, uuid } from "./format";
 import { MOCK_CASES, MOCK_CONCEPTS, MOCK_REVEAL, MOCK_TEST_CASE, MOCK_TEST_REVEAL, MOCK_USER_ID, type MockConcept, type MockReveal } from "./mockData";
 import type {
-  ConceptState, Direction, Explain, Gesture, JournalItem, PanelKind, PublicCase, QuizBody, QuizResult, ReportBody,
-  Result, Reveal, SelfCheck, Today, TodayCard, UiEvent,
+  ConceptState, ConceptToday, Direction, Explain, Gesture, InfoGroup, InfoLevel, JournalItem, PanelKind, Prefs, PublicCase, QuizBody,
+  QuizResult, ReportBody, Result, Reveal, SelfCheck, Today, TodayCard, UiEvent,
 } from "./types";
 
 const KEY = "bokgi.mock.v1";
 const ONBOARD_KEY = "bokgi.onboarded";
 const DECK4_KEY = "bokgi.mock.deck4";
+/** 시험용: '1'이면 PUT /api/me/prefs가 실패한다(설정 저장 실패 → 화면 되돌림 확인) */
+const FAIL_PREFS_KEY = "bokgi.mock.failPrefs";
 const EVENTS_KEEP = 400;
 
 type MJudgment = {
   id: string; caseId: string; caseVersion: number; keyEvidenceId: string; keyEvidence: string;
   riskId: string | null; risk: string | null; direction: Direction; confidence: number; recognized: boolean;
   panelsViewed: PanelKind[]; gesture: Gesture | null; isExtra: boolean;
+  /** 판단 때의 정보 수준과 숨겨져 있던 묶음('더 보기'로 펼쳤으면 []) — 예전에 저장된 상태에는 없을 수 있다 */
+  infoLevel?: InfoLevel; hiddenGroups?: InfoGroup[];
   createdAt: string; localDate: string; revealedAt: string | null; selfCheck: SelfCheck | null;
   /** 공개 때 채점해 붙인다(서버 judgment_outcomes와 같다). 이후 화면은 이 값만 읽는다 */
   result: Result | null;
@@ -38,6 +46,8 @@ type MAttempt = { clientAttemptId: string; conceptId: string; via: QuizBody["via
 type MState = {
   v: 1;
   onboarded: boolean;
+  /** 서버 users.info_level·panel_prefs·undo_seconds와 같은 자리(프리셋이면 묶음은 프리셋 값) */
+  prefs: Prefs;
   judgments: MJudgment[];
   progress: Record<string, MProgress>;
   attempts: MAttempt[];
@@ -46,7 +56,8 @@ type MState = {
   events: UiEvent[];
 };
 
-const fresh = (): MState => ({ v: 1, onboarded: false, judgments: [], progress: {}, attempts: [], sessions: {}, reports: [], events: [] });
+const defaultPrefs = (): Prefs => ({ infoLevel: C.INFO_LEVEL_DEFAULT, panelPrefs: C.presetPrefs(C.INFO_LEVEL_DEFAULT), undoSeconds: C.UNDO_SECONDS_DEFAULT });
+const fresh = (): MState => ({ v: 1, onboarded: false, prefs: defaultPrefs(), judgments: [], progress: {}, attempts: [], sessions: {}, reports: [], events: [] });
 
 function out<S extends z.ZodType>(schema: S, value: z.input<S>): z.output<S> {
   const r = schema.safeParse(value);
@@ -72,7 +83,12 @@ function load(): MState {
   try {
     const raw = readStore(KEY);
     const s = raw ? (JSON.parse(raw) as Partial<MState>) : null;
-    if (s && s.v === 1) return { ...fresh(), ...s } as MState;
+    if (s && s.v === 1) {
+      // 1차 때 저장된 상태(또는 시험이 넣은 상태)에 prefs가 없거나 깨졌으면 기본값으로
+      const prefs = C.PanelPrefs.safeParse(s.prefs?.panelPrefs).success && C.InfoLevel.safeParse(s.prefs?.infoLevel).success
+        && C.UndoSeconds.safeParse(s.prefs?.undoSeconds).success ? (s.prefs as Prefs) : defaultPrefs();
+      return { ...fresh(), ...s, prefs } as MState;
+    }
   } catch { /* 깨진 값은 버린다 */ }
   return fresh();
 }
@@ -221,6 +237,18 @@ export function createMockApi(): BokgiApi {
     let streak = 0;
     while (days.has(d)) { streak++; d = addDays(d, -1); }
 
+    // 오늘 공개한 판단의 1순위 학습 포인트 개념(처음 공개한 순서, 개념당 한 번)과 지금의 숙련도 — 서버 conceptsMetToday와 같다
+    const conceptsToday: ConceptToday[] = [];
+    st.judgments
+      .filter((j): j is MJudgment & { revealedAt: string } => !!j.revealedAt && dayKeyOf(new Date(j.revealedAt)) === date)
+      .sort((a, b) => a.revealedAt.localeCompare(b.revealedAt))
+      .forEach((j) => {
+        const c = conceptById(revealOf(j.caseId)?.learning[0]?.conceptId ?? "");
+        if (!c || conceptsToday.some((x) => x.conceptId === c.id)) return;
+        const p = st.progress[c.id];
+        conceptsToday.push({ conceptId: c.id, title: c.title, state: p?.state ?? "new", dueOn: p?.dueOn ?? null });
+      });
+
     return out(C.Today, {
       date, streak,
       entry: {
@@ -230,12 +258,28 @@ export function createMockApi(): BokgiApi {
         cardsLeft: setCards.filter((c) => !c.judgmentId).length,
       },
       cards, extraAllowed: setDone && remaining.length > 0, reviews,
+      extraJudged: st.judgments.filter((j) => j.isExtra && j.localDate === date).length,
+      conceptsToday,
     });
   };
 
   const api: BokgiApi = {
     async me() {
-      return out(C.Me, { user: { id: MOCK_USER_ID, nickname: "체험", onboarded: st.onboarded || readStore(ONBOARD_KEY) === "1", tz: "Asia/Seoul" } });
+      return out(C.Me, { user: { id: MOCK_USER_ID, nickname: "체험", onboarded: st.onboarded || readStore(ONBOARD_KEY) === "1", tz: "Asia/Seoul", ...st.prefs } });
+    },
+    async prefs(body) {
+      const b = input(C.PrefsBody, body);
+      if (readStore(FAIL_PREFS_KEY) === "1") throw new ApiError(503, "unavailable", "잠시 뒤에 다시 시도해 주세요.");
+      let level: InfoLevel = b.infoLevel;
+      let panelPrefs = C.presetPrefs(level);
+      if (level === "custom") {
+        if (!b.panelPrefs) throw new ApiError(422, "validation_failed", "요청 형식이 올바르지 않아요.");
+        level = C.levelForPrefs(b.panelPrefs);   // 프리셋과 같은 묶음이면 그 수준으로 저장(응답 수준이 보낸 값과 다를 수 있다)
+        panelPrefs = level === "custom" ? { ...b.panelPrefs } : C.presetPrefs(level);
+      }
+      st.prefs = { infoLevel: level, panelPrefs, undoSeconds: b.undoSeconds ?? st.prefs.undoSeconds };
+      save();
+      return api.me();
     },
     async invite() { /* 목 모드는 초대 없이 들어온다 */ },
     async today(opts) { return buildToday(!!opts?.extra); },
@@ -258,6 +302,7 @@ export function createMockApi(): BokgiApi {
         id: uuid(), caseId: c.id, caseVersion: c.version, keyEvidenceId: ev.id, keyEvidence: ev.label,
         riskId: rk ? rk.id : null, risk: rk ? rk.label : null, direction: b.direction, confidence: b.confidence,
         recognized: b.recognized, panelsViewed: b.panelsViewed, gesture: b.gesture, isExtra: b.isExtra,
+        infoLevel: b.infoLevel, hiddenGroups: [...new Set(b.hiddenGroups)],
         createdAt: new Date().toISOString(), localDate: today(), revealedAt: null, selfCheck: null, result: null,
       };
       st.judgments.push(j);
@@ -300,7 +345,7 @@ export function createMockApi(): BokgiApi {
       const c = conceptById(conceptId);
       if (!c || c.quiz.quizId !== b.quizId || b.optionIndex >= c.quiz.options.length) throw notFound();
       const again = st.attempts.find((a) => a.clientAttemptId === b.clientAttemptId);
-      if (again) return out(C.QuizResult, again.result);
+      if (again) return out(C.QuizResult, { ...again.result, answerIndex: c.quiz.answer });
       const date = today();
       const correct = b.optionIndex === c.quiz.answer;
       const prev = st.progress[conceptId];
@@ -317,21 +362,23 @@ export function createMockApi(): BokgiApi {
       st.progress[conceptId] = p;
       // 서버(A)와 같은 해설 문구: 정답은 채점 뒤에만 알린다
       const explanation = correct ? "맞아요." : `아니에요. 정답: ‘${c.quiz.options[c.quiz.answer]}’.`;
-      const result: QuizResult = { correct, explanation, level: p.level, state: p.state, nextDueOn: p.dueOn ?? addDays(date, 1) };
+      const result: QuizResult = { correct, answerIndex: c.quiz.answer, explanation, level: p.level, state: p.state, nextDueOn: p.dueOn ?? addDays(date, 1) };
       st.attempts.push({ clientAttemptId: b.clientAttemptId, conceptId, via: b.via, localDate: date, at: new Date().toISOString(), result });
       save();
       return out(C.QuizResult, result);
     },
     async concepts() {
+      // 서버와 같다: 갈래(결과 → 숫자 → 그때 → 내 판단) 다음 갈래 안 순서(order = 콘텐츠 나열 순서, 1부터)
       return out(C.ConceptList, {
-        concepts: MOCK_CONCEPTS.map((c) => {
+        concepts: BRANCHES.flatMap((branch) => MOCK_CONCEPTS.filter((c) => c.branch === branch).map((c, i) => {
           const p = st.progress[c.id];
           return {
             id: c.id, branch: c.branch, title: c.title, body: c.body, linkSentence: null,
             state: p?.state ?? "new", level: p?.level ?? 0, dueOn: p?.dueOn ?? null,
             quiz: { quizId: c.quiz.quizId, question: c.quiz.question, options: c.quiz.options },
+            order: i + 1,
           };
-        }),
+        })),
       });
     },
     async journal(month) {
@@ -343,12 +390,15 @@ export function createMockApi(): BokgiApi {
         .map((j) => {
           const c = caseById(j.caseId);
           const revealed = !!j.revealedAt;
-          const o = revealed ? revealOf(j.caseId)?.outcome : undefined;   // 결과 대기 행은 결과 자료를 읽지 않는다
+          const rv = revealed ? revealOf(j.caseId) : undefined;   // 결과 대기 행은 결과 자료(학습 포인트 포함)를 읽지 않는다
+          const o = rv?.outcome;
           return {
             judgmentId: j.id, createdAt: j.createdAt, localDate: j.localDate,
             direction: j.direction, confidence: j.confidence, keyEvidence: j.keyEvidence, recognized: j.recognized, selfCheck: j.selfCheck,
             revealed, companyName: o ? o.companyName : null, ticker: o ? o.ticker : null, result: revealed ? resultOf(j) : null,
+            conceptTitle: rv ? (conceptById(rv.learning[0]?.conceptId ?? "")?.title ?? null) : null,
             sectorPublic: c?.sectorPublic ?? "", sizeBucket: c?.sizeBucket ?? "",
+            infoLevel: j.infoLevel ?? C.INFO_LEVEL_DEFAULT,
           };
         });
       const practiced = new Set(st.judgments.map((j) => j.localDate));
@@ -382,6 +432,12 @@ export function createMockApi(): BokgiApi {
     async report(body) {
       const b = input(C.ReportBody, body);
       if (!caseById(b.caseId)) throw notFound();
+      // 서버와 같다: 같은 clientReportId 재전송은 같은 신고(두 번 세지 않음), 다른 카드에 같은 id를 쓰면 409
+      const again = st.reports.find((r) => r.clientReportId === b.clientReportId);
+      if (again) {
+        if (again.caseId !== b.caseId) throw new ApiError(409, "report_conflict", "이미 다른 카드에 쓴 신고 번호예요.");
+        return;
+      }
       st.reports.push({ ...b, id: uuid(), createdAt: new Date().toISOString() });
       save();
     },

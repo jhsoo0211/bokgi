@@ -5,18 +5,38 @@ import type { AuthedUser } from "@/lib/server/auth";
 import { db, Prisma } from "@/lib/server/db";
 import { Errors } from "@/lib/server/http";
 
-/** POST /api/reports — 카드 버전과 함께 접수. 메모는 프롬프트·로그에 쓰지 않는다. */
-export async function createReport(user: AuthedUser, body: z.infer<typeof ReportBody>): Promise<{ reportId: string }> {
+/** 같은 사용자가 같은 clientReportId로 이미 낸 신고 → 같은 reportId(재전송). 다른 카드에 쓴 id면 409. */
+async function priorReport(userId: string, body: z.infer<typeof ReportBody>): Promise<{ reportId: string; existing: true } | null> {
+  const prior = await db().report.findFirst({ where: { userId, clientReportId: body.clientReportId }, select: { id: true, caseId: true } });
+  if (!prior) return null;
+  if (prior.caseId !== body.caseId) throw Errors.conflict("report_conflict", "이미 다른 카드에 쓴 신고 번호예요.");
+  return { reportId: prior.id, existing: true };
+}
+
+/**
+ * POST /api/reports — 카드 버전과 함께 접수. 메모는 프롬프트·로그에 쓰지 않는다.
+ * clientReportId 멱등: 첫 접수는 existing:false(201), 같은 사용자의 재전송은 같은 reportId로 existing:true(200).
+ * 부분 유일 인덱스(user_id, client_report_id)에 INSERT … ON CONFLICT DO NOTHING이라 동시에 두 번 와도 1행이다.
+ */
+export async function createReport(user: AuthedUser, body: z.infer<typeof ReportBody>): Promise<{ reportId: string; existing: boolean }> {
   const prisma = db();
+  const replay = await priorReport(user.id, body);
+  if (replay) return replay;
+
   const c = await prisma.case.findUnique({ where: { id: body.caseId }, select: { id: true, version: true } });
   if (!c) throw Errors.notFound();
   if (body.caseVersion < 1 || body.caseVersion > c.version) throw Errors.validation("invalid_version", "카드 버전이 올바르지 않아요.");
   const note = body.note === null ? null : body.note.replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, "").trim() || null;
-  const r = await prisma.report.create({
-    data: { userId: user.id, caseId: c.id, caseVersion: body.caseVersion, category: body.category, note },
+  const created = await prisma.report.createManyAndReturn({
+    data: [{ userId: user.id, caseId: c.id, caseVersion: body.caseVersion, category: body.category, note, clientReportId: body.clientReportId }],
+    skipDuplicates: true,
     select: { id: true },
   });
-  return { reportId: r.id };
+  if (created.length === 1) return { reportId: created[0].id, existing: false };
+  // 동시에 온 같은 신고가 먼저 들어갔다
+  const again = await priorReport(user.id, body);
+  if (!again) throw new Error("report insert skipped without a prior row");
+  return again;
 }
 
 const ALLOWED = new Set<string>(UI_EVENTS);

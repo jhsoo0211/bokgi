@@ -4,7 +4,9 @@
    프로토타입과 다른 점(React 이식): 제목 선택자를 h5/h6 대신 클래스로(.blk-h · .stats-h — 화면별 h1·h2·h3 구조),
    스와이프 도장 글자를 마크업에 직접, aria-disabled 판단 버튼, 근거 칩 설명(.ds-chip-why), 개념 갈래, 불러오기·오류·초대 화면.
    2026-10-04 UX 감사(docs/reviews/2026-10-04_ecc_ux_review_webapp.md): 세션 진행 칸(.ds-bar.seg), 주 행동 막대(.act-bar),
-   공개 화면 되짚기 카드 먼저, 누르는 자리 44px, 눌림 표시, 글자 200% 넘침, 당겨서 새로고침(카드 화면), 보조 토큰. */
+   공개 화면 되짚기 카드 먼저, 누르는 자리 44px, 눌림 표시, 글자 200% 넘침, 당겨서 새로고침(카드 화면), 보조 토큰.
+   2026-10-04 2차(D16·D17): 판단 막대(.judge-bar — 두 단추 같은 무게, 아래 탭 위에 붙음), 판 아래 '더 보기'(.more-line), 머리줄 정보 수준 단추(.lvl-btn),
+   설정 시트(.sheet--lv), 온보딩 넷째 장(.onb-opt), 개념 길(.cpath·.cnode·.cmk 네 모양), 일지 정보 수준 표시·개념 줄. 맨 아래 블록. */
 html, body { height: 100%; margin: 0; }
 /* Tab으로 옮긴 초점이 아래 고정 탭과 그 위에 붙는 주 행동 막대(.act-bar)에 가리지 않게(탭 45.5 + 막대 70 + 여유) */
 html { scroll-padding-bottom: calc(var(--nav-h) + 76px + env(safe-area-inset-bottom, 0px)); }
@@ -62,7 +64,7 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 /* 도장: 보이는 피드백일 뿐이라 보조기술에서 뺀다(aria-hidden). 글자는 방향 용어 */
 .sc-stamp { position: absolute; top: 14px; font-weight: 700; font-size: 17px; line-height: 1.3; padding: 4px 10px; border: 2px solid; opacity: 0; pointer-events: none; background: var(--bg-100); }
 .sc-stamp--r { right: 14px; color: var(--select); border-color: var(--select); transform: rotate(-8deg); }
-.sc-stamp--l { left: 14px; color: var(--ink-900); border-color: var(--ink-900); transform: rotate(8deg); }
+.sc-stamp--l { left: 14px; color: var(--select); border-color: var(--select); transform: rotate(8deg); }   /* 두 방향 같은 빨간 펜(고른 쪽 표시) — 한쪽만 강조하지 않는다 */
 .sc-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--ink-500); border: 1.5px dashed var(--ink-200); }
 
 /* 판 탭 (카드 안, .ds-lens 세그먼트 재사용) */
@@ -120,7 +122,7 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
 .toast-acts button:disabled { opacity: .45; cursor: default; }
 /* 되돌리기 알림(단추가 있는 동안)에는 화면 끝(판단 단추·안내)을 알림 위로 올려 볼 수 있게 아래 여백을 더한다(초점·내용이 가리지 않게).
    '되돌렸어요' 한 줄 알림에는 더하지 않는다 — 2초 뒤 여백이 빠지며 화면이 튀지 않게 */
-#view:has(> .toast .toast-acts) { padding-bottom: 150px; }
+#view:has(> .toast .toast-acts):not(:has(#judge)) { padding-bottom: 150px; }
 
 /* 결과 공개 */
 .reveal { margin: 4px 0 10px; }
@@ -343,3 +345,103 @@ body { display: flex; justify-content: center; align-items: flex-start; padding:
    숫자 칸·표에는 쓰지 않는다. 지원하지 않는 브라우저는 지금처럼 줄을 바꾼다 */
 .onb-title, .done-title, .reveal .name, .sheet h2, .q, .selfcheck-q, .hint, .toast, .exhausted, .err-title { text-wrap: balance; }
 .onb-body, .panel-note, .ctx-notes p, .verdict span, .ex-s, .explain .warn, .concept p, .selfcheck-fb, .quiz-fb, .stats-body p, .ds-insight p, .done > p, .empty, .ds-chip-why, .kp-list, .sources li, .comeback { text-wrap: pretty; }
+
+/* ===== 2026-10-04 2차: 정보 수준(D16)·듀오링고 흐름(D17)·ecc 남은 것 ===== */
+
+/* 판단 막대: 아래 탭 바로 위에 붙는다(sticky). 두 단추는 같은 모양·같은 무게(채움 없음) — 방향은 화살표와 낱말로만.
+   게이트가 열리면 두 단추가 함께 진해지고(aria-disabled 해제) 막대 위 괘선이 잉크가 된다(화면의 강조 한 곳).
+   단추만 담아 낮게(약 62px) — 380×760 첫 화면에서 판 아래 '더 보기'를 덮지 않는다. 막혔을 때만 위에 안내 한 줄(.judge-note)이 붙는다.
+   화면 끝에 있어 다 내리면 제자리(물음 "n개월 뒤, 이 회사는" 바로 아래)에 놓인다 — 내용을 덮지 않는다. Tab 초점은 scroll-padding으로 막대 위에 온다 */
+.judge-q { margin: 14px 0 0; font-size: 14px; text-align: center; }
+.judge-bar { position: sticky; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px)); z-index: 1; margin: 6px -16px 0; padding: 6px 16px 8px; background: var(--bg-000); border-top: 1.5px solid var(--ink-200); }
+.judge-bar--open { border-top-color: var(--ink-900); }
+.judge-note { margin: 0 0 6px; font-size: 12px; line-height: 18px; font-weight: 700; color: var(--ink-900); text-align: center; text-wrap: balance; }
+.judge-bar .swipe .judge-btn { min-height: 46px; padding: 11px 6px; }
+/* 카드 화면: Tab 초점이 아래 탭 + 판단 막대(62px, 막혔을 때 86px)에 가리지 않게. 되돌리기 알림은 막대 위에 띄운다(알림이 판단 단추를 덮지 않게 —
+   그래서 1차의 '알림이 떠 있는 동안 화면 끝 여백 150px'은 카드 화면에서 쓰지 않는다: 여백이 있으면 막대가 제자리로 올라가 알림 밑에 깔린다) */
+html:has(#judge) { scroll-padding-bottom: calc(var(--nav-h) + 96px + env(safe-area-inset-bottom, 0px)); }
+/* 카드 화면은 화면 끝 여백(24px)을 두지 않는다 — 막대의 제자리가 붙는 자리와 같아져 끝까지 내려도 막대가 움직이지 않는다(알림과 겹치지 않게) */
+#view:has(> #judge) { padding-bottom: 0; }
+html:has(#judge) .toast:not(:empty) { bottom: calc(var(--nav-h) + 72px + env(safe-area-inset-bottom, 0px)); }
+
+/* 판 아래 '더 보기'(숨긴 묶음이 있을 때만): 이 카드에서만 전부 펼친다. 글자 줄 30px + 위아래 7px = 누르는 자리 44px */
+.more-line { position: relative; display: block; width: 100%; margin: 0; padding: 6px 0; font: inherit; font-size: 12px; line-height: 18px; color: var(--ink-500); text-align: center; background: none; border: 0; cursor: pointer; }
+button.more-line::before { content: ""; position: absolute; inset: -7px 0; }
+.more-line u { color: var(--ink-900); font-weight: 700; text-underline-offset: 3px; }
+.more-line:disabled { opacity: .45; cursor: default; }
+.more-line--done { cursor: default; }
+
+/* 머리줄 오른쪽: 단계 라벨 + 정보 수준 단추(보이는 칸 24px, 누르는 자리 44px) */
+.top-r { display: inline-flex; align-items: center; gap: 10px; }
+.lvl-btn { position: relative; padding: 2px 8px; font: inherit; font-size: 12px; line-height: 18px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-900); background: var(--bg-100); border: 1px solid var(--ink-900); border-radius: 0; cursor: pointer; white-space: nowrap; }
+.lvl-btn::before { content: ""; position: absolute; inset: calc(-11px - var(--border-hair)) -4px; }   /* 가상 요소는 테두리 안 기준 — 테두리만큼 더(44px 이상) */
+.top-err { margin: -4px 0 8px; font-size: 12px; color: var(--ink-900); }
+
+/* 정보 수준 설정 시트: 수준(라디오) → 묶음(판 이름 작은 머리 + 체크) → 되돌리기 시간 → (카드 중이면) 다음 카드부터 */
+.sheet--lv .lv-legend { float: left; width: 100%; padding: 8px 0 2px; font-size: 13px; font-weight: 700; color: var(--ink-900); }
+.sheet--lv .lv-legend + * { clear: both; }
+.lv-legend small { margin-left: 4px; font-size: 12px; font-weight: 400; color: var(--ink-500); }
+.lv-radio > span { display: flex; flex-direction: column; gap: 1px; }
+.lv-radio b { font-size: 14px; }
+.lv-radio small { font-size: 12px; line-height: 1.4; color: var(--ink-500); }
+.lv-panel { margin: 8px 0 0; font-size: 12px; font-weight: 700; color: var(--ink-500); }
+.lv-toggle { min-height: 44px; margin: 0; padding: 6px 2px; border-bottom: 1px dotted var(--rule-dot); }
+.lv-toggle::before { inset: 0; }   /* 줄 높이가 이미 44px — 이웃 줄과 겹치지 않게 */
+.lv-toggle small { font-size: 12px; color: var(--ink-500); }
+.lv-undo-opts { display: flex; flex-wrap: wrap; gap: 0 18px; }
+.lv-sec { border-bottom: 0; }
+.lv-undo-note { margin: 2px 0 0; }
+.lv-next { margin: 0 0 10px; padding: 8px 10px; font-size: 13px; border: var(--border-hair) solid var(--ink-900); background: var(--bg-100); }
+
+/* 온보딩 넷째 장: 큰 단추 셋(누구인지 + 무엇이 보이는지). 점수·시험 모양 없음 */
+.onb--level .onb-art { min-height: 48px; margin: 20px 0 16px; }
+.mini-sheet { display: flex; flex-direction: column; gap: 5px; width: 34px; height: 46px; padding: 7px 6px; border: 1.5px solid var(--ink-900); background: var(--bg-100); }
+.mini-sheet i { display: block; height: 2px; background: var(--ink-900); }
+.onb-opts { display: flex; flex-direction: column; gap: 8px; margin: 16px 0 0; }
+.onb-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-height: 60px; padding: 10px 14px; text-align: left; font: inherit; color: var(--ink-900); background: var(--bg-100); border: 1.5px solid var(--ink-900); border-radius: 0; cursor: pointer; }
+.onb-opt b { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+.onb-opt span { font-size: 12px; line-height: 1.45; color: var(--ink-500); }
+.onb-opt[aria-disabled="true"] { opacity: .45; cursor: default; }
+.onb-later { margin: 10px 0 0; font-size: 12px; color: var(--ink-500); }
+.onb-status { min-height: 18px; margin: 2px 0 0; font-size: 12px; color: var(--ink-500); }
+.onb--level .onb-dots { padding-top: 16px; }
+
+/* 개념 탭: 길/목록 전환(머리줄 오른쪽, 각진 두 칸, 고른 칸은 잉크로 채움) */
+.view-toggle { display: inline-flex; }
+.view-toggle button { position: relative; min-width: 44px; padding: 2px 10px; font: inherit; font-size: 12px; line-height: 18px; font-weight: 600; color: var(--ink-500); background: var(--bg-100); border: 1px solid var(--ink-900); border-radius: 0; cursor: pointer; }
+.view-toggle button + button { border-left: 0; }
+.view-toggle button[aria-pressed="true"] { background: var(--ink-900); color: var(--bg-000); }
+.view-toggle button::before { content: ""; position: absolute; inset: calc(-11px - var(--border-hair)) 0; }
+
+/* 개념 길: 갈래마다 세로 길(가는 괘선) 위에 노드. 숙련도 네 모양 — 신규 빈 원 · 학습 중 반 채운 원 · 복습 필요 마름모 · 이해 채운 원 + ✓.
+   다음 복습 노드는 빨간 펜 고리(달력의 '오늘'과 같은 표시) + '다음 복습' 글자. 잠금·점수·색 단계 없음 */
+.cpath-intro { margin: 2px 0 8px; font-size: 12px; line-height: 1.5; color: var(--ink-500); text-wrap: pretty; }
+.cpath-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0 0 2px; font-size: 12px; color: var(--ink-500); }
+.cpath-key span { display: inline-flex; align-items: center; gap: 6px; }
+.cpath-key .cmk { width: 14px; height: 14px; }
+.cpath-key .cmk--review { width: 11px; height: 11px; }
+.cpath-key .cmk--known::after { font-size: 9px; }
+.cpath { position: relative; list-style: none; margin: 0 0 10px; padding: 0; }
+.cpath::before { content: ""; position: absolute; left: 15.25px; top: 28px; bottom: 28px; border-left: 1.5px solid var(--ink-200); }
+.cnode { display: grid; grid-template-columns: 28px 1fr; align-items: center; column-gap: 12px; row-gap: 1px; width: 100%; min-height: 56px; padding: 8px 2px; text-align: left; font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.cnode .cmk { grid-row: 1 / span 2; justify-self: center; }
+.cnode-t { font-size: 15px; line-height: 1.35; }
+.cnode-s { font-size: 12px; line-height: 1.45; color: var(--ink-500); }
+.cnode-next { display: inline-block; margin-right: 6px; padding: 0 5px; font-weight: 700; color: var(--ink-900); border: 1.5px solid var(--select); }
+.cmk { position: relative; display: block; flex: none; width: 20px; height: 20px; background: var(--bg-000); }
+.cmk--new { border: 1.5px solid var(--ink-900); border-radius: 50%; }
+.cmk--learning { border: 1.5px solid var(--ink-900); border-radius: 50%; background: linear-gradient(to top, var(--ink-900) 50%, var(--bg-000) 50%); }
+.cmk--review { width: 16px; height: 16px; border: 2px solid var(--ink-900); transform: rotate(45deg); }
+.cmk--known { border-radius: 50%; background: var(--ink-900); }
+.cmk--known::after { content: "✓"; content: "✓" / ""; position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; font-weight: 700; line-height: 1; color: var(--bg-000); }
+.cnode--next .cmk::before { content: ""; position: absolute; inset: -7px; border: 2px solid var(--select); border-radius: 50%; transform: rotate(-4deg); pointer-events: none; }
+
+/* 일지: 정보 수준 표시(핵심만·전부·지정 — 기본은 없음)와 공개된 행의 개념 줄 */
+.tag--lvl { border-style: dashed; }
+.jrow-concept { margin-top: 2px; font-size: 12px; color: var(--ink-500); }
+.jrow-concept b { color: var(--ink-900); font-weight: 600; }
+
+/* 눌림 표시(새 컨트롤) */
+.lvl-btn:active, .more-line:not(:disabled):not(.more-line--done):active, .onb-opt:not([aria-disabled="true"]):active,
+.view-toggle button:not([aria-pressed="true"]):active, .cnode:active { background-color: var(--bg-200); }
+.cnode-t, .onb-opt span, .lv-radio small { text-wrap: pretty; }

@@ -1,5 +1,6 @@
 import "server-only";
 import type { NextRequest, NextResponse } from "next/server";
+import type { InfoLevel } from "@/shared/contract";
 import { db, type Db } from "./db";
 import { env } from "./env";
 import { Errors } from "./http";
@@ -31,6 +32,10 @@ export interface AuthedUser {
   tz: string;
   onboardedAt: Date | null;
   tokenHash: string;
+  /** 정보 수준(D16). panelPrefs는 DB 원본(jsonb, custom일 때만 객체) — 응답에는 src/server/prefs.ts의 meOf()로 낸다. */
+  infoLevel: InfoLevel;
+  panelPrefs: unknown;
+  undoSeconds: number;
 }
 
 export function userTz(tz: string | null | undefined): string {
@@ -81,7 +86,16 @@ export async function currentUser(req: NextRequest): Promise<AuthedUser | null> 
   const tokenHash = hashToken(token);
   const s = await db().sessionAuth.findUnique({ where: { tokenHash }, include: { user: true } });
   if (!s || s.revokedAt || s.expiresAt.getTime() <= Date.now()) return null;
-  return { id: s.user.id, nickname: s.user.nickname, tz: userTz(s.user.tz), onboardedAt: s.user.onboardedAt, tokenHash };
+  return {
+    id: s.user.id,
+    nickname: s.user.nickname,
+    tz: userTz(s.user.tz),
+    onboardedAt: s.user.onboardedAt,
+    tokenHash,
+    infoLevel: s.user.infoLevel,
+    panelPrefs: s.user.panelPrefs,
+    undoSeconds: s.user.undoSeconds.toNumber(),
+  };
 }
 
 export async function requireUser(req: NextRequest): Promise<AuthedUser> {

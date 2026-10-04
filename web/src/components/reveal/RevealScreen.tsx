@@ -15,8 +15,7 @@ import { TodayTop, type SessionReviews } from "@/components/common/TodayTop";
 import { useScreenFocus } from "@/hooks/useScreenFocus";
 import { api } from "@/lib/client/api";
 import { logEvent } from "@/lib/client/events";
-import { DIR, fmtSigned, localDayKey, RESULT, SHAPE } from "@/lib/client/format";
-import { markConceptSeen } from "@/lib/client/session";
+import { DIR, fmtSigned, RESULT, SHAPE } from "@/lib/client/format";
 import type { Reveal } from "@/lib/client/types";
 import { ExplainBox } from "./ExplainBox";
 import { ReportSheet } from "./ReportSheet";
@@ -48,8 +47,6 @@ export function RevealScreen({ reveal, judged, reviews, nextLabel, onNext }: Pro
   // 출처: kind "예시"는 설명용 값이라는 표시(기간 줄의 작은 꼬리표), 나머지(가격·공시·통계·보도)는 경로 아래 짧은 목록
   const sample = o.sources.find((s) => s.kind === "예시");
   const listed = o.sources.filter((s) => s.kind !== "예시");
-
-  useEffect(() => { markConceptSeen(localDayKey(), concept.id); }, [concept.id]);   // '오늘 되짚은 개념'
 
   // 템플릿 해설은 공개 응답에 들어 있다. AI 해설(05 §4 /api/ai/explain)이 따로 오면 그것으로 바꾼다
   useEffect(() => {

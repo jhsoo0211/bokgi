@@ -34,7 +34,7 @@ npm run build                                     # prebuild로 prisma generate
 | `src/lib/server/ai/` | `numberGuard`(IfSave NumberGuard 이식) → `leakFilter`(규칙) → `labels`, `templates`(질문 6유형×3·해설 3줄), `client`(OpenAI 호환, 대체 공급자, 6초), `budget`(`ai_usage_daily`), `prompts` |
 | `src/server/cases.ts` | `toPublicCase()` — 판단 전 유일한 읽기 경로(계약 `PublicCase.strict()`) |
 | `src/server/outcomes.ts` | 공개 뒤·서버 전용 자료와 누수 사전(런타임 생성). 이 모듈만 `case_outcomes`·`case_reveal`·`case_learning_points`·`case_internal`을 읽는다 |
-| `src/server/{session,judgments,concepts,journal,ai,feedback,authFlow,rules}.ts` | 오늘·판단/공개·개념/퀴즈·일지·AI·신고/이벤트·초대·순수 규칙 |
+| `src/server/{session,judgments,concepts,journal,ai,feedback,authFlow,prefs,rules}.ts` | 오늘·판단/공개·개념/퀴즈·일지·AI·신고/이벤트·초대·정보 수준(Me 응답·PUT 정규화)·순수 규칙 |
 | `src/server/content/` | 카드·개념 원본 JSON 검증(`content/schema/*.json`과 같은 모양)과 세 등급 분리, upsert 시드 |
 | `src/app/api/**/route.ts` | 계약의 경로 전부 + 없는 `/api/*`는 JSON 404 |
 | `tests/unit`, `tests/api`, `tests/fixtures` | 단위·API·카나리. 픽스처 카나리 카드: `CANARY-회사`·`CNRY`·`2099-01-02`·`42.42` |
@@ -54,9 +54,25 @@ npm run build                                     # prebuild로 prisma generate
 - 복습: 맞히면 level+1(새 개념은 0), 틀리면 0, 기한 전 정답은 유지, 간격 1·3·7·21일, `due_on`은 date. 숙련도: 2번 이상·정답 3/4 이상이면 이해.
 - 통계: 공개된 판단 20장 미만이면 잠금. 인사이트는 횟수 문장만(퍼센트 없음).
 - AI: 기본 템플릿. `AI_ENABLED=true`면 LLM → numberGuard → leakFilter → 라벨(가드 뒤에 문장을 바꾸지 않음), 질문 카드당 2회·하루 20회, 하루 호출 상한 `AI_DAILY_CALL_CAP`. 05 §11에 따라 질문자 LLM은 누수 100문항 통과 전까지 켜지 않는다(`AI_ENABLED=false` 유지).
+- 정보 수준(D16, 05 §14): 서버는 `PublicCase`를 깎지 않고 그대로 보낸다(가림은 클라이언트 표시). 저장은 `users.info_level` + `panel_prefs`(NULL = 그 수준의 프리셋, custom일 때만 토글 객체 — CHECK로 강제) + `undo_seconds`(2.5·5·10, CHECK). 판단에는 그때의 `info_level`·`hidden_groups`(분석용)를 남긴다.
 
-## 계약 보충(스키마 변경 없음)
+## 계약 보충
+
+1차(2026-10-04, 스키마 변경 없음):
 
 - `GET /api/session/today?extra=1` — 세트를 다 판단했으면 `cards`에 세트 밖 카드 1장(오늘 판단하고 아직 공개하지 않은 '한 장 더'가 있으면 그 카드). 판단은 `isExtra: true`로 보낸다.
 - `POST /api/events`의 `onboarding_done` → `users.onboarded_at`을 채운다(`GET /api/me`의 `onboarded`).
-- 응답 본문(계약에 모양이 없는 것): `PUT …/self-check` → `{ok, selfCheck}`, `POST /api/reports` → 201 `{ok, reportId}`, `POST /api/events` → `{ok, accepted, duplicates, rejected}`, `POST /api/auth/logout` → `{ok}`, `POST /api/auth/invite` → `Me` + 쿠키. `POST /api/judgments`는 새 판단 201, 재전송 200.
+- 응답 본문(계약에 모양이 없는 것): `PUT …/self-check` → `{ok, selfCheck}`, `POST /api/reports` → 201 `{ok, reportId}`(2차: 재전송 200), `POST /api/events` → `{ok, accepted, duplicates, rejected}`, `POST /api/auth/logout` → `{ok}`, `POST /api/auth/invite` → `Me` + 쿠키. `POST /api/judgments`는 새 판단 201, 재전송 200.
+
+2차(2026-10-04, 정보 수준·듀오링고 흐름 — 마이그레이션 `20261004103853_info_level_prefs`):
+
+- `PUT /api/me/prefs` `{infoLevel, panelPrefs?, undoSeconds?}` → 200 `Me`. 정규화(`rules.normalizePrefs`): ① `infoLevel`이 basic·standard·advanced면 그 수준 + `panel_prefs` NULL(보낸 `panelPrefs`는 형식만 검사하고 버린다) ② custom이면 `panelPrefs` 필수 — 없으면 422 `validation_failed` ③ custom인데 토글이 프리셋과 같으면(`levelForPrefs`) 그 수준 + NULL로 저장 — **응답의 `infoLevel`이 보낸 값과 다를 수 있다**(클라이언트는 응답으로 다시 그린다) ④ 다르면 custom + 토글. `undoSeconds`는 생략하면 그대로, 2.5·5·10 밖이면 422. 같은 본문은 같은 결과(멱등). 비GET 규칙(Origin·JSON) 그대로, 한도 없음.
+- `Me.user.panelPrefs`(GET /api/me·초대·PUT 응답)는 '실제로 쓸 토글'이다: custom이면 저장된 토글, 프리셋 수준이면 그 프리셋 값(`presetPrefs(level)`) — null은 없다. 저장된 토글에 없는 묶음(계약에 묶음이 새로 생긴 경우)은 중급 값으로 채우고 모르는 키는 버린다.
+- `POST /api/judgments`: `infoLevel`·`hiddenGroups`(계약 기본값 standard·[])를 저장한다. `hiddenGroups`는 계약 `INFO_GROUPS` 순서로, 겹치지 않게. 같은 카드 재전송은 1차와 같이 기존 판단 200(재전송 본문의 수준으로 바꾸지 않는다).
+- `Today.extraJudged` = 오늘(판단의 `local_date`, 사용자 tz) `is_extra` 판단 수. `?extra=1`에도 같은 값.
+- `Today.conceptsToday` = 오늘(사용자 tz로 `revealed_at`의 날짜) **공개한** 판단들의 1순위 학습 포인트 개념을 공개 순서로, 개념당 한 번 + 지금의 `concept_progress` 숙련도·복습일(없으면 new·null). 공개하지 않은 판단의 카드는 학습 포인트를 읽지도 않는다(`outcomes.loadLeadConcepts`에 공개한 판단의 카드만 넘김) — 공개 전에 학습 포인트가 새지 않게. `?extra=1`에도 같은 값.
+- `JournalItem.conceptTitle` = 그 카드(판단 버전)의 1순위 학습 포인트 개념 제목, 공개한 행에만(공개 전 행은 null — 회사명·결과와 같은 등급). `infoLevel` = 판단 때의 수준(마이그레이션 전 판단은 standard).
+- `QuizResult.answerIndex` = 저장된 정답 보기 번호(맞혀도·틀려도·같은 `clientAttemptId` 재전송에도 같다). 채점 전 경로(`QuizPublic`)에는 여전히 없다.
+- `ConceptListItem.order` = `concepts.ord` = 갈래 안 나열 순서(1부터). 시드가 개념 파일 순서로 매번 다시 계산한다(`cards.conceptOrders`, 개념 id가 겹치면 시드가 멈춘다). 마이그레이션이 기존 행(전체 나열 순서 0부터)을 같은 규칙으로 고쳤다. `GET /api/concepts`의 목록 순서는 갈래(결과 → 숫자 → 그때 → 내 판단) → `order`.
+- `POST /api/reports`: `clientReportId` 필수(없으면 422). 첫 접수 201 `{ok, reportId}`, 같은 사용자의 같은 `clientReportId` 재전송은 200 + 같은 `reportId`(행을 더 만들지 않는다, 동시에 와도 1행 — 부분 유일 인덱스 + `ON CONFLICT DO NOTHING`). 다른 사용자는 같은 id를 써도 따로 접수된다. 같은 사용자가 같은 id를 **다른 카드**에 쓰면 409 `report_conflict`(퀴즈의 `attempt_conflict`와 같은 규칙).
+- UI 이벤트 allow-list는 계약 `UI_EVENTS`를 그대로 읽는다(`info_level_open`·`panel_expand`·`concept_path_view` 받음).

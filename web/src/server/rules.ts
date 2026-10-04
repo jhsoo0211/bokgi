@@ -1,17 +1,28 @@
 import "server-only";
 import {
+  INFO_GROUPS,
+  INFO_PRESETS,
+  PanelPrefs as PanelPrefsSchema,
   REVIEW_INTERVALS,
   SESSION_CARDS,
+  UNDO_SECONDS_DEFAULT,
+  UndoSeconds as UndoSecondsSchema,
   hitOf,
+  levelForPrefs,
+  presetPrefs,
   resultState,
   roundPp,
   type ConceptState as ConceptStateSchema,
   type Direction as DirectionSchema,
+  type InfoGroup,
+  type InfoLevel,
+  type PanelPrefs,
   type ResultState as ResultStateSchema,
+  type UndoSeconds,
 } from "@/shared/contract";
 import type { z } from "zod";
 import { evidenceKind, josa } from "@/lib/server/ko";
-import { addDays } from "@/lib/server/time";
+import { addDays, localDate } from "@/lib/server/time";
 
 type Direction = z.infer<typeof DirectionSchema>;
 type ResultState = z.infer<typeof ResultStateSchema>;
@@ -76,6 +87,76 @@ export function streakFrom(days: Iterable<string>, today: string): number {
     d = addDays(d, -1);
   }
   return k;
+}
+
+/** 그날 '한 장 더'로 판단한 수. localDate는 판단의 local_date(만들 때 사용자 tz로 정한 날짜). */
+export function extraJudgedOn(rows: Iterable<{ isExtra: boolean; localDate: string }>, day: string): number {
+  let n = 0;
+  for (const r of rows) if (r.isExtra && r.localDate === day) n++;
+  return n;
+}
+
+/**
+ * 그날(사용자 tz) 공개한 판단만, 공개한 순서로. 공개 전 판단은 빠진다 — 오늘 만난 개념(conceptsToday)은
+ * 학습 포인트(공개 뒤 자료)라서 공개하지 않은 카드의 것을 미리 내보내면 안 된다.
+ */
+export function revealedOn<T extends { revealedAt: Date | null }>(rows: readonly T[], day: string, tz: string): (T & { revealedAt: Date })[] {
+  return rows
+    .filter((r): r is T & { revealedAt: Date } => r.revealedAt !== null && localDate(r.revealedAt, tz) === day)
+    .sort((a, b) => a.revealedAt.getTime() - b.revealedAt.getTime());
+}
+
+/** 처음 나온 것만 남긴다(순서 유지) */
+export function uniqueBy<T>(rows: readonly T[], key: (r: T) => string): T[] {
+  const seen = new Set<string>();
+  return rows.filter((r) => {
+    const k = key(r);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+// ---------- 정보 수준 (D16) ----------
+
+/**
+ * PUT /api/me/prefs 정규화(계약 PrefsBody). 저장 모양은 users.info_level + panel_prefs(NULL = 그 수준의 프리셋).
+ *  - custom이 아니면 보낸 panelPrefs는 무시하고 그 수준 + NULL
+ *  - custom이면 panelPrefs가 필요하다(없으면 null → 호출자가 422)
+ *  - custom인데 토글이 프리셋과 같으면 그 수준 + NULL로 되돌린다(levelForPrefs), 다르면 custom + 토글
+ */
+export function normalizePrefs(infoLevel: InfoLevel, panelPrefs: PanelPrefs | undefined): { infoLevel: InfoLevel; panelPrefs: PanelPrefs | null } | null {
+  if (infoLevel !== "custom") return { infoLevel, panelPrefs: null };
+  if (!panelPrefs) return null;
+  const level = levelForPrefs(panelPrefs);
+  return level === "custom" ? { infoLevel: "custom", panelPrefs: { ...panelPrefs } } : { infoLevel: level, panelPrefs: null };
+}
+
+/**
+ * DB의 panel_prefs(jsonb) → 묶음 토글. 모르는 키는 버리고, 없는 묶음(계약에 묶음이 새로 생긴 경우)은 기본 수준(중급) 값으로 채운다.
+ * 객체가 아니면 null.
+ */
+export function storedPrefs(raw: unknown): PanelPrefs | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const r = raw as Record<string, unknown>;
+  return PanelPrefsSchema.parse(Object.fromEntries(INFO_GROUPS.map((g) => [g, typeof r[g] === "boolean" ? r[g] : INFO_PRESETS.standard[g]])));
+}
+
+/** 응답(Me.user.panelPrefs)에 쓸 토글: custom이면 저장된 토글, 아니면 그 수준의 프리셋 값. */
+export function effectivePrefs(level: InfoLevel, raw: unknown): PanelPrefs {
+  return (level === "custom" ? storedPrefs(raw) : null) ?? presetPrefs(level);
+}
+
+/** 판단 때 숨겨져 있던 묶음을 계약 순서로, 겹치지 않게(모르는 이름은 버린다 — 계약 검사를 지난 뒤라 실제로는 없다). */
+export function canonicalGroups(groups: readonly string[]): InfoGroup[] {
+  const set = new Set(groups);
+  return INFO_GROUPS.filter((g) => set.has(g));
+}
+
+/** DB의 undo_seconds(numeric 3,1) → 계약 UndoSeconds(2.5·5·10). CHECK가 있어 다른 값은 없지만 있으면 기본값. */
+export function undoSecondsOf(v: number): UndoSeconds {
+  const parsed = UndoSecondsSchema.safeParse(v);
+  return parsed.success ? parsed.data : UNDO_SECONDS_DEFAULT;
 }
 
 // ---------- 통계·인사이트 (횟수만, 퍼센트 없음) ----------

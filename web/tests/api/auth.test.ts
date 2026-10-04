@@ -1,4 +1,8 @@
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { INFO_PRESETS, Me } from "@/shared/contract";
+import type { z } from "zod";
+type MeT = z.infer<typeof Me>;
+
 import { POST as invite } from "@/app/api/auth/invite/route";
 import { POST as logout } from "@/app/api/auth/logout/route";
 import { GET as me } from "@/app/api/me/route";
@@ -71,6 +75,19 @@ describe("초대 코드 → DB 세션", () => {
     expect(again.status).toBe(200);
     expect(again.json.user).toMatchObject({ id: first.json.user.id, nickname: "원래" });
     expect(await db().sessionAuth.count({ where: { userId: first.json.user.id } })).toBe(2);
+  });
+
+  it("초대 응답(Me)에 정보 수준·토글·되돌리기 시간: 새 사용자는 기본값, 재발급은 저장된 설정", async () => {
+    await makeInvite("PREF-0000-0001");
+    const r = await call<MeT>(invite, { body: { code: "PREF-0000-0001", nickname: "설정" }, headers: ip() });
+    expect(r.status).toBe(200);
+    expect(Me.safeParse(r.json).success).toBe(true);
+    expect(r.json.user).toMatchObject({ infoLevel: "standard", panelPrefs: INFO_PRESETS.standard, undoSeconds: 2.5 });
+    const prefs = { ...INFO_PRESETS.basic, riskChips: true };
+    await db().user.update({ where: { id: r.json.user.id }, data: { infoLevel: "custom", panelPrefs: prefs, undoSeconds: 10 } });
+    await makeInvite("PREF-0000-0002", { forUserId: r.json.user.id });
+    const again = await call<MeT>(invite, { body: { code: "PREF-0000-0002", nickname: "설정" }, headers: ip() });
+    expect(again.json.user).toMatchObject({ id: r.json.user.id, infoLevel: "custom", panelPrefs: prefs, undoSeconds: 10 });
   });
 
   it("GET /api/me: 쿠키가 있으면 사용자, 없으면 401", async () => {

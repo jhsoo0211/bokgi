@@ -1,6 +1,7 @@
 /**
  * 접근성(ecc UX 감사의 '고친 것' 유지 + '남은 것' 구현): 키보드만으로 카드 한 장, 알림 초점 동안 되돌리기 타이머 멈춤,
- * 모션 감소, 화면별 h1·제목 순서, axe(WCAG 2.x A·AA), 누르는 자리 44px(02 §4 — 0.25px 단위로 재므로 43.5 이상), 초점이 아래 탭에 가리지 않음. 목 모드 전용.
+ * 모션 감소, 화면별 h1·제목 순서, axe(WCAG 2.x A·AA), 누르는 자리 44px(02 §4 — 0.25px 단위로 재므로 43.5 이상),
+ * 초점이 아래 탭·판단 막대에 가리지 않음. 2차(2026-10-04): 온보딩 넷째 장·설정 시트·개념 길·'더 보기'도 같은 기준. 목 모드 전용.
  */
 import path from "node:path";
 import type { Page } from "@playwright/test";
@@ -60,21 +61,22 @@ test("키보드만으로 카드 한 장: Tab·Space·Enter → → 알림 초점
   await page.waitForSelector("#stage .sc");
   await expect.poll(() => page.evaluate(() => document.activeElement?.id)).toBe("view");   // 새 화면 틀로 초점
 
-  // 초점 링(2px)과 초점이 아래 탭에 가리지 않는지(scroll-padding-bottom), 근거 칩 다섯 개를 Tab으로 지나며
+  // 초점 링(2px)과 초점이 아래 탭·판단 막대(sticky)에 가리지 않는지(scroll-padding-bottom), 근거 칩 다섯 개를 Tab으로 지나며
   await tabTo(page, "#ev .ds-chip");
   const obscured: string[] = [];
   for (let i = 0; i < 5; i++) {
     const m = await page.evaluate(() => {
       const e = document.activeElement as HTMLElement, cs = getComputedStyle(e);
-      const r = e.getBoundingClientRect(), n = (document.querySelector("#nav") as HTMLElement).getBoundingClientRect();
-      return { name: e.innerText.split("\n")[0], ring: `${cs.outlineStyle} ${cs.outlineWidth}`, fv: e.matches(":focus-visible"), under: Math.max(0, Math.min(r.bottom, n.bottom) - Math.max(r.top, n.top)) };
+      const r = e.getBoundingClientRect();
+      const over = (sel: string) => { const n = (document.querySelector(sel) as HTMLElement).getBoundingClientRect(); return Math.max(0, Math.min(r.bottom, n.bottom) - Math.max(r.top, n.top)); };
+      return { name: e.innerText.split("\n")[0], ring: `${cs.outlineStyle} ${cs.outlineWidth}`, fv: e.matches(":focus-visible"), under: Math.max(over("#nav"), over("#judge")) };
     });
     expect(m.fv).toBe(true);
     expect(m.ring).toBe("solid 2px");
     if (m.under > 0) obscured.push(`${m.name}: ${m.under}px`);
     if (i < 4) await page.keyboard.press("Tab");
   }
-  expect(obscured, "Tab 초점이 아래 탭에 가리지 않는다").toEqual([]);
+  expect(obscured, "Tab 초점이 아래 탭·판단 막대에 가리지 않는다").toEqual([]);
 
   // 두 번째 근거를 Space로, 확신도 4를 Enter로 (지금 초점은 다섯째 칩)
   for (let i = 0; i < 3; i++) await page.keyboard.press("Shift+Tab");
@@ -165,11 +167,22 @@ test("화면별 h1 하나·제목 순서·axe(WCAG A·AA)·누르는 자리 44px
   await axe(page, "온보딩");
   await page.keyboard.press("Tab");
   for (let i = 0; i < 3; i++) await page.keyboard.press("Enter");   // 온보딩은 Enter만 이어 누르면 된다
+  await page.waitForSelector(".onb-opt");
+  await expectHeadingOrder(page, "온보딩 넷째 장");
+  await axe(page, "온보딩 넷째 장(정보 수준)");
+  await expectHits(page, [".onb-opt"]);
+  await page.keyboard.press("Enter");                                  // 넷째 장: 초점이 있는 기본값(중급)을 Enter로
   await page.waitForSelector("#stage .sc");
 
   await expectHeadingOrder(page, "카드");
   await axe(page, "카드");
-  await expectHits(page, ["#nav button", "#stage .sc:last-child .panel-tabs button", "label.check", "#ev .ds-chip", "#risk .ds-chip", "#conf button", "#btnL, #btnR"]);
+  await expectHits(page, ["#nav button", "#info-level", "#stage .sc:last-child .panel-tabs button", "#expand", "label.check", "#ev .ds-chip", "#risk .ds-chip", "#conf button", "#btnL, #btnR"]);
+  // 정보 수준 설정 시트
+  await page.click("#info-level");
+  await page.waitForSelector(".sheet--lv");
+  await axe(page, "정보 수준 시트");   // 시트가 열린 동안 뒤 화면(h1 포함)은 inert — 제목 구조는 시트의 h2 하나(신고 시트와 같다)
+  await expectHits(page, [".sheet--lv label.radio", ".sheet--lv label.check", "#lv-cancel, #lv-save"]);
+  await page.keyboard.press("Escape");
   await openGate(page, 0, 3);
   await page.click("#btnR");
   await mouseAway(page);
@@ -200,9 +213,14 @@ test("화면별 h1 하나·제목 순서·axe(WCAG A·AA)·누르는 자리 44px
   await expectHits(page, [".cal-nav", "details.stats summary", "#export"]);
 
   await page.click('#nav button[data-v="concepts"]');
+  await page.waitForSelector("#cpath");
+  await expectHeadingOrder(page, "개념 길");
+  await axe(page, "개념 길");
+  await expectHits(page, ["#cv-path, #cv-list", ".cnode"]);
+  await page.click("#cv-list");
   await page.waitForSelector(".clist");
-  await expectHeadingOrder(page, "개념");
-  await axe(page, "개념");
+  await expectHeadingOrder(page, "개념 목록");
+  await axe(page, "개념 목록");
   await expectHits(page, [".crow"]);
   await page.click(".crow >> nth=0");
   await page.waitForSelector(".concept .opt");

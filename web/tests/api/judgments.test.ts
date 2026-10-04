@@ -26,6 +26,37 @@ describe("POST /api/judgments", () => {
     expect(row.gesture).toEqual({ via: "button" });
   });
 
+  it("판단 때의 정보 수준·숨긴 묶음을 저장(묶음은 계약 순서·중복 없이), 생략하면 standard·[]", async () => {
+    const u = await createUser("판단수준");
+    const r = await call<Created>(createJudgment, {
+      cookie: u.cookie,
+      body: judgmentBody(C001, { infoLevel: "basic", hiddenGroups: ["riskChips", "marketLine", "healthDetail", "marketLine"] }),
+    });
+    expect(r.status).toBe(201);
+    const row = await db().judgment.findUniqueOrThrow({ where: { id: r.json.judgmentId } });
+    expect(row.infoLevel).toBe("basic");
+    expect(row.hiddenGroups).toEqual(["marketLine", "healthDetail", "riskChips"]);
+    // 재전송은 기존 판단 그대로(재전송 본문의 수준으로 바꾸지 않는다)
+    const again = await call<Created>(createJudgment, { cookie: u.cookie, body: judgmentBody(C001, { infoLevel: "advanced", hiddenGroups: [] }) });
+    expect(again.status).toBe(200);
+    expect(again.json).toEqual({ judgmentId: r.json.judgmentId, existing: true });
+    expect(await db().judgment.findUniqueOrThrow({ where: { id: r.json.judgmentId } })).toMatchObject({ infoLevel: "basic", hiddenGroups: ["marketLine", "healthDetail", "riskChips"] });
+
+    const plain = await call<Created>(createJudgment, { cookie: u.cookie, body: judgmentBody(C002) });
+    expect(await db().judgment.findUniqueOrThrow({ where: { id: plain.json.judgmentId } })).toMatchObject({ infoLevel: "standard", hiddenGroups: [] });
+    const custom = await call<Created>(createJudgment, { cookie: u.cookie, body: judgmentBody(C003, { infoLevel: "custom", hiddenGroups: [] }) });
+    expect(await db().judgment.findUniqueOrThrow({ where: { id: custom.json.judgmentId } })).toMatchObject({ infoLevel: "custom", hiddenGroups: [] });
+  });
+
+  it("모르는 정보 수준·묶음 이름은 422", async () => {
+    const u = await createUser("판단수준2");
+    expect((await call(createJudgment, { cookie: u.cookie, body: judgmentBody(C001, { infoLevel: "expert" }) })).status).toBe(422);
+    expect((await call(createJudgment, { cookie: u.cookie, body: judgmentBody(C001, { hiddenGroups: ["peg"] }) })).status).toBe(422);
+    expect((await call(createJudgment, { cookie: u.cookie, body: judgmentBody(C001, { hiddenGroups: Array(10).fill("volume") }) })).status).toBe(422);
+    expect((await call(createJudgment, { cookie: u.cookie, body: judgmentBody(C001, { hiddenGroups: null }) })).status).toBe(422);
+    expect(await db().judgment.count({ where: { userId: u.userId } })).toBe(0);
+  });
+
   it("동시에 두 번 보내도 판단은 1건", async () => {
     const u = await createUser("판단2");
     const [a, b] = await Promise.all([

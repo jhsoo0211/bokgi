@@ -5,14 +5,15 @@ import type { AuthedUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/db";
 import { Errors } from "@/lib/server/http";
 import { fromDbDate, isMonthString, localDate, monthDays, monthOf } from "@/lib/server/time";
-import { loadOutcomeHeads, num } from "./outcomes";
+import { loadLeadConcepts, loadOutcomeHeads, num } from "./outcomes";
 import { CALIBRATION_TEXT, calibration, insights, insightText, type DoneJudgment } from "./rules";
 
 type JournalT = z.infer<typeof Journal>;
 
 /**
  * GET /api/journal?month=YYYY-MM — 판단 목록(최신순)·연습 달력·통계.
- * 결과 대기 행(공개 전)은 판단 전 값만: companyName·ticker·result = null, 그 카드의 결과 자료는 읽지 않는다.
+ * 결과 대기 행(공개 전)은 판단 전 값만: companyName·ticker·result·conceptTitle = null, 그 카드의 결과 자료(학습 포인트 포함)는 읽지 않는다.
+ * infoLevel은 판단 때의 정보 수준(사용자 설정이라 공개 전에도 낸다).
  * 통계는 공개된 판단 20장 미만이면 잠그고, 열려도 인사이트 문장(횟수)만 — 퍼센트·적중률 숫자는 없다(ADR-0002).
  */
 export async function getJournal(user: AuthedUser, monthParam: string | null, now = new Date()): Promise<JournalT> {
@@ -32,11 +33,13 @@ export async function getJournal(user: AuthedUser, monthParam: string | null, no
 
   type Row = (typeof rows)[number];
   const revealedRows = rows.filter((r): r is Row & { outcome: NonNullable<Row["outcome"]> } => Boolean(r.revealedAt && r.outcome));
-  const heads = await loadOutcomeHeads(revealedRows.map((r) => ({ caseId: r.caseId, version: r.caseVersion })));
+  const revealedKeys = revealedRows.map((r) => ({ caseId: r.caseId, version: r.caseVersion }));
+  const [heads, leads] = await Promise.all([loadOutcomeHeads(revealedKeys), loadLeadConcepts(revealedKeys)]);
 
   const items = rows.map((r) => {
     const revealed = Boolean(r.revealedAt && r.outcome);
-    const head = revealed ? heads.get(`${r.caseId}:${r.caseVersion}`) : undefined;
+    const key = `${r.caseId}:${r.caseVersion}`;
+    const head = revealed ? heads.get(key) : undefined;
     return {
       judgmentId: r.id,
       createdAt: r.createdAt.toISOString(),
@@ -50,8 +53,10 @@ export async function getJournal(user: AuthedUser, monthParam: string | null, no
       companyName: revealed ? (head?.companyName ?? null) : null,
       ticker: revealed ? (head?.ticker ?? null) : null,
       result: revealed && r.outcome ? { relativePp: num(r.outcome.relativePp), state: r.outcome.state, hit: r.outcome.hit } : null,
+      conceptTitle: revealed ? (leads.get(key)?.title ?? null) : null,
       sectorPublic: r.case.sectorPublic,
       sizeBucket: r.case.sizeBucket,
+      infoLevel: r.infoLevel,
     };
   });
 

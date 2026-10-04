@@ -2,7 +2,9 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { Today } from "@/shared/contract";
 import { POST as quiz } from "@/app/api/concepts/[id]/quiz/route";
 import { POST as createJudgment } from "@/app/api/judgments/route";
+import { POST as reveal } from "@/app/api/judgments/[id]/reveal/route";
 import { GET as today } from "@/app/api/session/today/route";
+import type { AuthedUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/db";
 import { addDays, localDate, toDbDate } from "@/lib/server/time";
 import { getToday } from "@/server/session";
@@ -24,6 +26,8 @@ describe("GET /api/session/today", () => {
     expect(r1.json.entry).toEqual({ conceptsKnown: 0, conceptsTotal: 4, reviewsDue: 0, cardsLeft: 3 });
     expect(r1.json.streak).toBe(0);
     expect(r1.json.extraAllowed).toBe(false);
+    expect(r1.json.extraJudged).toBe(0);
+    expect(r1.json.conceptsToday).toEqual([]);
     const r2 = await call<Today>(today, { cookie: u.cookie });
     expect(r2.json.cards).toEqual(r1.json.cards);
     expect(await db().dailySession.count({ where: { userId: u.userId } })).toBe(1);
@@ -70,12 +74,75 @@ describe("GET /api/session/today", () => {
   it("tz가 다른 사용자는 그 tz로 하루를 정한다", async () => {
     const u = await createUser("엘에이");
     await db().user.update({ where: { id: u.userId }, data: { tz: "America/Los_Angeles" } });
-    const user = { id: u.userId, nickname: "엘에이", tz: "America/Los_Angeles", onboardedAt: null, tokenHash: "" };
+    const user = authed(u.userId, "America/Los_Angeles");
     const instant = new Date("2026-10-03T15:30:00Z"); // 서울 10/4 00:30, LA 10/3 08:30
     const r = await getToday(user, { now: instant });
     expect(r.date).toBe("2026-10-03");
     const seoul = await getToday({ ...user, tz: "Asia/Seoul" }, { now: instant });
     expect(seoul.date).toBe("2026-10-04");
+  });
+
+  it("extraJudged: 오늘(판단의 local_date) '한 장 더' 판단 수, ?extra=1에도", async () => {
+    const u = await createUser("한장더");
+    await call(today, { cookie: u.cookie });
+    for (const id of [CANARY_CASE, C001, C002]) await call(createJudgment, { cookie: u.cookie, body: judgmentBody(id) });
+    expect((await call<Today>(today, { cookie: u.cookie })).json.extraJudged).toBe(0);
+    await call(createJudgment, { cookie: u.cookie, body: judgmentBody(C003, { isExtra: true }) });
+    const r = await call<Today>(today, { cookie: u.cookie });
+    expect(r.json.extraJudged).toBe(1);
+    const extra = await call<Today>(today, { cookie: u.cookie, path: "/api/session/today?extra=1" });
+    expect(Today.safeParse(extra.json).success).toBe(true);
+    expect(extra.json.extraJudged).toBe(1);
+    // 어제의 한 장 더는 세지 않는다
+    const other = await createUser("한장더2");
+    await db().judgment.create({ data: { ...rawJudgment(other.userId, C003), isExtra: true, localDate: toDbDate(addDays(seoulToday(), -1)) } });
+    expect((await call<Today>(today, { cookie: other.cookie })).json.extraJudged).toBe(0);
+  });
+
+  it("conceptsToday: 오늘 공개한 판단의 1순위 개념만, 공개 순서·개념당 한 번, 지금의 숙련도·복습일", async () => {
+    const u = await createUser("오늘개념");
+    const ids: Record<string, string> = {};
+    for (const id of [CANARY_CASE, C001, C002]) {
+      ids[id] = (await call<{ judgmentId: string }>(createJudgment, { cookie: u.cookie, body: judgmentBody(id) })).json.judgmentId;
+    }
+    // 판단만 하고 공개하지 않은 카드는 아무것도 보태지 않는다(학습 포인트는 공개 뒤 자료)
+    let r = await call<Today>(today, { cookie: u.cookie });
+    expect(r.json.conceptsToday).toEqual([]);
+    expect(r.text).not.toMatch(/절대수익과 시장 대비|높은 부채와 경기 민감도/);
+
+    await call(reveal, { method: "POST", cookie: u.cookie, params: { id: ids[C002] } }); // debt-and-cycle
+    r = await call<Today>(today, { cookie: u.cookie });
+    expect(r.json.conceptsToday).toEqual([{ conceptId: "debt-and-cycle", title: "높은 부채와 경기 민감도", state: "new", dueOn: null }]);
+    expect(r.text).not.toContain("절대수익과 시장 대비"); // 아직 공개하지 않은 C001·카나리의 개념
+
+    await call(reveal, { method: "POST", cookie: u.cookie, params: { id: ids[C001] } }); // abs-vs-relative
+    await call(reveal, { method: "POST", cookie: u.cookie, params: { id: ids[CANARY_CASE] } }); // abs-vs-relative(다시)
+    await call(quiz, { cookie: u.cookie, params: { id: "abs-vs-relative" }, body: { quizId: "abs-vs-relative-q1", optionIndex: 1, clientAttemptId: uuid(), via: "reveal" } });
+    r = await call<Today>(today, { cookie: u.cookie });
+    expect(r.json.conceptsToday).toEqual([
+      { conceptId: "debt-and-cycle", title: "높은 부채와 경기 민감도", state: "new", dueOn: null },
+      { conceptId: "abs-vs-relative", title: "절대수익과 시장 대비", state: "learning", dueOn: addDays(seoulToday(), 1) },
+    ]);
+    const extra = await call<Today>(today, { cookie: u.cookie, path: "/api/session/today?extra=1" });
+    expect(extra.json.conceptsToday).toEqual(r.json.conceptsToday);
+
+    // 어제 공개한 카드의 개념은 오늘 목록에 없다
+    const y = new Date(Date.now() - 86_400_000 * 1.5);
+    await db().judgment.create({ data: { ...rawJudgment(u.userId, C003), localDate: toDbDate(localDate(y, "Asia/Seoul")), createdAt: y, revealedAt: y } }); // base-rate
+    r = await call<Today>(today, { cookie: u.cookie });
+    expect(r.json.conceptsToday.map((c) => c.conceptId)).toEqual(["debt-and-cycle", "abs-vs-relative"]);
+  });
+
+  it("conceptsToday의 '오늘'은 사용자 tz로 정한다", async () => {
+    const u = await createUser("엘에이개념");
+    // 14:30Z = 서울 10/3 23:30 = LA 10/3 07:30. 지금 = 15:30Z = 서울 10/4 00:30 = LA 10/3 08:30
+    const revealedAt = new Date("2026-10-03T14:30:00Z");
+    await db().judgment.create({ data: { ...rawJudgment(u.userId, C001), localDate: toDbDate("2026-10-03"), createdAt: revealedAt, revealedAt } });
+    const now = new Date("2026-10-03T15:30:00Z");
+    const la = await getToday(authed(u.userId, "America/Los_Angeles"), { now });
+    expect(la.conceptsToday.map((c) => c.conceptId)).toEqual(["abs-vs-relative"]);
+    const seoul = await getToday(authed(u.userId, "Asia/Seoul"), { now });
+    expect(seoul.conceptsToday).toEqual([]);
   });
 
   it("복습: 기한이 된 개념(지난 것부터) 최대 2개, 오늘 복습 2개를 풀면 0", async () => {
@@ -106,6 +173,10 @@ describe("GET /api/session/today", () => {
     expect((await call(today, {})).status).toBe(401);
   });
 });
+
+function authed(userId: string, tz: string): AuthedUser {
+  return { id: userId, nickname: "시험", tz, onboardedAt: null, tokenHash: "", infoLevel: "standard", panelPrefs: null, undoSeconds: 2.5 };
+}
 
 function rawJudgment(userId: string, caseId: string) {
   return {

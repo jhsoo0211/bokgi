@@ -9,14 +9,15 @@ import { labelExplain } from "@/lib/server/ai/labels";
 import { EXPLAIN_PERSONA, templateExplainLines } from "@/lib/server/ai/templates";
 import { findEvidence, findRisk, loadPublicCase } from "./cases";
 import { loadOutcome, loadRevealExtras, num, outcomeToContract } from "./outcomes";
-import { scoreOutcome } from "./rules";
+import { canonicalGroups, scoreOutcome } from "./rules";
 
 type JudgmentBodyT = z.infer<typeof JudgmentBody>;
 type RevealT = z.infer<typeof Reveal>;
 
 /**
- * POST /api/judgments — 같은 카드 재전송은 기존 판단(unique(user_id, case_id)) → existing:true.
+ * POST /api/judgments — 같은 카드 재전송은 기존 판단(unique(user_id, case_id)) → existing:true(재전송 본문의 값은 쓰지 않는다).
  * 칩 id는 그 카드(현재 버전) 것만. 판단 당시 칩 글자를 함께 복사해 둔다(일지·인사이트용).
+ * infoLevel·hiddenGroups(계약 기본값 standard·[])는 그대로 저장한다(hiddenGroups는 계약 순서로, 겹치지 않게).
  */
 export async function createJudgment(user: AuthedUser, body: JudgmentBodyT, now = new Date()): Promise<{ judgmentId: string; existing: boolean }> {
   const prisma = db();
@@ -48,6 +49,9 @@ export async function createJudgment(user: AuthedUser, body: JudgmentBodyT, now 
         isExtra: body.isExtra,
         panelsViewed: [...new Set(body.panelsViewed)],
         gesture: body.gesture ?? Prisma.DbNull,
+        // 판단 때의 정보 수준·숨겨져 있던 묶음(분석용). 판단 전 자료를 바꾸지 않는다 — 가림은 클라이언트 표시일 뿐.
+        infoLevel: body.infoLevel,
+        hiddenGroups: canonicalGroups(body.hiddenGroups),
       },
       select: { id: true },
     });

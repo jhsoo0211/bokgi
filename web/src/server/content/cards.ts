@@ -261,12 +261,33 @@ export function splitCard(card: CardFileT): SplitCard {
   };
 }
 
-/** 내용 전체 점검: 카드 id·live 덱 순서 유일, 학습 포인트 개념 존재·문제 존재, rank 1 존재. */
+/**
+ * 개념의 갈래 안 순서(1부터) = 계약 ConceptListItem.order(개념 '길' 보기의 노드 순서).
+ * 개념 파일의 나열 순서 그대로 갈래마다 센다(여러 폴더면 넘긴 순서대로 이어서).
+ */
+export function conceptOrders(concepts: readonly { id: string; branch: string }[]): Map<string, number> {
+  const perBranch = new Map<string, number>();
+  const out = new Map<string, number>();
+  for (const c of concepts) {
+    if (out.has(c.id)) continue; // 겹치는 id는 validateContent가 막는다
+    const n = (perBranch.get(c.branch) ?? 0) + 1;
+    perBranch.set(c.branch, n);
+    out.set(c.id, n);
+  }
+  return out;
+}
+
+/** 내용 전체 점검: 개념·카드 id·live 덱 순서 유일, 학습 포인트 개념 존재·문제 존재, rank 1 존재. */
 export function validateContent(content: Content, knownConceptIds: ReadonlySet<string> = new Set()): string[] {
   const errors: string[] = [];
   const ids = new Set<string>();
   const liveOrders = new Map<number, string>();
   const conceptIds = new Set([...knownConceptIds, ...content.concepts.map((c) => c.id)]);
+  const seenConcepts = new Set<string>();
+  for (const c of content.concepts) {
+    if (seenConcepts.has(c.id)) errors.push(`개념 id가 겹쳐요: ${c.id}`);
+    seenConcepts.add(c.id);
+  }
   const quizIds = new Set<string>();
   for (const c of content.concepts) for (const q of c.quizzes) {
     if (quizIds.has(q.quizId)) errors.push(`문제 id가 겹쳐요: ${q.quizId}`);

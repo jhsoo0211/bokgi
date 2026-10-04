@@ -57,6 +57,34 @@ describe("시드(upsert만)", () => {
     expect(back.map((q) => q.id)).toEqual(["base-rate-q1", "base-rate-q2"]);
   });
 
+  it("개념 ord = 갈래 안 나열 순서(1부터), 순서를 바꿔 다시 시드하면 기존 행도 바뀐다", async () => {
+    const ords = async () => Object.fromEntries((await db().concept.findMany({ select: { id: true, ord: true } })).map((c) => [c.id, c.ord]));
+    await seedContent(db(), all());
+    expect(await ords()).toEqual({ "abs-vs-relative": 1, "growth-vs-valuation": 1, "debt-and-cycle": 2, "base-rate": 2 });
+
+    const [content, canary] = all();
+    const reordered = structuredClone(content);
+    // base-rate(결과)를 맨 앞으로, debt-and-cycle(숫자)을 growth-vs-valuation 앞으로
+    const byId = (id: string) => reordered.concepts.find((c) => c.id === id)!;
+    reordered.concepts = [byId("base-rate"), byId("debt-and-cycle"), byId("abs-vs-relative"), byId("growth-vs-valuation")];
+    const before = await counts();
+    const r = await seedContent(db(), [reordered, canary]);
+    expect(r.concepts).toMatchObject({ create: 0, update: 4 });
+    expect(await ords()).toEqual({ "base-rate": 1, "debt-and-cycle": 1, "abs-vs-relative": 2, "growth-vs-valuation": 2 });
+    expect(await counts()).toEqual(before);
+
+    await seedContent(db(), all());
+    expect(await ords()).toEqual({ "abs-vs-relative": 1, "growth-vs-valuation": 1, "debt-and-cycle": 2, "base-rate": 2 });
+  });
+
+  it("개념 id가 겹치는 콘텐츠는 멈추고 아무것도 쓰지 않는다", async () => {
+    const [content, canary] = all();
+    const twice: Content = { ...content, concepts: [...content.concepts, { ...content.concepts[0], quizzes: [{ ...content.concepts[0].quizzes[0], quizId: "abs-vs-relative-q9" }] }] };
+    const before = await counts();
+    await expect(seedContent(db(), [twice, canary])).rejects.toBeInstanceOf(ContentError);
+    expect(await counts()).toEqual(before);
+  });
+
   it("dry-run은 쓰지 않는다", async () => {
     const before = await counts();
     const r = await seedContent(db(), all(), { dryRun: true });

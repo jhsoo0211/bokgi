@@ -2,7 +2,8 @@
 
 /**
  * 일지: 연습 달력(‹ 달 ›) → 판단 기록(최신순, 공개 전 행은 업종·규모와 '결과 대기') → 통계(접힘, 20장 뒤에 인사이트 카드) → 내보내기.
- * 행 둘째 줄은 근거부터(근거 · 확신 · 방향) — 일지에서도 첫 정보가 결과가 아니라 근거가 되게. 기록이 없으면 내보내기는 숨기고
+ * 행 둘째 줄은 근거부터(근거 · 확신 · 방향) — 일지에서도 첫 정보가 결과가 아니라 근거가 되게. 공개된 행은 셋째 줄에 그 카드의 개념
+ * (conceptTitle, 공개 전에는 서버가 null). 판단 때의 정보 수준은 작은 표시(핵심만·전부·지정, 기본은 표시 없음). 기록이 없으면 내보내기는 숨기고
  * '오늘 카드 판단하러 가기' 안내 단추를 둔다(빈 상태에 다음 행동 하나).
  * 결과색·형광펜을 쓰지 않는다(상태는 낱말 + 모양). 적중률을 숫자로 보이지 않는다. ○△✕는 기록만, 합산 없음.
  * 실제 앱에는 '세션 초기화'가 없다(판단 기록은 불변).
@@ -14,7 +15,7 @@ import { useScreenFocus } from "@/hooks/useScreenFocus";
 import { api, errorText, isApiError } from "@/lib/client/api";
 import { buildMonth, dueCounts, monthRange, type MonthCalendar } from "@/lib/client/calendar";
 import { logEvent } from "@/lib/client/events";
-import { addMonths, CALIBRATION_FEW, DIR, insightKind, localDayKey, md, MIN_INSIGHT, monthIndex, monthOf, RESULT, SELF_CHECK, SHAPE } from "@/lib/client/format";
+import { addMonths, CALIBRATION_FEW, DIR, insightKind, LEVEL_SHORT, localDayKey, md, MIN_INSIGHT, monthIndex, monthOf, RESULT, SELF_CHECK, SHAPE } from "@/lib/client/format";
 import { settled } from "@/lib/client/session";
 import type { ConceptListItem, Journal, JournalItem } from "@/lib/client/types";
 import { Calendar } from "./Calendar";
@@ -45,12 +46,14 @@ function JournalRow({ it }: { it: JournalItem }) {
         <span className="jrow-date ds-num">{md(it.localDate)}</span>
         <b className="jrow-title">{title}</b>
         {it.recognized && <span className="tag">알고 판단</span>}
+        {it.infoLevel !== "standard" && <span className="tag tag--lvl" data-level={it.infoLevel}><span className="sr-only">정보 수준 </span>{LEVEL_SHORT[it.infoLevel]}</span>}
         {self && <span className="jmark" role="img" aria-label={`개념 확인: ${self[1]}`} title={`개념 확인: ${self[1]}`}>{self[0]}</span>}
         {it.result
           ? <span className="jstate"><span aria-hidden="true">{SHAPE[it.result.state]}</span> {RESULT[it.result.state]}</span>
           : <span className="jstate jstate--wait">결과 대기</span>}
       </div>
       <div className="jrow-body">근거 <b>{it.keyEvidence}</b> · 확신 <b className="ds-num">{it.confidence}/5</b> · {DIR[it.direction]}</div>
+      {it.revealed && it.conceptTitle && <div className="jrow-concept">개념 <b>{it.conceptTitle}</b></div>}
     </li>
   );
 }

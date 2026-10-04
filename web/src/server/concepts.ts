@@ -18,13 +18,16 @@ function quizPublic(q: { id: string; question: string; options: unknown }) {
   return { quizId: q.id, question: q.question, options: Options.parse(q.options) };
 }
 
-/** GET /api/concepts — 개념 전체 + 내 숙련도·복습 예정. 문제는 푼 횟수에 따라 돌아가며 하나(정답 없음). */
+/**
+ * GET /api/concepts — 개념 전체 + 내 숙련도·복습 예정. 문제는 푼 횟수에 따라 돌아가며 하나(정답 없음).
+ * 순서: 갈래(결과 → 숫자 → 그때 → 내 판단, enum 순서) → 갈래 안 순서(order = concepts.ord, 개념 파일의 나열 순서).
+ */
 export async function listConcepts(user: AuthedUser): Promise<ConceptListT> {
   const prisma = db();
   const [concepts, progress] = await Promise.all([
     prisma.concept.findMany({
       where: { active: true },
-      orderBy: [{ ord: "asc" }, { id: "asc" }],
+      orderBy: [{ branch: "asc" }, { ord: "asc" }, { id: "asc" }],
       include: { quizzes: { where: { active: true }, orderBy: { ord: "asc" }, select: { id: true, question: true, options: true } } },
     }),
     prisma.conceptProgress.findMany({ where: { userId: user.id } }),
@@ -44,6 +47,7 @@ export async function listConcepts(user: AuthedUser): Promise<ConceptListT> {
         level: p?.level ?? 0,
         dueOn: p?.dueOn ? fromDbDate(p.dueOn) : null,
         quiz: quiz ? quizPublic(quiz) : null,
+        order: c.ord,
       };
     }),
   };
@@ -64,6 +68,7 @@ async function replay(userId: string, clientAttemptId: string, conceptId: string
   const options = Options.parse(prior.quiz.options);
   return {
     correct: prior.correct,
+    answerIndex: prior.quiz.answerIndex,
     explanation: explanationFor(prior.correct, options, prior.quiz.answerIndex, prior.quiz.explanation),
     level: prior.levelAfter,
     state: prior.stateAfter,
@@ -74,6 +79,7 @@ async function replay(userId: string, clientAttemptId: string, conceptId: string
 /**
  * POST /api/concepts/{id}/quiz — 서버 채점. client_attempt_id 멱등(같은 시도는 같은 응답).
  * 복습 간격 1·3·7·21일: 맞히면 level+1, 틀리면 0, 기한 전 정답은 level 유지(rules.nextReview).
+ * answerIndex(정답 보기 번호)는 채점 뒤라 응답에 넣는다(틀린 보기 표시용). 채점 전 경로(QuizPublic)에는 없다.
  */
 export async function answerQuiz(user: AuthedUser, conceptId: string, body: QuizBodyT, now = new Date()): Promise<QuizResultT> {
   const prisma = db();
@@ -119,7 +125,14 @@ export async function answerQuiz(user: AuthedUser, conceptId: string, body: Quiz
         where: { userId_conceptId: { userId: user.id, conceptId } },
         data: { level: next.level, dueOn: toDbDate(next.dueOn), state: st.state as ConceptState, quizCorrect: st.correct, quizTotal: st.total, lastSeen: now },
       });
-      return { correct, explanation: explanationFor(correct, options, quiz.answerIndex, quiz.explanation), level: next.level, state: st.state, nextDueOn: next.dueOn };
+      return {
+        correct,
+        answerIndex: quiz.answerIndex,
+        explanation: explanationFor(correct, options, quiz.answerIndex, quiz.explanation),
+        level: next.level,
+        state: st.state,
+        nextDueOn: next.dueOn,
+      };
     });
 
   try {

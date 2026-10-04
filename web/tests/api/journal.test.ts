@@ -37,6 +37,25 @@ describe("GET /api/journal", () => {
     expect(JSON.stringify(waiting)).not.toMatch(/마이크론|"MU"/);
   });
 
+  it("conceptTitle(1순위 학습 포인트 개념)은 공개 뒤에만, infoLevel은 판단 때의 수준", async () => {
+    const u = await createUser("일지개념");
+    const a = await call<{ judgmentId: string }>(createJudgment, { cookie: u.cookie, body: judgmentBody(C001, { infoLevel: "basic", hiddenGroups: ["marketLine"] }) });
+    const b = await call<{ judgmentId: string }>(createJudgment, { cookie: u.cookie, body: judgmentBody(C002) });
+    let r = await call<JournalT>(journal, { cookie: u.cookie });
+    expect(Journal.safeParse(r.json).success).toBe(true);
+    const row = (id: string) => r.json.items.find((i) => i.judgmentId === id);
+    expect(row(a.json.judgmentId)).toMatchObject({ revealed: false, conceptTitle: null, infoLevel: "basic" });
+    expect(row(b.json.judgmentId)).toMatchObject({ revealed: false, conceptTitle: null, infoLevel: "standard" });
+    // C001의 1순위 개념 '절대수익과 시장 대비', C002의 '높은 부채와 경기 민감도' — 공개 전에는 어디에도 없다
+    expect(r.text).not.toMatch(/절대수익과 시장 대비|높은 부채와 경기 민감도|abs-vs-relative|debt-and-cycle/);
+
+    await call(reveal, { method: "POST", cookie: u.cookie, params: { id: a.json.judgmentId } });
+    r = await call<JournalT>(journal, { cookie: u.cookie });
+    expect(row(a.json.judgmentId)).toMatchObject({ revealed: true, conceptTitle: "절대수익과 시장 대비", infoLevel: "basic" });
+    expect(row(b.json.judgmentId)).toMatchObject({ revealed: false, conceptTitle: null });
+    expect(r.text).not.toContain("높은 부채와 경기 민감도");
+  });
+
   it("최신순", async () => {
     const u = await createUser("일지2");
     await call(createJudgment, { cookie: u.cookie, body: judgmentBody(C001) });

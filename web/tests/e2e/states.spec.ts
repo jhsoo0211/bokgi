@@ -2,7 +2,7 @@
  * 프로토타입 스모크 B·C·D를 옮긴 것: 되돌리기 창 중 이탈(결과 대기 → 돌아오면 공개), 한 장 더, 비슷함 공개,
  * 스트릭·통계 잠금 해제·인사이트 카드·달력 넘기기(주입 상태), 판 내용이 카드 안에서 잘리지 않음. 목 모드 전용.
  */
-import { CASE, entry, eventsOf, expect, MOCK_KEY, type MockJudgment, type MockState, mockState, mouseAway, openGate, skipOnboarding, test, top } from "./helpers";
+import { CASE, entry, eventsOf, expect, MOCK_KEY, type MockJudgment, type MockState, mockState, mouseAway, openGate, prefsOf, seedMock, skipOnboarding, test, top } from "./helpers";
 
 test("되돌리기 창 중 다른 탭 → 결과 대기 → 돌아오면 공개 · 한 장 더 · 비슷함(±1%p)", async ({ page }) => {
   await skipOnboarding(page, { "bokgi.mock.deck4": "1" });
@@ -18,6 +18,7 @@ test("되돌리기 창 중 다른 탭 → 결과 대기 → 돌아오면 공개 
   await expect(page.locator(".jrow-title")).toHaveText("소프트웨어 · 대형");
   const waitRow = await page.locator(".jrow").innerText();
   expect(waitRow).not.toMatch(/어도비|ADBE/);
+  await expect(page.locator(".jrow-concept"), "결과 대기 행에는 개념 이름도 없다(서버 conceptTitle = null)").toHaveCount(0);
   await expect(page.locator(".cal-day--today.cal-day--done")).toHaveCount(1);
   await expect(page.locator(".cal-cap")).toHaveText(/^이달 연습 1일/);
   let st = await mockState(page);
@@ -156,8 +157,9 @@ test("스트릭 · 통계 잠금 해제 · 인사이트 카드 · 달력 넘기�
   }
 });
 
-test("판 내용이 카드 안에서 잘리지 않는다(카드 3장 × 판 3개, 380px)", async ({ page }) => {
+for (const level of ["standard", "advanced"] as const) test(`판 내용이 카드 안에서 잘리지 않는다(카드 3장 × 판 3개, 380px, ${level === "standard" ? "중급(기본값)" : "고급 — 묶음 전부"})`, async ({ page }) => {
   await skipOnboarding(page);
+  await seedMock(page, { prefs: prefsOf(level) });
   await page.goto("/");
   const over: string[] = [];
   for (let i = 0; i < 3; i++) {

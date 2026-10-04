@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { ContentError, findPublicLeaks, loadContent, splitCard, validateContent, type CardFileT } from "@/server/content/cards";
+import { ContentError, conceptOrders, findPublicLeaks, loadContent, splitCard, validateContent, type CardFileT } from "@/server/content/cards";
 
 const fixtures = path.resolve(__dirname, "../fixtures");
 
@@ -74,5 +74,31 @@ describe("시드: 카드를 세 등급으로 나눈다", () => {
     const norank = structuredClone(a.card);
     norank.reveal.learningPoints = [{ conceptId: "base-rate", rank: 2, linkSentence: "x" }];
     expect(validateContent({ ...content, cards: [{ file: "r.json", card: norank }] }).some((e) => e.includes("rank 1"))).toBe(true);
+  });
+
+  it("내용 점검: 개념 id가 겹치면 멈춘다(갈래 안 순서가 하나로 정해지게)", () => {
+    const twice = { ...content, concepts: [...content.concepts, { ...structuredClone(content.concepts[0]), quizzes: [{ ...content.concepts[0].quizzes[0], quizId: "abs-vs-relative-q9" }] }] };
+    expect(validateContent(twice).some((e) => e.includes("개념 id가 겹쳐요: abs-vs-relative"))).toBe(true);
+  });
+});
+
+describe("시드: 개념의 갈래 안 순서 (conceptOrders = 계약 ConceptListItem.order)", () => {
+  it("개념 파일의 나열 순서를 갈래마다 1부터 센다", () => {
+    const content = loadContent(path.join(fixtures, "content"));
+    // 예시 개념 파일: abs-vs-relative(결과) · growth-vs-valuation(숫자) · debt-and-cycle(숫자) · base-rate(결과)
+    expect(Object.fromEntries(conceptOrders(content.concepts))).toEqual({ "abs-vs-relative": 1, "growth-vs-valuation": 1, "debt-and-cycle": 2, "base-rate": 2 });
+  });
+
+  it("순서를 바꾸면 순서가 따라 바뀌고, 겹치는 id는 처음 것만 센다", () => {
+    const list = [
+      { id: "b1", branch: "self" },
+      { id: "a1", branch: "outcome" },
+      { id: "b2", branch: "self" },
+      { id: "b1", branch: "self" },
+      { id: "a2", branch: "outcome" },
+    ];
+    expect(Object.fromEntries(conceptOrders(list))).toEqual({ b1: 1, a1: 1, b2: 2, a2: 2 });
+    expect(Object.fromEntries(conceptOrders([list[2], list[0]]))).toEqual({ b2: 1, b1: 2 });
+    expect(conceptOrders([]).size).toBe(0);
   });
 });

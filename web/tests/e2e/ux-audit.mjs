@@ -6,7 +6,8 @@
      NEXT_PUBLIC_USE_MOCK=1 npx next dev -p 3310   # 한 폴더에 하나만
      BASE=http://localhost:3310 node tests/e2e/ux-audit.mjs <label>
    결과: .next/ux-audit/<label>.json + 화면 사진(png) + 요약 stdout. Playwright 시험(*.spec.ts)이 아니라 e2e 실행에는 끼지 않는다.
-   2026-10-04 감사 보고서: ../docs/reviews/2026-10-04_ecc_ux_review_webapp.md (prototype/tests/audit.cjs를 React 앱·주입 상태에 맞게 옮김) */
+   2026-10-04 감사 보고서: ../docs/reviews/2026-10-04_ecc_ux_review_webapp.md (prototype/tests/audit.cjs를 React 앱·주입 상태에 맞게 옮김)
+   2026-10-04 2차(D16·D17): 온보딩 넷째 장(정보 수준)·정보 수준 설정 시트·개념 길(기본 보기)·목록 전환도 같은 측정을 거친다. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -208,6 +209,9 @@ const openGate = async (page, ev = 0, conf = 3) => { await page.click(`#ev .ds-c
       await page.click('#onb-next'); await page.click('#onb-next');
       await screen(page, 'onboarding3');
       await page.click('#onb-next');
+      await page.waitForSelector('.onb-opt'); await page.waitForTimeout(100);
+      await screen(page, 'onboarding4-level', { tab: await tabWalk(page, 3) });
+      await page.click('.onb-opt[data-level="standard"]');
       await page.waitForSelector('#stage .sc');
       await ctx.close();
     }
@@ -228,6 +232,10 @@ const openGate = async (page, ev = 0, conf = 3) => { await page.click(`#ev .ds-c
         const isScroller = (e) => /(auto|scroll)/.test(cs(e).overflowY);
         return { html: cs(document.documentElement).overscrollBehaviorY, body: cs(document.body).overscrollBehaviorY, stage: cs(st).overscrollBehaviorY, stageIsScroller: isScroller(st), panel: cs(document.querySelector('#stage .sc:last-child .panel')).overscrollBehaviorY, scrollingElement: document.scrollingElement.tagName };
       });
+      // 정보 수준 설정 시트(공용 Sheet)
+      await page.click('#info-level'); await page.waitForSelector('.sheet--lv'); await page.waitForTimeout(150);
+      await screen(page, 'info-level-sheet');
+      await page.keyboard.press('Escape');
       // 게이트 막힘(버튼)
       await page.locator('#btnR').click({ force: true });
       s.blocked = await page.evaluate(() => ({ hint: document.querySelector('#hint').innerText, shake: document.querySelector('#ev').className, focus: document.activeElement.id }));
@@ -290,7 +298,9 @@ const openGate = async (page, ev = 0, conf = 3) => { await page.click(`#ev .ds-c
       await page.click('#nav button[data-v="journal"]'); await page.waitForSelector('.jlist'); await page.waitForTimeout(150);
       await screen(page, 'journal3', { tab: await tabWalk(page, 8) });
       // 개념
-      await page.click('#nav button[data-v="concepts"]'); await page.waitForSelector('.clist'); await page.waitForTimeout(100);
+      await page.click('#nav button[data-v="concepts"]'); await page.waitForSelector('#cpath'); await page.waitForTimeout(100);
+      await screen(page, 'concepts-path', { tab: await tabWalk(page, 8) });
+      await page.click('#cv-list'); await page.waitForSelector('.clist'); await page.waitForTimeout(100);
       await screen(page, 'concepts', { tab: await tabWalk(page, 6) });
       await page.click('.crow >> nth=0'); await page.waitForSelector('.concept .opt'); await page.waitForTimeout(100);
       await screen(page, 'concept-detail');

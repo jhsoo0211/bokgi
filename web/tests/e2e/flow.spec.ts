@@ -16,11 +16,19 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   await expect(page.locator("#onb-next")).toBeFocused();   // 2·3장은 Enter만 이어 누르면 된다
   await page.click("#onb-next");
   await expect(page.locator(".onb-title")).toHaveText("결과와 회사 이름은 판단한 뒤에만 보여요");
-  await expect(page.locator("#onb-next")).toHaveText("시작");
+  await expect(page.locator("#onb-next")).toHaveText("다음");   // 2026-10-04: 넷째 장(정보 수준)이 생겨 셋째 장도 '다음'
   await page.click("#onb-next");
+  // 넷째 장: 정보 수준(시험 아님) — 큰 단추 셋, 기본값(중급)에 초점, 나중에 바꿀 수 있다는 한 줄
+  await expect(page.locator(".onb-title")).toHaveText("어느 정도 아세요?");
+  await expect(page.locator(".onb-opt b")).toHaveText(["처음이에요", "기본 지표는 알아요", "재무제표를 읽어요"]);
+  await expect(page.locator('.onb-opt[data-level="standard"]')).toBeFocused();
+  await expect(page.locator(".onb-later")).toContainText("나중에 언제든 바꿀 수 있어요");
+  await expectHeadingOrder(page, "온보딩 넷째 장");
+  await page.click('.onb-opt[data-level="standard"]');
   await page.waitForSelector("#stage .sc");
   expect(await page.evaluate(() => localStorage.getItem("bokgi.onboarded"))).toBe("1");
   expect((await mockState(page)).onboarded).toBe(true);
+  expect((await mockState(page)).prefs?.infoLevel).toBe("standard");
   expect(await eventsOf(page, "onboarding_done")).toHaveLength(1);
   await expect(page).toHaveTitle("복기");
   await expect(page.locator("#nav button")).toHaveText(["오늘", "일지", "개념"]);
@@ -29,7 +37,7 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   expect(await top(page)).toMatch(/^오늘 0\/3/);
   let en = await entry(page);
   // 스트릭 0일은 '0'을 내세우지 않고 비난 없는 초대 문구로(2026-10-04 UX 감사, 02 §6-4)
-  expect(en).toEqual({ lead: "개념 이해 0/4 · 복습 예정 0개", sub: "오늘 남은 카드 3장", streak: "오늘 연습하면 스트릭 1일" });
+  expect(en).toEqual({ lead: "개념 이해 0/20 · 복습 예정 0개", sub: "오늘 남은 카드 3장", streak: "오늘 연습하면 스트릭 1일" });
   // 세션 진행: 카드 3칸(복습 기한 없음 → 복습 칸 없음), 보조기술에는 progressbar 하나
   await expect(page.locator('[role="progressbar"]')).toHaveAttribute("aria-valuetext", "카드 0/3");
   await expect(page.locator(".ds-bar.seg i")).toHaveCount(3);
@@ -256,7 +264,7 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   await page.waitForSelector("#stage .sc");
   expect(await top(page)).toMatch(/^오늘 1\/3/);
   en = await entry(page);
-  expect(en).toEqual({ lead: "개념 이해 0/4 · 복습 예정 0개", sub: "오늘 남은 카드 2장", streak: "스트릭 1일" });
+  expect(en).toEqual({ lead: "개념 이해 0/20 · 복습 예정 0개", sub: "오늘 남은 카드 2장", streak: "스트릭 1일" });
   await expectNoOutcomeInDom(page);
   await openGate(page, 2, 4);
   await page.keyboard.press("ArrowLeft");
@@ -295,17 +303,18 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   st = await mockState(page);
   expect(st.judgments, "되돌리기는 서버에 보내지 않는다").toHaveLength(2);
   expect(await eventsOf(page, "undo")).toHaveLength(1);
-  await expect(page.locator('#ev .ds-chip[aria-pressed="true"]')).toHaveCount(0);
-  await expect(page.locator('#conf button[aria-pressed="true"]')).toHaveCount(0);
-  await expect(page.locator("#btnL")).toHaveAttribute("aria-disabled", "true");
+  // 2026-10-04(ecc 남은 것): 되돌리기는 방향만 취소 — 고른 근거·확신도는 남고, 초점은 취소한 방향의 판단 단추로
+  await expect(page.locator('#ev .ds-chip[aria-pressed="true"]')).toHaveCount(1);
+  await expect(page.locator('#conf button[aria-pressed="true"]')).toHaveText("2");
+  await expect(page.locator("#btnL")).toHaveAttribute("aria-disabled", "false");
   await expect(page.locator("#stage .sc:last-child .meta")).toContainText("소비재");
-  await expect(page.locator("#ev .ds-chip").first()).toBeFocused();
-  await expect(page.locator("#toast")).toHaveText("되돌렸어요. 다시 골라 주세요.");
+  await expect(page.locator("#btnL")).toBeFocused();
+  await expect(page.locator("#toast")).toHaveText("되돌렸어요. 근거·확신도는 그대로 두었어요.");
   await openGate(page, 1, 5);
   await dragCard(page, -230);
   await mouseAway(page);
   await expect(page.locator("#toast #now")).toBeVisible();
-  await expect(page.locator("#toast")).toContainText("망설임");
+  await expect(page.locator("#toast"), "제스처 메타(망설임)는 기록만 — 알림에 보이지 않는다").not.toContainText("망설임");
   expect((await mockState(page)).judgments).toHaveLength(2);
   await page.click("#toast #now");
   await expect(page.locator(".reveal .name")).toHaveText(/^코카콜라/);
@@ -393,12 +402,16 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
     expect(cal.nextDisabled).toBe(false);
   }
 
-  /* ---------- 개념 ---------- */
+  /* ---------- 개념(기본은 길 보기 → 목록으로 바꿔 줄을 확인) ---------- */
   await page.click('#nav button[data-v="concepts"]');
+  await page.waitForSelector("#cpath");
+  await expectHeadingOrder(page, "개념 길");
+  await expect(page.locator(".cbranch-h")).toHaveText(["결과 읽기", "숫자 읽기", "그때 읽기", "내 판단 읽기"]);
+  await page.click("#cv-list");
   await page.waitForSelector(".clist");
   await expectHeadingOrder(page, "개념 목록");
   await expect(page.locator(".cbranch-h")).toHaveText(["결과 읽기", "숫자 읽기", "그때 읽기", "내 판단 읽기"]);
-  await expect(page.locator(".crow")).toHaveCount(4);
+  await expect(page.locator(".crow")).toHaveCount(20);
   const crow = async (id: string) => (await page.locator(`.crow[data-c="${id}"]`).innerText()).replace(/\s+/g, " ");
   expect(await crow("abs-vs-relative")).toContain("학습 중");
   expect(await crow("abs-vs-relative")).toContain("복습 예정: 내일");
@@ -435,7 +448,7 @@ test("첫 실행 → 판단 3장 → 공개 → 오늘 끝 → 일지 → 개념
   await expect(page.locator(".top").first()).toContainText("복습 1/2");
   await expectHeadingOrder(page, "복습");
   en = await entry(page);
-  expect(en.lead).toBe("개념 이해 1/4 · 복습 예정 2개");
+  expect(en.lead).toBe("개념 이해 1/20 · 복습 예정 2개");
   expect(en.sub).toBe("오늘 끝");
   await expect(page.locator("#next")).toBeDisabled();
   const rid = await page.locator(".q").innerText();

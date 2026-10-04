@@ -1,8 +1,9 @@
 import { InviteBody, Me } from "@/shared/contract";
-import { setSessionCookie, userTz } from "@/lib/server/auth";
+import { setSessionCookie } from "@/lib/server/auth";
 import { Errors, contractJson, readJson, route } from "@/lib/server/http";
 import { INVITE_LIMITS, clientIpKey, hitLimit, pruneLimits } from "@/lib/server/rateLimit";
 import { redeemInvite } from "@/server/authFlow";
+import { meOf } from "@/server/prefs";
 
 /**
  * POST /api/auth/invite {code, nickname} → 세션 쿠키 + Me.
@@ -17,7 +18,7 @@ export const POST = route(async (req) => {
   if (ip.hits === 1) void pruneLimits();
 
   const { user, token, expiresAt } = await redeemInvite(body);
-  const res = contractJson(Me, { user: { id: user.id, nickname: user.nickname, onboarded: user.onboardedAt !== null, tz: userTz(user.tz) } });
+  const res = contractJson(Me, meOf(user));
   setSessionCookie(res, token, expiresAt);
   return res;
 });

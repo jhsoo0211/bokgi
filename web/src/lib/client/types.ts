@@ -1,6 +1,5 @@
 /**
  * 클라이언트가 쓰는 계약 타입. 값은 모두 src/shared/contract.ts(유일한 계약)에서 온다.
- * `X`가 붙은 타입은 계약에 없는 선택(optional) 필드를 얹은 것이다 — 서버가 보내지 않아도 화면이 동작한다.
  */
 import type { z } from "zod";
 import type * as C from "@/shared/contract";
@@ -33,6 +32,7 @@ export type ExplainLine = z.infer<typeof C.ExplainLine>;
 export type Explain = z.infer<typeof C.Explain>;
 export type Reveal = C.Reveal;
 export type QuizBody = z.infer<typeof C.QuizBody>;
+/** answerIndex는 채점 뒤의 정답 위치(계약 2026-10-04) — 틀렸을 때 정답 보기를 표시한다 */
 export type QuizResult = z.infer<typeof C.QuizResult>;
 export type ConceptListItem = z.infer<typeof C.ConceptListItem>;
 export type ConceptList = z.infer<typeof C.ConceptList>;
@@ -46,7 +46,15 @@ export type UiEvent = z.infer<typeof C.UiEvent>;
 export type EventsBody = z.infer<typeof C.EventsBody>;
 export type UiEventName = (typeof C.UI_EVENTS)[number];
 
-/** 선택: 채점 뒤 정답 위치. 없으면 explanation('아니에요. 정답: ‘…’.')에서 정답 보기를 찾는다 */
-export type QuizResultX = QuizResult & { answerIndex?: number };
+/* 정보 수준(D16) — 세 판의 깊이. 서버는 PublicCase를 그대로 주고 클라이언트가 묶음 단위로 가린다 */
+export type InfoLevel = C.InfoLevel;
+export type InfoGroup = C.InfoGroup;
+export type PanelPrefs = C.PanelPrefs;
+export type UndoSeconds = C.UndoSeconds;
+export type PrefsBody = z.input<typeof C.PrefsBody>;
+/** 오늘 공개한 카드에서 만난 개념(오늘 끝 요약) — 서버가 센다 */
+export type ConceptToday = z.infer<typeof C.ConceptToday>;
+/** 사용자 설정 묶음(Me.user에서 뽑은 것): 정보 수준·묶음·되돌리기 시간 */
+export type Prefs = { infoLevel: InfoLevel; panelPrefs: PanelPrefs; undoSeconds: UndoSeconds };
 
 export type GestureMeta = { via: "swipe" | "button" | "key"; dx: number; ms: number; v: number; flips: number };

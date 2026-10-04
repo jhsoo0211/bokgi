@@ -1,19 +1,19 @@
 "use client";
 
 /**
- * 오늘 끝: 오늘 되짚은 개념 요약 → 내일 돌아올 이유 한 줄(내일 복습 n개·새 카드 — 비난·재촉 없이 사실만)
+ * 오늘 끝: 오늘 되짚은 개념 요약(서버 Today.conceptsToday — 오늘 공개한 카드의 1순위 개념, 공개 순서)
+ * → 내일 돌아올 이유 한 줄(내일 복습 n개·새 카드 — 비난·재촉 없이 사실만)
  * → '한 장 더'(허용될 때, 기록됨) 또는 카드가 바닥났다는 안내. 결과색·형광펜·점수 없음.
  */
 import { useState } from "react";
 import { EntryStrip } from "@/components/common/EntryStrip";
-import { TodayTop } from "@/components/common/TodayTop";
+import { TodayTop, type SessionReviews } from "@/components/common/TodayTop";
 import { useScreenFocus } from "@/hooks/useScreenFocus";
-import { CONCEPT_STATE, dueLabel, localDayKey } from "@/lib/client/format";
-import { sessionReviews } from "@/lib/client/session";
+import { CONCEPT_STATE, dueLabel } from "@/lib/client/format";
 import { SESSION_CARDS } from "@/shared/contract";
-import type { ConceptListItem, Today } from "@/lib/client/types";
+import type { Today } from "@/lib/client/types";
 
-type Props = { today: Today; summary: ConceptListItem[]; judged: number; tomorrowReviews: number; onMore: () => Promise<string | null> };
+type Props = { today: Today; judged: number; tomorrowReviews: number; reviews: SessionReviews; onMore: () => Promise<string | null> };
 
 /** 내일 한 줄: 복습 수와 새 카드(남은 카드가 있을 때만 — 없는 것을 약속하지 않는다) */
 function tomorrowLine(reviews: number, newCards: boolean) {
@@ -23,11 +23,11 @@ function tomorrowLine(reviews: number, newCards: boolean) {
   return null;
 }
 
-export function DoneScreen({ today, summary, judged, tomorrowReviews, onMore }: Props) {
+export function DoneScreen({ today, judged, tomorrowReviews, reviews, onMore }: Props) {
   useScreenFocus();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const day = localDayKey();
+  const summary = today.conceptsToday;
   const tomorrow = tomorrowLine(tomorrowReviews, today.extraAllowed);
 
   const more = async () => {
@@ -40,7 +40,7 @@ export function DoneScreen({ today, summary, judged, tomorrowReviews, onMore }: 
 
   return (
     <>
-      <TodayTop judged={judged} label="마침" reviews={sessionReviews(day, today.reviews.length)} />
+      <TodayTop judged={judged} label="마침" reviews={reviews} />
       <EntryStrip today={today} judged={judged} extraMode={false} />
       <section className="done">
         <h1 id="screen-title" className="done-title ds-head">{judged >= SESSION_CARDS ? "오늘은 여기까지" : "준비된 카드를 모두 봤어요"}</h1>
@@ -50,10 +50,10 @@ export function DoneScreen({ today, summary, judged, tomorrowReviews, onMore }: 
             <h2 className="ds-card-title">오늘 되짚은 개념</h2>
             <ul className="csum">
               {summary.map((c) => (
-                <li key={c.id}>
+                <li key={c.conceptId} data-c={c.conceptId}>
                   <b>{c.title}</b>
                   <span className="cstate">{CONCEPT_STATE[c.state]}</span>
-                  {c.dueOn && <small>다음 복습: {dueLabel(c.dueOn, day)}</small>}
+                  {c.dueOn && <small>다음 복습: {dueLabel(c.dueOn, today.date)}</small>}
                 </li>
               ))}
             </ul>
