@@ -22,6 +22,8 @@
 
 원본 워크시트 문서는 `source/worksheet-2026-09-30/`에 수정 없이 보존한다.
 
+공모전 제출본(하나증권 제1회 청년 금융 아이디어 공모전, 01 더 편리한 금융): [contest/hana-2026/](contest/hana-2026/README.md) — 아이디어 제목·본문(5,000자 양식)과 보충자료 PDF 3쪽.
+
 ## 프로토타입
 
 `prototype/app/index.html`을 VS Code Live Server로 열거나 `file://`로 직접 연다. 380px 모바일 뷰가 의도한 레이아웃이다. 빌드 없음. 자세한 흐름과 변경 기록은 [prototype/README.md](prototype/README.md).

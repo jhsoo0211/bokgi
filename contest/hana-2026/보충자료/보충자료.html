@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>복기 보충자료</title>
+<style>
+@font-face { font-family: "Pretendard"; font-weight: 400; src: url("../../../web/public/fonts/Pretendard-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 500; src: url("../../../web/public/fonts/Pretendard-Medium.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 600; src: url("../../../web/public/fonts/Pretendard-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 700; src: url("../../../web/public/fonts/Pretendard-Bold.woff2") format("woff2"); }
+
+/* 복기 학습지 디자인 토큰(web/src/styles/tokens.css와 같은 값) */
+:root {
+  --bg-000: #fbfbf9; --bg-100: #ffffff; --bg-200: #f1f0ea;
+  --ink-900: #1c1b1a; --ink-500: #6b6a66; --ink-200: #cfcdc5; --rule-dot: #9a9890;
+  --select: #d7263d; --blue: #2b59c3; --hl: #d9f5c7; --desk: #e9e8e2;
+  --font: "Pretendard", system-ui, sans-serif;
+}
+@page { size: A4 landscape; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--desk); }
+body { font: 400 8.4pt/1.45 var(--font); color: var(--ink-900); -webkit-print-color-adjust: exact; print-color-adjust: exact; font-variant-numeric: tabular-nums; word-break: keep-all; }
+.page { width: 297mm; height: 210mm; padding: 9mm 11mm 8mm; background: var(--bg-000); position: relative; overflow: hidden; break-after: page; display: flex; flex-direction: column; gap: 3.2mm; margin: 0 auto 6mm; }
+.page:last-child { break-after: auto; margin-bottom: 0; }
+@media print { html, body { background: var(--bg-000); } .page { margin: 0; } }
+
+/* 머리줄 */
+.head { display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid var(--ink-900); padding-bottom: 1.6mm; font-size: 7.6pt; color: var(--ink-500); }
+.head b { color: var(--ink-900); font-weight: 700; }
+.head .pg { display: flex; align-items: center; gap: 2mm; }
+.head .pg .no { font: 700 9pt var(--font); color: var(--bg-000); background: var(--ink-900); padding: .4mm 2mm; border-radius: 1mm; }
+.head .pg .t { font: 700 10pt var(--font); color: var(--ink-900); }
+
+h1 { font: 700 19pt/1.15 var(--font); letter-spacing: -0.02em; }
+h1 small { display: block; font: 500 10pt/1.4 var(--font); color: var(--ink-500); letter-spacing: -0.01em; margin-top: 1mm; }
+h2 { font: 700 10.6pt/1.3 var(--font); letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 1.6mm; margin-bottom: 1.6mm; }
+h2 .n { font: 700 8pt var(--font); color: var(--select); border: 1.5px solid var(--select); border-radius: 999px; padding: 0 1.6mm; }
+h3 { font: 700 8.8pt/1.35 var(--font); margin-bottom: .8mm; }
+.mut { color: var(--ink-500); }
+.src { font-size: 6.4pt; color: var(--ink-500); line-height: 1.35; margin-top: 1mm; }
+.hl { background: linear-gradient(transparent 55%, var(--hl) 55%); }
+.pen { color: var(--select); font-weight: 700; }
+.box { background: var(--bg-100); border: 1.5px solid var(--ink-900); border-radius: 1.2mm; padding: 2.6mm 3mm; }
+.box.soft { border: 1px solid var(--ink-200); }
+.box.ink { background: var(--ink-900); color: var(--bg-000); border-color: var(--ink-900); }
+ul.dots { list-style: none; }
+ul.dots li { padding-left: 3mm; position: relative; margin: .5mm 0; }
+ul.dots li::before { content: ""; position: absolute; left: .6mm; top: 1.9mm; width: 1.1mm; height: 1.1mm; background: var(--ink-900); border-radius: 50%; }
+.grid { display: grid; gap: 3.2mm; }
+.row { display: flex; gap: 3.2mm; }
+.tag { display: inline-block; font: 600 6.8pt/1 var(--font); border: 1px solid var(--ink-900); border-radius: 1mm; padding: .7mm 1.4mm; margin: 0 .8mm .8mm 0; background: var(--bg-100); }
+.tag.red { border-color: var(--select); color: var(--select); }
+.tag.blue { border-color: var(--blue); color: var(--blue); }
+.tag.fill { background: var(--ink-900); color: var(--bg-000); }
+.tag.done { border-color: var(--ink-900); }
+.tag.prop { border-style: dashed; color: var(--ink-500); border-color: var(--ink-500); }
+
+/* 폰 화면 */
+.phone { border: 1.5px solid var(--ink-900); border-radius: 2.2mm; overflow: hidden; background: var(--bg-000); position: relative; }
+.phone img { display: block; width: 100%; height: auto; }
+.shot { border: 1.5px solid var(--ink-900); border-radius: 1.4mm; overflow: hidden; background: var(--bg-100); }
+.shot img { display: block; width: 100%; height: auto; }
+.cap { margin-top: 1.4mm; font-size: 7.3pt; line-height: 1.35; }
+.cap b { display: flex; gap: 1.2mm; align-items: baseline; font-weight: 700; font-size: 8pt; }
+.num { display: inline-flex; align-items: center; justify-content: center; width: 4.2mm; height: 4.2mm; border-radius: 50%; border: 1.5px solid var(--select); color: var(--select); font: 700 7pt var(--font); flex: none; }
+.ex { position: absolute; right: 1.2mm; bottom: 1.2mm; font: 600 5.6pt var(--font); color: var(--ink-500); background: var(--bg-100); border: 1px solid var(--ink-200); padding: .2mm 1mm; border-radius: .8mm; }
+
+/* 표 */
+table { border-collapse: collapse; width: 100%; font-size: 7.6pt; }
+th, td { border-bottom: 1px dotted var(--rule-dot); padding: 1.2mm 1.4mm; text-align: left; vertical-align: top; }
+thead th { border-bottom: 1.5px solid var(--ink-900); font-weight: 700; font-size: 7.6pt; }
+td.k, th.k { font-weight: 700; white-space: nowrap; }
+table.cmp th, table.cmp td { padding: .8mm 1.4mm; font-size: 7.3pt; }
+.me { background: var(--hl); font-weight: 600; }
+thead th.me { background: var(--ink-900); color: var(--bg-000); }
+
+/* 막대(단일 계열) */
+.bars { display: grid; grid-template-columns: 19mm 1fr 9mm; gap: 1.1mm 1.6mm; align-items: center; font-size: 7.3pt; }
+.bars .track { height: 2.6mm; position: relative; border-left: 1px solid var(--ink-200); }
+.bars .bar { height: 100%; background: var(--ink-900); border-radius: 0 1mm 1mm 0; }
+.bars .bar.weak { background: var(--ink-200); }
+.bars .v { font-weight: 700; text-align: right; }
+.stat { display: flex; align-items: baseline; gap: 1.4mm; font-size: 7.4pt; }
+.stat .from { color: var(--ink-500); font-weight: 600; font-size: 10pt; }
+.stat .to { font: 700 15pt/1 var(--font); }
+.stat .lb { min-width: 15mm; font-weight: 600; }
+
+/* 목업(제안 화면) */
+.mock { background: var(--bg-000); padding: 2.2mm; font-size: 6.6pt; line-height: 1.4; height: 100%; display: flex; flex-direction: column; gap: 1.4mm; }
+.mock .bar-top { display: flex; justify-content: space-between; font-weight: 700; font-size: 7pt; border-bottom: 1.5px solid var(--ink-900); padding-bottom: 1mm; }
+.mock .tabs { display: flex; gap: 1mm; }
+.mock .tabs span { flex: 1; text-align: center; border: 1.2px solid var(--ink-900); padding: .8mm 0; font-weight: 600; background: var(--bg-100); }
+.mock .tabs span.on { background: var(--ink-900); color: var(--bg-000); }
+.mock .tabs span.off { border-style: dashed; color: var(--ink-500); background: var(--bg-200); }
+.mock .ln { display: flex; justify-content: space-between; border-bottom: 1px dotted var(--rule-dot); padding: .6mm 0; }
+.mock .ln b { font-weight: 700; }
+.mock .q { display: inline-flex; width: 3mm; height: 3mm; border-radius: 50%; border: 1px solid var(--blue); color: var(--blue); font-size: 5.6pt; align-items: center; justify-content: center; margin-left: .8mm; font-weight: 700; }
+.mock .sheet { margin-top: auto; background: var(--bg-100); border: 1.5px solid var(--ink-900); border-radius: 1.6mm 1.6mm 0 0; padding: 1.8mm; display: flex; flex-direction: column; gap: 1.1mm; }
+.mock .chips { display: flex; flex-wrap: wrap; gap: .9mm; }
+.mock .chips span { border: 1.2px solid var(--ink-900); padding: .5mm 1.3mm; background: var(--bg-100); font-weight: 600; }
+.mock .chips span.sel { outline: 1.5px solid var(--select); outline-offset: .5mm; border-radius: 3mm; }
+.mock .conf { display: flex; gap: .8mm; }
+.mock .conf span { flex: 1; text-align: center; border: 1.2px solid var(--ink-900); padding: .4mm 0; font-weight: 700; }
+.mock .conf span.on { background: var(--ink-900); color: var(--bg-000); }
+.mock .btns { display: flex; gap: 1mm; }
+.mock .btns span { flex: 1; text-align: center; padding: 1mm 0; font-weight: 700; border: 1.2px solid var(--ink-900); }
+.mock .btns span.on { background: var(--ink-900); color: var(--bg-000); }
+.mock .hidden-panel { border: 1.2px dashed var(--ink-500); background: var(--bg-200); color: var(--ink-500); text-align: center; padding: 1.4mm; }
+.mock .note { color: var(--ink-500); font-size: 5.9pt; }
+.prop-label { position: absolute; top: 1.2mm; right: 1.2mm; font: 700 5.6pt var(--font); color: var(--select); border: 1px solid var(--select); background: var(--bg-100); padding: .2mm 1mm; border-radius: .8mm; }
+
+.flow-arrow { align-self: center; color: var(--ink-500); font: 700 10pt var(--font); }
+.step { border-top: 2px solid var(--ink-900); padding-top: 1.2mm; }
+.step .when { font: 700 7pt var(--font); color: var(--select); }
+.ba { display: grid; grid-template-columns: 1fr 4mm 1fr; gap: .9mm 1mm; font-size: 7.2pt; align-items: start; }
+.ba .b { color: var(--ink-500); }
+.ba .arr { color: var(--select); font-weight: 700; text-align: center; }
+.ba .a { font-weight: 600; }
+.ba .hd { font-weight: 700; font-size: 7pt; border-bottom: 1.5px solid var(--ink-900); padding-bottom: .5mm; }
+.foot { position: absolute; left: 11mm; right: 11mm; bottom: 3.6mm; display: flex; justify-content: space-between; font-size: 6.2pt; color: var(--ink-500); }
+</style>
+</head>
+<body>
+
+<!-- ============ 1쪽: 배경과 핵심 아이디어 ============ -->
+<section class="page">
+  <div class="head">
+    <div>하나증권 제1회 청년 금융 아이디어 공모전 · <b>01 더 편리한 금융</b> (MTS 이용 편의성 개선·신규 사용자 서비스)</div>
+    <div class="pg"><span class="no">1</span><span class="t">배경과 핵심 아이디어</span></div>
+  </div>
+
+  <div class="row" style="align-items:flex-end;justify-content:space-between">
+    <h1>하루 5분 '복기'<small>차트와 실적을 함께 읽고 먼저 판단해 보는 하나 MTS 투자 연습</small></h1>
+    <div style="text-align:right;font-size:7.4pt;line-height:1.5" class="mut">
+      복기(復棋): 바둑에서 끝난 판을 되짚어 보는 일<br>
+      실제 과거 사례 → <b style="color:var(--ink-900)">내가 먼저 판단</b> → 결과 되짚기 → 개념 학습 → 복습
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1.18fr 0.92fr 46mm; flex:1; min-height:0">
+    <!-- 1-1 -->
+    <div class="box" style="display:flex;flex-direction:column;gap:1.6mm;justify-content:space-between">
+      <h2><span class="n">1-1</span>사용자의 불편·위험</h2>
+      <div>
+        <h3>정보는 많은데, 판단으로 잇지 못한다</h3>
+        <div class="mut" style="font-size:7.2pt;margin-bottom:1.2mm">투자 정보를 주로 얻는 곳(성인 1,000명, 2026.6)</div>
+        <div class="bars">
+          <span>유튜브</span><div class="track"><div class="bar" style="width:93.5%"></div></div><span class="v">37.4%</span>
+          <span>SNS·지인 추천</span><div class="track"><div class="bar" style="width:40.5%"></div></div><span class="v">16.2%</span>
+          <span>AI</span><div class="track"><div class="bar" style="width:39%"></div></div><span class="v">15.6%</span>
+          <span>증권사 보고서</span><div class="track"><div class="bar weak" style="width:36.5%"></div></div><span class="v">14.6%</span>
+        </div>
+        <div style="margin-top:1.4mm;font-size:7.4pt">보고서를 덜 읽는 이유 1위 <b class="pen">'분량이 많아서' 39.6%</b> → 정보가 없어서가 아니라 <b>소화하기 어려워서</b></div>
+        <div class="src">출처: 피앰아이 조사(만 20~59세 1,000명), 서울신문 2026.9.14 「불신 쌓는 리서치」 보도</div>
+      </div>
+      <div>
+        <h3>20대, 재무를 점검하고 목표를 세우는 힘이 약해졌다</h3>
+        <div class="row" style="gap:6mm">
+          <div class="stat"><span class="lb">재무 점검</span><span class="from">55.8</span><span class="mut">→</span><span class="to">33.2</span><span class="mut">점</span></div>
+          <div class="stat"><span class="lb">재무 목표</span><span class="from">48.0</span><span class="mut">→</span><span class="to">36.1</span><span class="mut">점</span></div>
+        </div>
+        <div class="src">2022 → 2024, 20대. 출처: 한국은행·금융감독원 「2024 전국민 금융이해력 조사」</div>
+      </div>
+      <div>
+        <h3>그래서 생기는 위험</h3>
+        <ul class="dots">
+          <li>차트 모양·영상 속 한마디에 기댄 <b>추종 매매</b></li>
+          <li>손실이 나도 무엇을 잘못 읽었는지 몰라 <b>같은 실수 반복</b></li>
+          <li>기존 대안의 한계: 차트 맞히기 앱은 <b>차트만</b>, 교육 콘텐츠는 <b>읽기만</b>, 모의투자는 <b>수익률만</b></li>
+        </ul>
+      </div>
+      <div class="box soft" style="padding:1.8mm 2.2mm;background:var(--bg-200);border:none">
+        <h3 style="margin-bottom:.6mm">사용자의 한 장면 <span class="mut" style="font-weight:500">(가상의 사회초년생)</span></h3>
+        <div class="ba" style="grid-template-columns:auto 4mm 1fr auto 4mm 1fr;font-size:7pt;align-items:center">
+          <span>영상에서 본 종목의 차트를 열어 봄</span><span class="arr">→</span><span>재무 탭은 숫자가 많아 바로 닫음</span>
+          <span>"오를 것 같아서" 매수</span><span class="arr">→</span><span><b>손실 뒤에도 무엇을 놓쳤는지 모름</b></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1-2 + 1-3 -->
+    <div style="display:flex;flex-direction:column;gap:3.2mm">
+      <div class="box">
+        <h2><span class="n">1-2</span>기회 발견</h2>
+        <div style="font-size:7.6pt;margin-bottom:1.4mm">결과를 모르는 상태에서 <b class="hl">근거를 먼저 세우고, 결과로 되짚는 경험</b>이 쌓이면 실전에서도 '왜 사는가'를 스스로 확인하게 된다.</div>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:1.4mm;font-size:7pt">
+          <div class="box soft" style="padding:1.2mm 1.6mm"><b>편리함</b> · 한 화면·같은 틀, 하루 5분</div>
+          <div class="box soft" style="padding:1.2mm 1.6mm"><b>안심</b> · 돈 넣기 전 과거 사례로 위험 경험</div>
+          <div class="box soft" style="padding:1.2mm 1.6mm"><b>신뢰</b> · 추천이 아니라 <b>내 근거</b> 훈련</div>
+        </div>
+        <h3 style="margin-top:1.6mm">왜 지금</h3>
+        <ul class="dots" style="font-size:7.2pt">
+          <li>2025.12부터 해외 레버리지 ETP·파생상품 투자 전 <b>사전교육 의무화</b>(파생상품은 모의거래 포함) — '투자 전 연습'이 제도 안으로</li>
+          <li>AI로 투자 정보를 얻는 사용자 증가 — AI 해석이 <b>사실인지 추론인지</b> 구분해 줄 장치 필요</li>
+        </ul>
+      </div>
+      <div class="box ink" style="flex:1">
+        <h2 style="color:var(--bg-000)"><span class="n" style="color:#ff8a7a;border-color:#ff8a7a">1-3</span>핵심 아이디어</h2>
+        <div style="font:600 9pt/1.48 var(--font);letter-spacing:-0.01em">결과를 가린 실제 과거 사례에서 <span style="background:var(--hl);color:var(--ink-900);padding:0 .6mm">차트·실적·당시 상황 중 무엇을 근거로 삼을지 사용자가 고르고</span> 먼저 판단한 뒤, 결과를 되짚어 금융 개념을 배우는 <b>하루 5분 투자 듀오링고</b></div>
+        <ul style="list-style:none;margin-top:1.6mm;font-size:7.1pt;display:grid;gap:.6mm;color:#e9e8e2">
+          <li><b style="color:#fff">① 차트만이 아님</b> — 기술적 분석·재무제표·금리와 이슈를 한 카드에. 근거는 사용자가 선택(차트 / 실적 / 둘 다)</li>
+          <li><b style="color:#fff">② 보고 싶은 것만 남기기</b> — 정보는 다 주되, 판·항목을 가려 원하는 부분에 집중</li>
+          <li><b style="color:#fff">③ 맞히기가 아닌 근거 연습</b> — 시장 대비 앞섬·뒤짐·비슷함(±1%p). 적중률 점수·랭킹 없음</li>
+          <li><b style="color:#fff">④ 틀린 뒤 배움</b> — 결과마다 개념 1개, 1·3·7·21일 간격 복습</li>
+        </ul>
+        <div style="margin-top:1.6mm;padding-top:1.2mm;border-top:1px solid #6b6a66;font-size:6.8pt;color:#cfcdc5;display:grid;grid-template-columns:auto 1fr;gap:.4mm 2mm">
+          <b style="color:#fff">듀오링고에서 가져온 것</b><span>짧은 일일 세션 · 한 번에 한 동작 · 간격 복습 · 개념 길 · 연습 스트릭</span>
+          <b style="color:#fff">가져오지 않은 것</b><span>XP · 리그 · 하트 · 적중 배지 · 수익률 랭킹</span>
+        </div>
+        <div style="margin-top:auto;display:flex;align-items:center;gap:1.2mm;flex-wrap:wrap;font:600 7pt var(--font)">
+          <span style="color:#9a9890;font-weight:500;margin-right:1mm">학습 루프</span>
+          <span class="tag" style="background:transparent;color:#fff;border-color:#9a9890">관찰</span><span style="color:#9a9890">→</span>
+          <span class="tag" style="background:#fff;color:var(--ink-900);border-color:#fff">먼저 판단</span><span style="color:#9a9890">→</span>
+          <span class="tag" style="background:transparent;color:#fff;border-color:#9a9890">결과 공개</span><span style="color:#9a9890">→</span>
+          <span class="tag" style="background:transparent;color:#fff;border-color:#9a9890">개념 학습</span><span style="color:#9a9890">→</span>
+          <span class="tag" style="background:transparent;color:#fff;border-color:#9a9890">다음 카드에 적용</span><span style="color:#9a9890">→</span>
+          <span class="tag" style="background:transparent;color:#fff;border-color:#9a9890">일지로 돌아보기</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 대표 화면 -->
+    <div style="display:flex;flex-direction:column">
+      <div class="phone" style="height:88mm"><img src="screens/06-gate.jpg" alt="근거 고르기 화면"><span class="ex">예시 데이터</span></div>
+      <div class="cap"><b><span class="num">★</span>근거를 골라야 판단이 열린다</b>차트·실적·금리 중 가장 중요하게 본 정보 1개 + 확신도(1~5). 버튼은 '오른다/내린다'가 아니라 <strong>시장보다 앞섰다/뒤졌다</strong></div>
+    </div>
+  </div>
+
+  <!-- 비교표 -->
+  <div class="box" style="padding:1.4mm 3mm">
+    <table class="cmp">
+      <thead><tr><th class="k" style="width:20mm"></th><th>차트 맞히기 앱</th><th>금융 교육 콘텐츠</th><th>모의투자</th><th class="me">복기</th></tr></thead>
+      <tbody>
+        <tr><td class="k">판단 재료</td><td>가격 차트만</td><td>없음(읽기 → 퀴즈)</td><td>현재 시세</td><td class="me">차트 + 재무제표 + 당시 금리·이슈, <b>무엇을 근거로 할지 선택</b></td></tr>
+        <tr><td class="k">정보량</td><td>고정</td><td>고정</td><td>MTS 전체(압도적)</td><td class="me">초급~고급·사용자 지정, <b>필요 없는 부분은 가리기</b></td></tr>
+        <tr><td class="k">결과 읽기</td><td>맞음 / 틀림</td><td>정답 / 오답</td><td>수익률·순위</td><td class="me">시장 대비 앞섬·뒤짐·비슷함 + 내 근거 되짚기</td></tr>
+        <tr><td class="k">틀린 뒤</td><td>다음 차트</td><td>다음 글</td><td>다음 매매</td><td class="me">개념 1개 연결 → 간격 복습 → 일지에 습관 기록</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="foot"><span>화면은 복기 웹 베타의 실제 화면이며 카드 자료는 예시 데이터입니다.</span><span>1 / 3</span></div>
+</section>
+
+<!-- ============ 2쪽: 구체화와 실행 ============ -->
+<section class="page">
+  <div class="head">
+    <div>하나증권 제1회 청년 금융 아이디어 공모전 · <b>01 더 편리한 금융</b> · 복기</div>
+    <div class="pg"><span class="no">2</span><span class="t">구체화와 실행</span></div>
+  </div>
+
+  <div>
+    <h2><span class="n">2-1</span>아이디어 구성 — 하루 5분, 한 번에 한 동작<span class="mut" style="font:500 7.4pt var(--font);margin-left:2mm">카드 3장 + 복습 2개 · 보상 장치 없이 학습 흐름만</span></h2>
+    <div class="grid" style="grid-template-columns:repeat(6,1fr);gap:4mm">
+      <div><div class="phone" style="height:52mm"><img src="screens/01-onboarding-level.jpg" alt=""></div>
+        <div class="cap"><b><span class="num">1</span>정보 수준 고르기</b>시험 없이 "어느 정도 아세요?" 초급 「핵심만」~고급 「전부」</div></div>
+      <div><div class="phone" style="height:52mm"><img src="screens/02-card-flow.jpg" alt=""><span class="ex">예시 데이터</span></div>
+        <div class="cap"><b><span class="num">2</span>세 판을 한 카드에</b>「흐름」차트 · 「숫자」재무제표 · 「그때」금리·이슈. 회사명·날짜만 가림</div></div>
+      <div><div class="phone" style="height:52mm"><img src="screens/06-gate.jpg" alt=""><span class="ex">예시 데이터</span></div>
+        <div class="cap"><b><span class="num">3</span>근거·확신도 고르기</b>근거마다 어느 판(차트·실적·상황)에서 왔는지 기록</div></div>
+      <div><div class="phone" style="height:52mm"><img src="screens/07-reveal-top.jpg" alt=""><span class="ex">예시 데이터</span></div>
+        <div class="cap"><b><span class="num">4</span>결과 공개</b>사후에 중요했던 것 → 내 근거 → ○△✕ → 시장 대비 결과</div></div>
+      <div><div class="phone" style="height:52mm"><img src="screens/09-concepts-path.jpg" alt=""></div>
+        <div class="cap"><b><span class="num">5</span>개념 길·간격 복습</b>네 갈래 20개 개념, 1·3·7·21일 복습. 잠금 없음</div></div>
+      <div><div class="phone" style="height:52mm"><img src="screens/12-journal-insights.jpg" alt=""><span class="ex">예시 데이터</span></div>
+        <div class="cap"><b><span class="num">6</span>판단 일지</b>20장 뒤 횟수만 쓴 한 문장으로 판단 습관. 적중률 점수 없음</div></div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 100mm 100mm 1fr; height:84mm">
+    <!-- 집중 보기 -->
+    <div class="box" style="display:flex;flex-direction:column;gap:1.4mm;padding:2.2mm 2.6mm">
+      <h3>정보는 다 주고, 보고 싶은 것만 남긴다 — 정보 수준 · 집중 보기</h3>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:2.4mm;flex:1;min-height:0">
+        <div><div class="shot"><img src="screens/10-numbers-basic-card.jpg" alt=""></div><div class="cap" style="text-align:center"><b style="justify-content:center">초급 「핵심만」</b>매출·이익률·PER</div></div>
+        <div><div class="shot"><img src="screens/10-numbers-advanced-card.jpg" alt=""></div><div class="cap" style="text-align:center"><b style="justify-content:center">고급 「전부」</b>+ PBR·PSR·순현금·FCF</div></div>
+        <div style="display:flex;flex-direction:column"><div class="phone" style="height:52mm"><span class="prop-label">제안</span>
+          <div class="mock">
+            <div class="tabs" style="margin-top:3mm"><span class="off">흐름<br>가림</span><span class="on">숫자</span><span class="off">그때<br>가림</span></div>
+            <div class="ln"><span>매출 성장</span><b>+23%</b></div>
+            <div class="ln"><span>이익률</span><b>31→34%</b></div>
+            <div class="ln"><span>PER</span><b>38 <span class="mut" style="font-weight:400">업종 27</span></b></div>
+            <div class="hidden-panel">가려 둔 판 2개<br><b style="color:var(--ink-900)">눌러서 펼치기</b></div>
+            <div class="note">가린 판은 판단과 함께 기록</div>
+          </div></div><div class="cap" style="text-align:center"><b style="justify-content:center">판 가리기</b>차트만 / 실적만 / 둘 다</div></div>
+      </div>
+      <div style="font-size:6.8pt" class="mut">사용자 지정: 시장 비교선·거래량·성장 세부·재무 건강·밸류에이션 세부·환율·원자재 등 <b style="color:var(--ink-900)">9개 묶음 켜고 끄기</b>(구현됨) · 판 단위 가리기(제안) → 일지에서 '차트만 본 판단 / 실적까지 본 판단'을 나눠 돌아봄</div>
+    </div>
+
+    <!-- MTS 연결 -->
+    <div class="box" style="display:flex;flex-direction:column;gap:1.4mm;padding:2.2mm 2.6mm">
+      <h3>하나 MTS 연결 — 연습에서 실전으로 <span class="mut" style="font-weight:500;font-size:6.8pt">(제안 화면, MTS 실제 화면 아님)</span></h3>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:1mm 2.4mm;font-size:6.9pt;line-height:1.35">
+        <div class="row" style="gap:1.2mm"><span class="num">A</span><span><b>메인 '투자 연습' 메뉴</b> · 오늘의 카드 3장 + 복습</span></div>
+        <div class="row" style="gap:1.2mm"><span class="num">B</span><span><b>첫 주문 전 '첫 투자 준비'</b> · 개념 5개 + 카드 3장</span></div>
+        <div class="row" style="gap:1.2mm"><span class="num">C</span><span><b>지표 옆 도움말</b> · 현재가·차트·재무 화면의 PER·부채비율 → 개념 카드</span></div>
+        <div class="row" style="gap:1.2mm"><span class="num">D</span><span><b>주문 화면 '근거 메모'(선택)</b> · 무엇을 보고 샀는지 + 확신도</span></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:2.4mm;flex:1;min-height:0">
+        <div class="phone" style="height:100%"><span class="prop-label">C</span>
+          <div class="mock">
+            <div class="bar-top"><span>종목 · 재무</span><span class="mut" style="margin-right:5mm">MTS 예시</span></div>
+            <div class="tabs"><span>현재가</span><span>차트</span><span class="on">재무</span></div>
+            <div class="ln"><span>PER<span class="q">?</span></span><b>38.0</b></div>
+            <div class="ln"><span>부채비율<span class="q">?</span></span><b>42%</b></div>
+            <div class="sheet">
+              <b style="font-size:6.8pt">개념 · 밸류에이션 프리미엄</b>
+              <span>PER이 업종보다 높으면 성장 기대가 이미 가격에 들어 있을 수 있어요.</span>
+              <div class="btns"><span class="on">과거 사례로 연습하기</span></div>
+            </div>
+          </div></div>
+        <div class="phone" style="height:100%"><span class="prop-label">D</span>
+          <div class="mock">
+            <div class="bar-top"><span>매수 주문 · 3주</span><span class="mut" style="margin-right:5mm">MTS 예시</span></div>
+            <div class="sheet">
+              <b style="font-size:6.8pt">근거 메모 <span class="mut" style="font-weight:500">(선택)</span> · 무엇을 보고 결정했나요?</b>
+              <div class="chips"><span>차트 흐름</span><span class="sel">실적·재무</span><span>둘 다</span><span>당시 이슈</span></div>
+              <div class="conf"><span>1</span><span>2</span><span class="on">3</span><span>4</span><span>5</span></div>
+              <div class="btns"><span>건너뛰기</span><span class="on">남기고 주문</span></div>
+              <span class="note">3개월 뒤 '내 근거 돌아보기'에서 같은 틀로 복기 · 추천·예측 없음</span>
+            </div>
+          </div></div>
+      </div>
+    </div>
+
+    <!-- 2-2 -->
+    <div class="box" style="padding:2.2mm 2.6mm">
+      <h2><span class="n">2-2</span>사용자 경험의 변화</h2>
+      <div class="ba" style="gap:1.1mm 1mm">
+        <span class="hd">적용 전</span><span></span><span class="hd">적용 후</span>
+        <span class="b">차트 하나 보고 "오를 것 같아서" 매수</span><span class="arr">→</span><span class="a">차트·실적·금리를 같은 틀로 보고 근거·확신도를 남긴 뒤 판단</span>
+        <span class="b">모르는 지표는 검색·커뮤니티</span><span class="arr">→</span><span class="a">지표 옆 도움말에서 개념 카드로 바로</span>
+        <span class="b">많은 정보에 압도됨</span><span class="arr">→</span><span class="a">정보 수준·집중 보기로 지금 볼 만큼만</span>
+        <span class="b">손실 뒤 원인을 모름</span><span class="arr">→</span><span class="a">일지에서 근거·확신도·결과 관계를 글로 확인</span>
+        <span class="b">길고 지루한 교육</span><span class="arr">→</span><span class="a">하루 5분, "내일 복습 2개"로 다시 올 이유</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-3 -->
+  <div class="box" style="display:grid;grid-template-columns:30mm 1fr 1fr 1fr 62mm;gap:4mm;align-items:start;padding:2.2mm 3mm">
+    <h2 style="flex-direction:column;align-items:flex-start;gap:.6mm"><span class="n">2-3</span>실행 방안<span class="mut" style="font:500 6.8pt var(--font)">기간·부서는 가정</span></h2>
+    <div class="step" style="font-size:7.2pt"><div class="when">1단계 · 0~3개월 · 파일럿</div>이미 동작하는 웹 베타에 실제 사례 카드 30장, 임직원·신규 사용자 시범 운영. 세션 완료율·복습 유지율 측정</div>
+    <div class="step" style="font-size:7.2pt"><div class="when">2단계 · 3~6개월 · MTS 탑재</div>웹뷰로 투자 연습 메뉴(A)·지표 도움말(C) 연결, 국내 사례 카드 확대(공시·공공데이터)</div>
+    <div class="step" style="font-size:7.2pt"><div class="when">3단계 · 6~12개월 · 연습 → 실전</div>근거 메모·돌아보기(D), 첫 투자 준비 코스(B), 고위험 상품 사전교육 보완 콘텐츠</div>
+    <div style="font-size:6.8pt"><b>협업 부서</b><br><span class="tag">디지털·MTS 개발</span><span class="tag">리서치센터</span><span class="tag">금융소비자보호·준법감시</span><span class="tag">정보보호</span><span class="tag">마케팅</span><span class="tag">데이터</span></div>
+  </div>
+  <div class="foot"><span>①~⑥은 복기 웹 베타의 실제 화면(예시 데이터), '제안'·C·D 표시는 공모용 제안 화면입니다.</span><span>2 / 3</span></div>
+</section>
+
+<!-- ============ 3쪽: 기대효과와 실현 가능성 ============ -->
+<section class="page">
+  <div class="head">
+    <div>하나증권 제1회 청년 금융 아이디어 공모전 · <b>01 더 편리한 금융</b> · 복기</div>
+    <div class="pg"><span class="no">3</span><span class="t">기대효과와 실현 가능성</span></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1fr 1fr; gap:3.2mm">
+    <div class="box">
+      <h2><span class="n">3-1</span>사용자 기대 효과</h2>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:2.4mm;font-size:7.9pt">
+        <div><h3>편의성</h3>흩어진 차트·재무·시황을 <b>한 카드</b>로, 하루 <b>5분</b>에 끝맺음. 정보 수준·집중 보기로 읽을 분량을 스스로 조절</div>
+        <div><h3>안전성</h3>돈을 넣기 전에 과거 사례로 변동과 위험을 먼저 경험. 추종 매매 대신 <b>'내 근거'를 확인하는 습관</b></div>
+        <div><h3>신뢰</h3>추천이 아니라 <b>판단 연습</b>. AI 문장마다 근거 표시, 결과를 한 가지 원인으로 단정하지 않음</div>
+      </div>
+    </div>
+    <div class="box">
+      <h2><span class="n">3-2</span>회사 기대 효과</h2>
+      <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:2.4mm;font-size:7.6pt">
+        <div><h3>신규 사용자</h3>투자 경험이 적은 20~30대에게 '배우며 시작하는' 첫 화면 → 계좌 개설·첫 거래</div>
+        <div><h3>MTS 재방문</h3>매일 5분 세션과 복습 일정이 돌아올 이유</div>
+        <div><h3>업무 효율</h3>카드·개념을 투자교육·사전교육·지표 도움말에 재사용</div>
+        <div><h3>소비자보호</h3>투자 전 위험 이해 장치를 MTS 안에 상시. 개념별 오답으로 맞춤 교육</div>
+      </div>
+      <div style="margin-top:1.6mm;font-size:7pt"><b>성과 지표(안)</b>&nbsp; <span class="tag">세션 완료율</span><span class="tag">7일 재방문율</span><span class="tag">개념 이해 수</span><span class="tag">근거 메모 작성률</span></div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns: 1.06fr 1.22fr 0.86fr; height:134mm">
+    <!-- 보호 절차 -->
+    <div class="box" style="display:flex;flex-direction:column;gap:1.8mm">
+      <h3>보호 절차 — 판단 전에는 결과가 어디에도 없다</h3>
+      <div class="grid" style="grid-template-columns:1fr 6mm 1fr;gap:1mm;align-items:stretch;font-size:6.9pt">
+        <div class="box soft" style="padding:1.6mm"><b>판단 전 자료</b><br>세 판(파생 지수·공시 재무·상대 날짜 이슈), 근거 칩<div class="mut" style="margin-top:.6mm">회사명·티커·날짜·결과 수치 0건 자동 검사</div></div>
+        <div class="flow-arrow" style="text-align:center">⇢</div>
+        <div class="box soft" style="padding:1.6mm"><b>판단 뒤 자료</b><br>회사·기간·수익률·가격 경로·해설<div class="mut" style="margin-top:.6mm">판단을 남긴 사용자에게만 서버가 전달</div></div>
+      </div>
+      <div style="font-size:7pt"><b>AI 가드 순서</b></div>
+      <div class="row" style="gap:1mm;font-size:6.6pt;flex-wrap:wrap;align-items:center">
+        <span class="tag">템플릿 질문 6유형</span><span class="mut">→</span><span class="tag">누수 필터</span><span class="mut">→</span><span class="tag">서버 숫자만</span><span class="mut">→</span><span class="tag blue">📄 출처</span><span class="tag red">🔍 추론</span><span class="tag">❓ 불확실</span>
+      </div>
+      <div class="row" style="gap:2.4mm;align-items:flex-start;font-size:7.3pt">
+        <div style="flex:1.25"><div class="shot"><img src="screens/07-explain.jpg" alt=""></div><div class="src">공개 화면의 해설 상자(실제 화면, 예시 데이터)</div></div>
+        <div style="flex:1;font-size:6.9pt">
+          <b>해설은 문장마다 라벨</b><br>"이번에 잘 읽은 것 / 다음에 바꿀 것 / 개념 연결" 세 줄. 추론 문장 옆에 "AI 해석이에요. 공식 발표된 이유는 아니에요."
+          <div style="margin-top:1.6mm"><b>금지 문구</b><br>매수·매도 지시, 종목 추천, "원래 사야 했다", 결과를 한 원인으로 단정</div>
+          <div style="margin-top:1.6mm"><b>고지·신고</b><br>교육 목적·종료된 과거 사례 고지, 카드 오류 신고 8유형 → 검토·수정·버전 기록</div>
+        </div>
+      </div>
+      <div class="box soft" style="padding:1.8mm 2.2mm;background:var(--bg-200);border:none;margin-top:auto;font-size:7.2pt">
+        <h3>판단의 질을 지키는 화면 규칙</h3>
+        <ul class="dots">
+          <li>판단 전 화면에는 결과색(빨강·파랑)도 쓰지 않음</li>
+          <li>확신도 기본값 없음 — 반드시 직접 고름</li>
+          <li>'이 회사를 아는 것 같아요' 체크로 사전 지식과 판단을 분리해 기록</li>
+          <li>판단 직후 몇 초간 되돌리기 가능 — 실수는 바로잡고, 결과를 본 뒤 고치지는 못함</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 3-3 -->
+    <div class="box" style="display:flex;flex-direction:column;gap:1.6mm">
+      <h2><span class="n">3-3</span>실현 가능성 및 고려사항</h2>
+      <div style="font-size:7.2pt"><b>이미 동작하는 것</b>&nbsp; <span class="tag done">세 판 카드</span><span class="tag done">근거·확신도 게이트</span><span class="tag done">정보 수준 4단계·9묶음</span><span class="tag done">결과 공개 순서</span><span class="tag done">개념 20·간격 복습</span><span class="tag done">판단 일지·인사이트</span><span class="tag done">자동 누수 검사</span>
+        <br><b>제안(추가 개발)</b>&nbsp; <span class="tag prop">판 단위 가리기</span><span class="tag prop">MTS 진입점 A~C</span><span class="tag prop">주문 근거 메모 D</span><span class="tag prop">근거 유형별 돌아보기</span></div>
+      <table style="font-size:7.8pt">
+        <thead><tr><th style="width:27%">예상 제약</th><th>해결 방안</th></tr></thead>
+        <tbody>
+          <tr><td class="k">투자권유 오인</td><td>종료된 과거 사례만, 종목 추천·매매 신호 없음, 준법감시 사전 심의</td></tr>
+          <tr><td class="k">시세 이용 조건</td><td>판단 시점 = 100인 지수로 표시, 회사 보유 시세 이용권·공공데이터 활용</td></tr>
+          <tr><td class="k">AI 사후지식·환각</td><td>판단 전 문장은 사람이 템플릿으로 작성, 누수 필터·숫자 제한·문장 라벨</td></tr>
+          <tr><td class="k">개인정보</td><td>학습 기록 최소 수집, 근거 메모는 동의 후 저장·가명 처리, 마케팅 활용은 별도 동의</td></tr>
+          <tr><td class="k">게임화 부작용</td><td>적중률 점수·랭킹·보상 없음. 연습한 날과 개념 숙련도만 표시</td></tr>
+          <tr><td class="k">콘텐츠 제작 부담</td><td>카드 제작 도구(수치·흐름 초안 자동화) + 리서치센터 검수로 분담</td></tr>
+        </tbody>
+      </table>
+      <div class="box soft" style="padding:1.8mm 2.2mm;background:var(--bg-200);border:none;margin-top:auto">
+        <h3>파일럿에서 확인할 것 <span class="mut" style="font-weight:500">(1단계, 4주)</span></h3>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:.6mm 3mm;font-size:7.2pt">
+          <span>· 세션 완료율 · 7일 재방문율</span><span>· 복습 정답 유지(1·3·7일 간격별)</span>
+          <span>· 근거 선택 분포(차트 / 실적 / 상황)</span><span>· 정보 수준·가리기 사용 비율</span>
+          <span>· 카드별 신고율 · 누수 필터 발동률</span><span>· 사용자 인터뷰(이해도·부담감)</span>
+        </div>
+      </div>
+      <div style="font-size:7pt" class="mut">웹 베타: Next.js + PostgreSQL, 모바일 380px 기준 화면 → MTS 웹뷰로 탑재 가능</div>
+    </div>
+
+    <!-- 3-4 -->
+    <div class="box" style="display:flex;flex-direction:column;gap:1.6mm">
+      <h2><span class="n">3-4</span>AI 활용 및 참고자료</h2>
+      <div style="font-size:7.6pt">
+        <h3>서비스 안의 생성형 AI</h3>
+        <ul class="dots">
+          <li><b>질문자</b>(판단 전): 근거를 되묻는 질문 6유형만. 정답·결과·회사명 언급 금지</li>
+          <li><b>해설자</b>(판단 뒤): 내 근거와 결과를 개념으로 연결. 단정 금지</li>
+        </ul>
+        <h3 style="margin-top:1.4mm">기획서 작성에 쓴 AI</h3>
+        <div>Claude(Anthropic): 자료 조사 정리·문장 다듬기·보충자료 편집 보조. 아이디어·서비스 기획·화면은 지원자 작업</div>
+        <h3 style="margin-top:1.4mm">참고자료</h3>
+        <ul class="dots" style="font-size:7pt;line-height:1.42">
+          <li>한국은행·금융감독원, 「2024 전국민 금융이해력 조사」</li>
+          <li>금융감독원, 해외 고위험 금융투자상품 사전교육·모의거래 의무화(2025.12 시행) 보도</li>
+          <li>서울신문, 「불신 쌓는 리서치」 2026.9.14(피앰아이 조사 인용)</li>
+          <li>하나증권 청년 금융 아이디어 공모전 보도, 2026.11.2</li>
+          <li>Duolingo, ChartGame, Zogo(유사 서비스 비교)</li>
+          <li>전자공시 DART, SEC EDGAR, 공공데이터포털 금융위원회 주식시세정보</li>
+        </ul>
+      </div>
+      <div class="box soft" style="padding:1.8mm 2.2mm;background:var(--bg-200);border:none;margin-top:auto;font-size:7.1pt">
+        <h3>AI 문구 원칙</h3>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:.8mm 2mm">
+          <b class="pen">금지</b><span>"~ 때문에 올랐습니다"(단정), "AI 분석 결과 ~"(권위 부여), "참고만 하세요"(효과 없는 관용구)</span>
+          <b style="color:var(--blue)">사용</b><span>"AI 해석이에요. 공식 발표된 이유는 아니에요." · "AI 해석에 동의하나요? 다르게 본다면 근거를 하나 골라 주세요."</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>복기는 종목을 추천하지 않으며, 종료된 과거 사례로 판단을 연습하는 교육 서비스입니다.</span><span>3 / 3</span></div>
+</section>
+
+</body>
+</html>
