@@ -1,6 +1,6 @@
 /* 보충자료 HTML → 제출용 PDF(A4 가로 3쪽) + 쪽별 미리보기 PNG.
    루트에서: node contest/hana-2026/scripts/render.mjs [미리보기 폴더]
-   PDF: contest/hana-2026/지원자명_복기_사용자경험의변화.pdf — '지원자명'은 제출 전에 바꾼다. */
+   PDF: contest/hana-2026/지원자명_투자형듀오링고복기_보충자료.pdf — '지원자명'은 제출 전에 바꾼다. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -11,7 +11,7 @@ const ROOT = path.resolve(HERE, '..', '..', '..');
 const require = createRequire(path.join(ROOT, 'web', 'package.json'));
 const { chromium } = require('@playwright/test');
 const SRC = path.resolve(HERE, '..', '보충자료', '보충자료.html');
-const PDF = path.resolve(HERE, '..', '지원자명_복기_사용자경험의변화.pdf');
+const PDF = path.resolve(HERE, '..', '지원자명_투자형듀오링고복기_보충자료.pdf');
 const PREVIEW = process.argv[2];
 
 let browser;
