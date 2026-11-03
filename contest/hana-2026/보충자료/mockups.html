@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>복기 시안 화면</title>
+<!-- 하나증권V 화면(사용자 제공 캡처 5장)의 시각 문법을 따른 '제안 화면(가정)'. 로고·상표 이미지는 쓰지 않는다.
+     scripts/mockups.mjs가 .screen 요소를 하나씩 PNG로 저장한다. 카드 자료는 웹 베타의 예시 데이터. -->
+<style>
+@font-face { font-family: "Pretendard"; font-weight: 400; src: url("../../../web/public/fonts/Pretendard-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 500; src: url("../../../web/public/fonts/Pretendard-Medium.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 600; src: url("../../../web/public/fonts/Pretendard-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 700; src: url("../../../web/public/fonts/Pretendard-Bold.woff2") format("woff2"); }
+:root {
+  --green: #00A470; --green2: #18B470; --mint: #D8F4EC; --mint2: #EAF8F2; --toggle: #A0E8C4;
+  --bg: #F4F8F8; --card: #FFFFFF; --soft: #F2F4F6; --soft2: #F7F9FB; --line: #E5E8EB;
+  --t1: #191F28; --t2: #4E5968; --t3: #8B95A1; --t4: #B0B8C1;
+  --up: #F83850; --down: #2470F4; --mid: #8B95A1; --chip: #34383C;
+  --ai: linear-gradient(120deg, #E9E6FC 0%, #DDF2F7 55%, #DCECFC 100%);
+  --font: "Pretendard", system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; word-break: keep-all; font-variant-numeric: tabular-nums; }
+.screen { width: 360px; height: 760px; border-radius: 46px; border: 10px solid #EEF0F2; background: var(--card); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+.screen.bg { background: var(--bg); }
+.sb { height: 34px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 22px 0 26px; font: 600 13px var(--font); }
+.sb i { display: inline-block; width: 22px; height: 10px; border: 1.5px solid var(--t1); border-radius: 3px; position: relative; }
+.sb i::after { content: ""; position: absolute; inset: 1.5px 5px 1.5px 1.5px; background: var(--t1); border-radius: 1px; }
+.body { flex: 1; overflow: hidden; padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+.ab { height: 48px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 16px; font: 700 18px var(--font); letter-spacing: -0.02em; }
+.ab .back { font: 400 26px/1 var(--font); color: var(--t1); margin-top: -3px; }
+.ab .r { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; background: var(--soft); font: 600 12px var(--font); color: var(--t2); }
+.pill.g { background: var(--mint); color: #0B7A55; }
+.card { background: var(--card); border-radius: 18px; padding: 16px; }
+.screen:not(.bg) .card.s { background: var(--soft2); }
+.h { font: 700 16px/1.35 var(--font); letter-spacing: -0.02em; }
+.cap { font: 500 12px/1.45 var(--font); color: var(--t3); }
+.b2 { font: 500 13.5px/1.5 var(--font); color: var(--t2); }
+.row { display: flex; align-items: center; gap: 8px; }
+.sp { margin-left: auto; }
+.tile { width: 46px; height: 46px; border-radius: 15px; display: flex; align-items: center; justify-content: center; flex: none; }
+.btn { height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font: 700 16px var(--font); letter-spacing: -0.01em; }
+.btn.g { background: var(--green); color: #fff; }
+.btn.w { background: var(--soft); color: var(--t1); }
+.seg { display: flex; background: var(--soft); border-radius: 12px; padding: 4px; gap: 4px; }
+.seg span { flex: 1; text-align: center; padding: 8px 0; border-radius: 9px; font: 600 14px var(--font); color: var(--t3); }
+.seg span.on { background: #fff; color: var(--t1); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 12px; background: var(--soft2); border: 1.5px solid var(--line); font: 600 13.5px var(--font); color: var(--t1); }
+.chip.on { border-color: var(--green); background: var(--mint2); color: #087A54; }
+.chip .tag { font: 700 10px var(--font); padding: 2px 5px; border-radius: 5px; background: #fff; color: var(--t3); border: 1px solid var(--line); }
+.chip.on .tag { color: var(--green); border-color: #9EDFC6; }
+.tip { position: relative; background: var(--green); color: #fff; font: 600 13px var(--font); padding: 10px 14px; border-radius: 14px; display: inline-block; }
+.tip::after { content: ""; position: absolute; left: 28px; bottom: -6px; width: 12px; height: 12px; background: var(--green); transform: rotate(45deg); border-radius: 2px; }
+.ln { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--soft); font: 500 14px var(--font); color: var(--t2); }
+.ln b { font: 700 15px var(--font); color: var(--t1); }
+.ln:last-child { border-bottom: none; }
+.ai { background: var(--ai); border-radius: 18px; padding: 16px; }
+.spark { display: inline-block; width: 18px; height: 18px; flex: none; }
+.dots { display: flex; justify-content: center; gap: 5px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: #C9CED4; }
+.dots i.on { background: var(--t2); }
+.prog { display: flex; gap: 4px; }
+.prog i { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
+.prog i.on { background: var(--green); }
+.prog i.rv { background: #CDEFE1; }
+.badge { display: inline-flex; align-items: center; font: 700 11px var(--font); padding: 3px 7px; border-radius: 6px; }
+.lbl-src { color: var(--down); background: #EAF1FE; }
+.lbl-inf { color: var(--up); background: #FEECEE; }
+.up { color: var(--up); } .down { color: var(--down); }
+.mark { position: absolute; left: 50%; transform: translateX(-50%); bottom: 8px; font: 600 10px var(--font); color: var(--t4); background: rgba(255,255,255,.85); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 24px 24px 0 0; box-shadow: 0 -8px 30px rgba(25,31,40,.14); padding: 10px 18px 22px; display: flex; flex-direction: column; gap: 12px; }
+.sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 2px; }
+.dim { position: absolute; inset: 34px 0 0 0; background: rgba(25,31,40,.38); }
+/* 누적 막대 */
+.stk { display: flex; height: 14px; border-radius: 7px; overflow: hidden; gap: 2px; background: #fff; }
+.stk i { display: block; height: 100%; }
+.stk .a { background: var(--up); } .stk .e { background: var(--mid); } .stk .b { background: var(--down); }
+</style>
+</head>
+<body>
+
+<!-- 아이콘(인라인 SVG 기호) -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 1.5c.7 4.6 2.9 6.8 7.5 7.5-4.6.7-6.8 2.9-7.5 7.5-.7-4.6-2.9-6.8-7.5-7.5 4.6-.7 6.8-2.9 7.5-7.5z" fill="#6E7BF2"/><path d="M19 14c.35 2.3 1.4 3.4 3.5 3.75-2.1.35-3.15 1.45-3.5 3.75-.35-2.3-1.4-3.4-3.5-3.75 2.1-.35 3.15-1.45 3.5-3.75z" fill="#3FC6B0"/></symbol>
+    <symbol id="i-cards" viewBox="0 0 24 24"><rect x="4" y="5" width="12" height="15" rx="2.5" fill="#00A470"/><rect x="8" y="3" width="12" height="15" rx="2.5" fill="#6FD3AE"/><path d="M11 10h6M11 13h4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-won" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="4" fill="#3B82F6"/><path d="M7 9l1.6 6 1.4-4 1.4 4L13 9M6.5 12h7" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="12" r="1.6" fill="#fff"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 24 24"><path d="M8 4h8l-1.5 3h-5z" fill="#22B07D"/><path d="M5 12c0-3 3-5 7-5s7 2 7 5v4c0 2.5-2.5 4-7 4s-7-1.5-7-4z" fill="#22B07D"/><path d="M9.5 12.5l1 3 1.5-3 1.5 3 1-3" stroke="#fff" stroke-width="1.3" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="i-report" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3" fill="#8B7CF6"/><rect x="7.5" y="12" width="2.4" height="5" rx="1" fill="#fff"/><rect x="11" y="9" width="2.4" height="8" rx="1" fill="#fff"/><rect x="14.5" y="13.5" width="2.4" height="3.5" rx="1" fill="#fff"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2c1 4 5 5.5 5 11a5 5 0 0 1-10 0c0-2.7 1.4-4.3 2.6-5.5.2 1.6 1 2.6 2 3 0-3-.4-5.6.4-8.5z" fill="#FF7A45"/><path d="M12 13c1.2 1.4 2.4 2.2 2.4 4a2.4 2.4 0 0 1-4.8 0c0-1.5 1.2-2.4 2.4-4z" fill="#FFC53D"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4" fill="#FF4D4F"/><path d="M10 9v6l5-3z" fill="#fff"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z" fill="#00A470"/><path d="M14 3v4h4" fill="#7FD8B8"/><path d="M9 11h6M9 14h6M9 17h4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="3" fill="#6E7BF2"/><path d="M16 10.5l5-3v9l-5-3z" fill="#A5ADFA"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6z" fill="#191F28"/><circle cx="12" cy="19.5" r="2" fill="#191F28"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#00A470"/><path d="M7.5 12.3l3 3 6-6.3" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
+    <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 4l16 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ S1 · MTS 홈 진입(A) ============ -->
+<section class="screen bg" id="S1">
+  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="ab" style="font-size:14px;font-weight:600;gap:6px">
+    <span>코스피</span><span style="color:var(--up)">2,915.30 +0.42%</span>
+    <div class="r" style="gap:12px;font-size:14px"><span class="pill g" style="padding:4px 8px">간편</span><span>검색</span><span>알림</span></div>
+  </div>
+  <div class="body">
+    <div class="card"><div class="row"><span class="h" style="font-size:15px">내 자산 ›</span></div><div style="font:700 25px var(--font);margin-top:6px;letter-spacing:-0.02em">●●●,●●●,●●●원</div></div>
+    <div class="row" style="justify-content:space-around;padding:2px 0">
+      <div style="text-align:center"><div class="tile" style="background:#fff;width:54px;height:54px;border-radius:18px;margin:0 auto"><svg width="28" height="28"><use href="#i-won"/></svg></div><div style="font:600 12.5px var(--font);margin-top:6px">이체하기</div></div>
+      <div style="text-align:center"><div class="tile" style="background:#fff;width:54px;height:54px;border-radius:18px;margin:0 auto"><svg width="28" height="28"><use href="#i-bag"/></svg></div><div style="font:600 12.5px var(--font);margin-top:6px">내 배당금</div></div>
+      <div style="text-align:center;position:relative"><div class="tile" style="background:#fff;width:54px;height:54px;border-radius:18px;margin:0 auto;box-shadow:0 0 0 2px var(--green) inset"><svg width="28" height="28"><use href="#i-cards"/></svg></div><div style="font:700 12.5px var(--font);margin-top:6px;color:#087A54">복기</div><span class="badge" style="position:absolute;top:-6px;right:-10px;background:var(--up);color:#fff;font-size:9px;padding:2px 5px">NEW</span></div>
+    </div>
+    <div class="ai">
+      <div class="row"><svg class="spark"><use href="#i-spark"/></svg><span class="h">오늘의 복기</span><span class="cap sp" style="color:var(--t2)">하루 5분</span></div>
+      <div style="font:700 15.5px/1.45 var(--font);margin-top:10px">실제 과거 사례 3장, 먼저 판단하고<br>결과로 배워요</div>
+      <div class="b2" style="margin-top:6px;font-size:13px">카드 3장 · 복습 2개 · 어제 틀린 개념 <b style="color:var(--t1)">밸류에이션 프리미엄</b></div>
+      <div class="row" style="margin-top:12px">
+        <span class="pill" style="background:rgba(255,255,255,.7)"><svg width="14" height="14"><use href="#i-flame"/></svg>연습 7일째</span>
+        <span class="sp btn g" style="height:38px;padding:0 16px;font-size:14px;border-radius:11px">시작하기</span>
+      </div>
+      <div class="dots" style="margin-top:12px"><i class="on"></i><i></i></div>
+    </div>
+    <div class="card" style="padding:14px 16px">
+      <div class="row"><svg class="spark"><use href="#i-spark"/></svg><span class="h" style="font-size:15px">AI 국내 시황</span><span class="cap sp">정규장 마감 기준</span></div>
+      <div class="b2" style="margin-top:8px;font-size:13px;color:var(--t3)">기존 AI 브리핑 자리 아래에 '오늘의 복기'가 붙어요</div>
+    </div>
+    <div class="tip" style="align-self:flex-start;margin-top:2px">간편모드 첫 화면에서 바로 시작</div>
+  </div>
+  <div class="mark">제안 화면(가정) · A 메인 진입</div>
+</section>
+
+<!-- ============ S2 · 복기 홈 ============ -->
+<section class="screen" id="S2">
+  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="ab"><span class="back">‹</span>복기<div class="r"><span class="pill g">정보 수준 · 기본</span></div></div>
+  <div class="body">
+    <div class="prog" style="margin-top:2px"><i></i><i></i><i></i><i class="rv" style="background:var(--line)"></i><i style="background:var(--line)"></i></div>
+    <div class="cap" style="margin-top:-6px">오늘 카드 3장 · 복습 2개</div>
+    <div class="card s">
+      <div class="row"><span class="h">개념 이해 <span style="color:var(--green)">6</span>/20</span><span class="sp pill" style="background:#fff"><svg width="14" height="14"><use href="#i-flame"/></svg>7일째</span></div>
+      <div class="b2" style="margin-top:4px;font-size:13px">복습 예정 2개 · 오늘 남은 카드 3장</div>
+      <div style="display:grid;gap:9px;margin-top:14px">
+        <div><div class="row cap" style="color:var(--t2);font-weight:600">결과 읽기<span class="sp">3/5</span></div><div class="prog" style="margin-top:4px"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+        <div><div class="row cap" style="color:var(--t2);font-weight:600">숫자 읽기<span class="sp">2/5</span></div><div class="prog" style="margin-top:4px"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+        <div><div class="row cap" style="color:var(--t2);font-weight:600">그때 읽기<span class="sp">1/5</span></div><div class="prog" style="margin-top:4px"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+        <div><div class="row cap" style="color:var(--t2);font-weight:600">내 판단 읽기<span class="sp">0/5</span></div><div class="prog" style="margin-top:4px"><i></i><i></i><i></i><i></i><i></i></div></div>
+      </div>
+    </div>
+    <div class="card s" style="padding:14px 16px">
+      <div class="row"><div class="tile" style="background:#EFEBFE;width:40px;height:40px;border-radius:12px"><svg width="22" height="22"><use href="#i-report"/></svg></div>
+        <div><div class="h" style="font-size:15px">판단 리포트</div><div class="cap">33번 판단 · 실적 근거일 때 앞섬이 많아요</div></div><span class="sp" style="color:var(--t4);font-size:20px">›</span></div>
+      <div class="stk" style="margin-top:12px;height:10px"><i class="a" style="width:42%"></i><i class="e" style="width:21%"></i><i class="b" style="width:37%"></i></div>
+    </div>
+    <div class="card s" style="padding:14px 16px">
+      <div class="row"><div class="tile" style="background:var(--mint);width:40px;height:40px;border-radius:12px"><svg width="22" height="22"><use href="#i-doc"/></svg></div>
+        <div><div class="h" style="font-size:15px">복습 2개가 기다려요</div><div class="cap">밸류에이션 프리미엄 · 기저확률과 노이즈</div></div></div>
+    </div>
+    <div style="margin-top:auto;padding-bottom:30px"><div class="btn g">오늘의 카드 시작하기</div></div>
+  </div>
+  <div class="mark">제안 화면(가정)</div>
+</section>
+
+<!-- ============ S3 · 판단 카드 ============ -->
+<section class="screen" id="S3">
+  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="ab"><span class="back">‹</span>오늘 1/3<div class="r"><span class="pill">정보 수준 · 기본</span></div></div>
+  <div class="body">
+    <div class="prog"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    <div class="row" style="flex-wrap:wrap;gap:6px"><span class="pill">소프트웨어</span><span class="pill">대형</span><span class="pill">2023년</span><span class="pill">6개월 뒤 결과</span><span class="pill" style="color:var(--t4)">회사·날짜 비공개</span></div>
+    <div class="seg"><span class="on">흐름 · 차트</span><span>숫자 · 재무</span><span>그때 · 상황</span></div>
+    <div class="card s" style="padding:14px">
+      <div class="row cap" style="color:var(--t2);font-weight:600">판단일까지 가격 흐름 (처음 = 100)<span class="sp">D-180 → 판단일</span></div>
+      <svg viewBox="0 0 300 130" width="100%" height="130" style="margin-top:8px">
+        <line x1="0" y1="65" x2="300" y2="65" stroke="#E5E8EB" stroke-dasharray="3 4"/>
+        <polyline fill="none" stroke="#B0B8C1" stroke-width="2" stroke-dasharray="5 4" points="0,98 30,92 60,90 90,84 120,80 150,78 180,72 210,70 240,64 270,60 300,56"/>
+        <polyline fill="none" stroke="#191F28" stroke-width="2.6" stroke-linejoin="round" points="0,100 25,108 50,88 75,96 100,76 125,84 150,64 175,70 200,52 225,58 250,40 275,46 300,30"/>
+        <circle cx="300" cy="30" r="4" fill="#191F28"/>
+      </svg>
+      <div class="row cap" style="margin-top:4px;font-weight:600"><span style="color:var(--t1)">━ 이 회사 115</span><span style="color:var(--t3)">┅ 시장 111</span><span class="sp">거래량 <b style="color:var(--t1)">유지</b></span></div>
+    </div>
+    <div class="card s" style="padding:12px 14px">
+      <div class="row"><span class="h" style="font-size:14px">집중 보기</span><span class="cap">보고 싶은 판만 남겨요</span></div>
+      <div class="row" style="margin-top:10px;gap:6px">
+        <span class="chip on" style="padding:7px 10px;font-size:13px"><svg width="15" height="15" style="color:var(--green)"><use href="#i-eye"/></svg>흐름</span>
+        <span class="chip on" style="padding:7px 10px;font-size:13px"><svg width="15" height="15" style="color:var(--green)"><use href="#i-eye"/></svg>숫자</span>
+        <span class="chip" style="padding:7px 10px;font-size:13px;color:var(--t4)"><svg width="15" height="15"><use href="#i-eyeoff"/></svg>그때</span>
+      </div>
+    </div>
+    <div class="row cap" style="font-size:13px;color:var(--t2)"><span style="width:18px;height:18px;border-radius:5px;border:1.5px solid var(--t4);display:inline-block"></span>이 회사를 아는 것 같아요</div>
+    <div style="margin-top:auto;padding-bottom:30px"><div class="btn g">근거 고르기</div></div>
+  </div>
+  <div class="mark">제안 화면(가정) · 예시 데이터</div>
+</section>
+
+<!-- ============ S4 · 근거 고르기 ============ -->
+<section class="screen" id="S4">
+  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="ab"><span class="back">‹</span>오늘 1/3</div>
+  <div class="body">
+    <div class="prog"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    <div class="h" style="font-size:18px;margin-top:4px">가장 중요하게 본 정보는?</div>
+    <div class="row" style="flex-wrap:wrap;gap:7px">
+      <span class="chip on"><svg width="16" height="16"><use href="#i-check"/></svg>매출 +23%<span class="tag">재무</span></span>
+      <span class="chip">PER 38 vs 업종 27<span class="tag">재무</span></span>
+      <span class="chip">6개월 +15%, 시장 +11%<span class="tag">차트</span></span>
+      <span class="chip">금리 5.25%<span class="tag">상황</span></span>
+      <span class="chip">가이던스 상향<span class="tag">재무</span></span>
+    </div>
+    <div class="h" style="font-size:15px;margin-top:4px">가장 큰 위험은? <span class="cap">(선택)</span></div>
+    <div class="row" style="gap:7px"><span class="chip" style="padding:8px 11px">밸류에이션 부담</span><span class="chip" style="padding:8px 11px">금리 상승</span><span class="chip" style="padding:8px 11px">성장 둔화</span></div>
+    <div class="h" style="font-size:15px;margin-top:4px">얼마나 확신하나요?</div>
+    <div class="seg"><span>1</span><span>2</span><span class="on" style="color:var(--green)">3</span><span>4</span><span>5</span></div>
+    <div class="tip" style="align-self:flex-start">근거와 확신도를 고르면 판단이 열려요</div>
+    <div style="margin-top:auto;padding-bottom:30px">
+      <div class="cap" style="text-align:center;margin-bottom:8px;color:var(--t2);font-weight:600">6개월 뒤, 이 회사는</div>
+      <div class="row" style="gap:8px"><div class="btn w" style="flex:1">← 시장보다 뒤졌다</div><div class="btn g" style="flex:1">시장보다 앞섰다 →</div></div>
+      <div class="cap" style="text-align:center;margin-top:8px">맞히기가 아니라 근거를 남기는 연습이에요</div>
+    </div>
+  </div>
+  <div class="mark">제안 화면(가정) · 예시 데이터</div>
+</section>
+
+<!-- ============ S5 · 결과 공개 ============ -->
+<section class="screen" id="S5">
+  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="ab"><span class="back">‹</span>결과<div class="r"><span class="cap">예시 데이터</span></div></div>
+  <div class="body" style="gap:10px">
+    <div><div style="font:700 22px var(--font);letter-spacing:-0.02em">어도비 (ADBE)</div><div class="cap">2023 Q3 → 2024 Q1 · 6개월</div></div>
+    <div class="card" style="background:var(--mint2);padding:13px 14px">
+      <div class="cap" style="color:#087A54;font-weight:700">사후에 중요했던 것</div>
+      <div style="font:600 13.5px/1.5 var(--font);margin-top:4px">PER이 업종의 1.4배 — 좋은 실적과 전망 상향이 이미 가격에 들어 있었어요</div>
+    </div>
+    <div class="card s" style="padding:12px 14px">
+      <div class="row"><span class="cap" style="font-weight:600;color:var(--t2)">내 근거</span><span class="sp" style="font:700 14px var(--font)">매출 +23% <span class="badge" style="background:#fff;border:1px solid var(--line);color:var(--t3)">재무</span></span></div>
+      <div class="cap" style="margin-top:8px;color:var(--t2);font-weight:600">내 근거는 이 개념과 맞았나요?</div>
+      <div class="row" style="gap:6px;margin-top:6px"><span class="chip" style="flex:1;justify-content:center;padding:7px 0">○ 맞았다</span><span class="chip on" style="flex:1;justify-content:center;padding:7px 0">△ 일부</span><span class="chip" style="flex:1;justify-content:center;padding:7px 0">✕ 달랐다</span></div>
+    </div>
+    <div class="row" style="gap:6px">
+      <div class="card s" style="flex:1;padding:10px"><div class="cap">이 회사</div><div style="font:700 16px var(--font);white-space:nowrap" class="up">▲ +4.8%</div></div>
+      <div class="card s" style="flex:1;padding:10px"><div class="cap">S&amp;P 500</div><div style="font:700 16px var(--font);white-space:nowrap" class="up">▲ +7.1%</div></div>
+      <div class="card s" style="flex:1.15;padding:10px;box-shadow:0 0 0 1.5px var(--down) inset"><div class="cap">시장 대비</div><div style="font:700 16px var(--font);white-space:nowrap" class="down">▼ −2.3%p</div></div>
+    </div>
+    <div class="row"><span class="badge" style="background:var(--down);color:#fff;font-size:12px;padding:4px 9px">뒤짐</span><span class="b2" style="font-size:13px">주가는 올랐지만 시장보다 2.3%p 뒤졌어요</span></div>
+    <div class="ai" style="padding:13px 14px">
+      <div class="row"><svg class="spark"><use href="#i-spark"/></svg><span class="h" style="font-size:14.5px">AI 해설</span></div>
+      <div style="font:500 12.5px/1.55 var(--font);margin-top:6px;color:var(--t1)"><span class="badge lbl-src">출처</span> '매출 +23%'를 핵심 근거로 짚어, 시장 대비 결과와 나란히 되짚어 볼 수 있어요.</div>
+      <div style="font:500 12.5px/1.55 var(--font);margin-top:5px;color:var(--t1)"><span class="badge lbl-inf">추론</span> 다음엔 그 정보가 이미 가격에 들어 있었는지 PER부터 확인해 보세요.</div>
+      <div class="cap" style="margin-top:4px;font-size:11px">AI 해석이에요. 공식 발표된 이유는 아니에요.</div>
+    </div>
+    <div style="margin-top:auto;padding-bottom:30px"><div class="btn g">개념 배우기</div></div>
+  </div>
+  <div class="mark">제안 화면(가정) · 예시 데이터</div>
+</section>
+
+<!-- ============ S6 · 개념 + 자사 콘텐츠(C) ============ -->
+<section class="screen" id="S6">
+  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="ab"><span class="back">‹</span>오늘의 개념</div>
+  <div class="body">
+    <div class="card s">
+      <div class="cap" style="color:#087A54;font-weight:700">숫자 읽기</div>
+      <div class="h" style="font-size:19px;margin-top:2px">밸류에이션 프리미엄</div>
+      <div class="b2" style="margin-top:8px;font-size:13.5px">PER이 업종보다 높다는 건 성장 기대가 이미 가격에 들어 있다는 뜻일 수 있어요. 좋은 실적이 나와도 기대만큼이면 주가는 시장을 못 따라갈 수 있어요.</div>
+    </div>
+    <div class="card s">
+      <div style="font:700 14px/1.45 var(--font)">PER 38, 업종 중앙값 27. 이 숫자가 말하는 것은?</div>
+      <div style="display:grid;gap:7px;margin-top:10px">
+        <div class="chip" style="justify-content:flex-start">싸게 거래되고 있다</div>
+        <div class="chip on" style="justify-content:flex-start"><svg width="16" height="16"><use href="#i-check"/></svg>기대가 이미 가격에 들어 있다</div>
+      </div>
+    </div>
+    <div class="row"><span class="h" style="font-size:16px">이어서 보기</span><span class="cap">하나증권 콘텐츠</span></div>
+    <div style="display:grid;gap:8px">
+      <div class="card s row" style="padding:12px"><div class="tile" style="background:var(--mint);width:42px;height:42px;border-radius:12px"><svg width="22" height="22"><use href="#i-doc"/></svg></div><div><div style="font:700 14px var(--font)">리서치 포인트</div><div class="cap">관련 업종 리서치 요약</div></div><span class="sp" style="color:var(--t4);font-size:20px">›</span></div>
+      <div class="card s row" style="padding:12px"><div class="tile" style="background:#EFEDFE;width:42px;height:42px;border-radius:12px"><svg width="22" height="22"><use href="#i-video"/></svg></div><div><div style="font:700 14px var(--font)">세미나라운지</div><div class="cap">밸류에이션을 다룬 투자전략 영상</div></div><span class="sp" style="color:var(--t4);font-size:20px">›</span></div>
+      <div class="card s row" style="padding:12px"><div class="tile" style="background:#FFECEC;width:42px;height:42px;border-radius:12px"><svg width="22" height="22"><use href="#i-play"/></svg></div><div><div style="font:700 14px var(--font)">하나TV 모닝브리프</div><div class="cap">리서치센터 아침 회의</div></div><span class="sp" style="color:var(--t4);font-size:20px">›</span></div>
+    </div>
+    <div class="tip" style="align-self:flex-start">틀린 개념 바로 뒤에, 자사 채널로</div>
+  </div>
+  <div class="mark">제안 화면(가정) · C 자사 콘텐츠 연결</div>
+</section>
+
+<!-- ============ S7 · 판단 리포트(대시보드) ============ -->
+<section class="screen bg" id="S7">
+  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="ab"><span class="back">‹</span>판단 리포트<div class="r"><span class="pill" style="background:#fff">최근 30일</span></div></div>
+  <div class="body" style="gap:10px">
+    <div class="cap" style="margin-top:-4px">판단 33번 · 실전 근거 메모 3건 포함 · 점수가 아니라 습관을 봐요</div>
+    <div class="card" style="padding:14px">
+      <div class="row"><span class="h" style="font-size:15px">어디에 집중했을 때 잘됐나</span></div>
+      <div class="row cap" style="gap:10px;margin-top:6px;font-weight:600">
+        <span class="row" style="gap:4px"><i style="width:9px;height:9px;border-radius:2px;background:var(--up);display:inline-block"></i>앞섬</span>
+        <span class="row" style="gap:4px"><i style="width:9px;height:9px;border-radius:2px;background:var(--mid);display:inline-block"></i>비슷함</span>
+        <span class="row" style="gap:4px"><i style="width:9px;height:9px;border-radius:2px;background:var(--down);display:inline-block"></i>뒤짐</span>
+      </div>
+      <div style="display:grid;gap:11px;margin-top:10px">
+        <div><div class="row" style="font:600 13px var(--font)">실적·재무 근거<span class="sp cap" style="color:var(--t2)">15번 · 앞섬 9 · 비슷 3 · 뒤짐 3</span></div><div class="stk" style="margin-top:5px"><i class="a" style="width:60%"></i><i class="e" style="width:20%"></i><i class="b" style="width:20%"></i></div></div>
+        <div><div class="row" style="font:600 13px var(--font)">차트 흐름 근거<span class="sp cap" style="color:var(--t2)">12번 · 앞섬 3 · 비슷 2 · 뒤짐 7</span></div><div class="stk" style="margin-top:5px"><i class="a" style="width:25%"></i><i class="e" style="width:16.7%"></i><i class="b" style="width:58.3%"></i></div></div>
+        <div><div class="row" style="font:600 13px var(--font)">당시 상황 근거<span class="sp cap" style="color:var(--t2)">6번 · 앞섬 2 · 비슷 2 · 뒤짐 2</span></div><div class="stk" style="margin-top:5px"><i class="a" style="width:33.3%"></i><i class="e" style="width:33.3%"></i><i class="b" style="width:33.4%"></i></div></div>
+      </div>
+    </div>
+    <div class="ai" style="padding:13px 14px">
+      <div class="row"><svg class="spark"><use href="#i-spark"/></svg><span class="h" style="font-size:14.5px">틀렸다면, 왜</span></div>
+      <div style="font:600 13.5px/1.5 var(--font);margin-top:6px">뒤진 판단 12번 중 7번은 <span style="color:var(--down)">차트 흐름만</span> 근거였어요. 차트가 좋아 보일 때 PER도 함께 확인해 보세요.</div>
+    </div>
+    <div class="card" style="padding:13px 14px">
+      <div class="row"><span class="h" style="font-size:14.5px">확신도와 결과</span></div>
+      <div class="b2" style="font-size:13px;margin-top:4px">확신도 5를 준 판단 8번 중 시장보다 앞선 것은 3번 — 확신이 근거보다 앞서는 편이에요</div>
+    </div>
+    <div class="card" style="padding:13px 14px">
+      <div class="row"><span class="h" style="font-size:14.5px">자주 놓친 개념</span><span class="sp cap" style="color:var(--green);font-weight:700">복습하기 ›</span></div>
+      <div style="display:grid;gap:6px;margin-top:8px;font:600 13px var(--font)">
+        <div class="row"><span style="color:var(--green)">1</span>밸류에이션 프리미엄<span class="sp cap">✕ 4번</span></div>
+        <div class="row"><span style="color:var(--green)">2</span>금리와 성장주 할인율<span class="sp cap">✕ 3번</span></div>
+        <div class="row"><span style="color:var(--green)">3</span>기저확률과 노이즈<span class="sp cap">✕ 2번</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="mark">제안 화면(가정) · 예시 데이터 · 승률·순위 없음</div>
+</section>
+
+<!-- ============ S8 · 주문 근거 메모(D) ============ -->
+<section class="screen" id="S8">
+  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="ab"><span class="back">‹</span>주문<div class="r"><span class="cap">종목 A (예시)</span></div></div>
+  <div class="body">
+    <div class="seg"><span class="on" style="color:var(--up)">매수</span><span>매도</span></div>
+    <div class="card s"><div class="ln"><span>주문 유형</span><b>시장가</b></div><div class="ln"><span>수량</span><b>3주</b></div><div class="ln"><span>예상 금액</span><b>●●●,●●●원</b></div></div>
+  </div>
+  <div class="dim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="row"><span class="h" style="font-size:17px">근거 메모</span><span class="pill">선택</span></div>
+    <div class="b2" style="margin-top:-6px">이번 결정, 무엇을 보고 했나요?</div>
+    <div class="row" style="flex-wrap:wrap;gap:7px">
+      <span class="chip">차트 흐름</span><span class="chip on"><svg width="16" height="16"><use href="#i-check"/></svg>실적·재무</span><span class="chip">둘 다</span><span class="chip">당시 이슈</span>
+    </div>
+    <div class="cap" style="font-weight:600;color:var(--t2)">얼마나 확신하나요?</div>
+    <div class="seg"><span>1</span><span>2</span><span class="on" style="color:var(--green)">3</span><span>4</span><span>5</span></div>
+    <div class="card s row" style="padding:11px 12px;gap:10px"><div class="tile" style="background:#EFEBFE;width:34px;height:34px;border-radius:10px"><svg width="18" height="18"><use href="#i-report"/></svg></div><div class="cap" style="color:var(--t2);font-size:12.5px">판단 리포트에 함께 쌓이고, 3개월 뒤<br>'내 근거 돌아보기'로 알려 드려요</div></div>
+    <div class="row" style="gap:8px"><div class="btn w" style="flex:1;height:50px">건너뛰기</div><div class="btn g" style="flex:1.6;height:50px">남기고 주문</div></div>
+    <div class="cap" style="text-align:center;font-size:11px">추천·예측은 보여 주지 않아요 · 동의 후 저장</div>
+    <div style="text-align:center;font:600 10px var(--font);color:var(--t4)">제안 화면(가정) · D 주문 근거 메모</div>
+  </div>
+  </section>
+
+</body>
+</html>

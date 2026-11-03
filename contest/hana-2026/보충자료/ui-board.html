@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>복기 UI 시안</title>
+<style>
+@font-face { font-family: "Pretendard"; font-weight: 400; src: url("../../../web/public/fonts/Pretendard-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 500; src: url("../../../web/public/fonts/Pretendard-Medium.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 600; src: url("../../../web/public/fonts/Pretendard-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 700; src: url("../../../web/public/fonts/Pretendard-Bold.woff2") format("woff2"); }
+:root {
+  --green: #00A470; --green-d: #087A54; --mint: #D8F4EC; --mint2: #EAF8F2; --bg: #F4F8F8;
+  --t1: #191F28; --t2: #4E5968; --t3: #8B95A1; --line: #E5E8EB;
+  --up: #F83850; --mid: #8B95A1; --down: #2470F4;
+  --font: "Pretendard", system-ui, sans-serif;
+}
+@page { size: A4 landscape; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #dfe3e6; }
+body { font: 400 9pt/1.45 var(--font); color: var(--t1); -webkit-print-color-adjust: exact; print-color-adjust: exact; word-break: keep-all; font-variant-numeric: tabular-nums; }
+.page { width: 297mm; height: 210mm; padding: 9mm 12mm 9mm; background: var(--bg); position: relative; overflow: hidden; break-after: page; display: flex; flex-direction: column; gap: 5mm; margin: 0 auto 6mm; }
+.page:last-child { break-after: auto; margin-bottom: 0; }
+@media print { html, body { background: var(--bg); } .page { margin: 0; } }
+.top { display: flex; justify-content: space-between; align-items: flex-end; }
+.eyebrow { font: 700 8pt var(--font); color: var(--green-d); letter-spacing: .04em; display: flex; align-items: center; gap: 2mm; }
+.eyebrow::before { content: ""; width: 2.4mm; height: 2.4mm; border-radius: .6mm; background: var(--green); }
+h1 { font: 700 22pt/1.2 var(--font); letter-spacing: -0.03em; margin-top: 1.4mm; }
+h1 .g { color: var(--green); }
+.lead { font: 500 10pt/1.5 var(--font); color: var(--t2); text-align: right; }
+.lead b { color: var(--t1); }
+.phone { display: block; width: 100%; height: auto; filter: drop-shadow(0 2mm 4mm rgba(25,31,40,.08)); }
+.num { display: inline-flex; align-items: center; justify-content: center; width: 6mm; height: 6mm; border-radius: 50%; background: var(--green); color: #fff; font: 700 8.6pt var(--font); flex: none; }
+.step h3 { display: flex; align-items: center; gap: 1.8mm; font: 700 11pt/1.3 var(--font); letter-spacing: -0.015em; margin-top: 3mm; }
+.step ul { list-style: none; margin-top: 1.6mm; display: grid; gap: .9mm; }
+.step li { font-size: 8.4pt; line-height: 1.42; color: var(--t2); padding-left: 3mm; position: relative; }
+.step li::before { content: ""; position: absolute; left: 0; top: 1.9mm; width: 1.2mm; height: 1.2mm; border-radius: 50%; background: var(--green); }
+.arrow { position: absolute; top: 40%; right: -4.6mm; width: 4mm; text-align: center; color: var(--green); font: 700 13pt var(--font); }
+.white { background: #fff; border-radius: 4mm; padding: 4mm 5mm; }
+.pr { display: grid; grid-template-columns: 7mm 1fr; gap: 2mm; align-items: start; }
+.pr b { font: 700 10pt var(--font); display: block; }
+.pr span { font-size: 8.4pt; color: var(--t2); line-height: 1.42; }
+.ico { width: 7mm; height: 7mm; border-radius: 2mm; background: var(--mint); color: var(--green-d); font: 700 9pt/7mm var(--font); text-align: center; }
+.pin { position: absolute; right: -3mm; width: 6mm; height: 6mm; border-radius: 50%; background: var(--green); color: #fff; font: 700 8.6pt/6mm var(--font); text-align: center; box-shadow: 0 0 0 1.2mm rgba(0,164,112,.18); }
+.co { display: grid; grid-template-columns: 6mm 1fr; gap: 2.4mm; align-items: start; }
+.co b { font: 700 10.4pt/1.3 var(--font); display: block; letter-spacing: -0.01em; }
+.co > div > span { font-size: 8.6pt; line-height: 1.45; color: var(--t2); display: block; margin-top: .6mm; }
+.sw { display: flex; flex-direction: column; gap: 1mm; font-size: 7.4pt; color: var(--t2); }
+.sw i { display: block; width: 100%; height: 5.6mm; border-radius: 1.6mm; }
+.sw b { color: var(--t1); font-size: 7.8pt; }
+.foot { position: absolute; left: 12mm; right: 12mm; bottom: 3.8mm; display: flex; justify-content: space-between; font-size: 6.6pt; color: var(--t3); }
+</style>
+</head>
+<body>
+
+<!-- ================= 1쪽 · 학습 흐름 ================= -->
+<section class="page">
+  <div class="top">
+    <div>
+      <div class="eyebrow">UI/UX 시안 · 하나증권V 디자인 문법 적용(제안)</div>
+      <h1>보고 → 고르고 → 되짚고 → <span class="g">배운다</span></h1>
+    </div>
+    <div class="lead">간편모드 첫 화면에서 시작하는 하루 5분<br><b>한 화면에 한 동작, 카드 3장 + 복습 2개</b></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6mm">
+    <div class="step" style="position:relative"><img class="phone" src="mock/S1.png" alt=""><span class="arrow">›</span>
+      <h3><span class="num">1</span>MTS 홈에서 바로</h3>
+      <ul><li>AI 시황 카드 자리에 '오늘의 복기'</li><li>빠른 메뉴에 '복기' 타일(NEW)</li><li>연습 일수·어제 틀린 개념으로 다시 부름</li></ul></div>
+    <div class="step" style="position:relative"><img class="phone" src="mock/S2.png" alt=""><span class="arrow">›</span>
+      <h3><span class="num">2</span>오늘 할 일 한눈에</h3>
+      <ul><li>카드 3칸 + 복습 2칸 진행 띠</li><li>네 갈래 개념 길(잠금 없음)</li><li>판단 리포트·복습으로 바로 가기</li></ul></div>
+    <div class="step" style="position:relative"><img class="phone" src="mock/S3.png" alt=""><span class="arrow">›</span>
+      <h3><span class="num">3</span>세 판을 한 카드에</h3>
+      <ul><li>흐름(차트)·숫자(재무)·그때(상황) 탭</li><li>집중 보기: 판을 가려 '차트만'·'실적만'</li><li>판단 전엔 결과색(빨강·파랑) 없음</li></ul></div>
+    <div class="step" style="position:relative"><img class="phone" src="mock/S4.png" alt=""><span class="arrow">›</span>
+      <h3><span class="num">4</span>근거를 골라야 열림</h3>
+      <ul><li>근거 칩마다 출처 판(재무·차트·상황)</li><li>확신도 1~5, 기본값 없음</li><li>질문은 '시장보다 앞설까'</li></ul></div>
+    <div class="step"><img class="phone" src="mock/S5.png" alt="">
+      <h3><span class="num">5</span>결과보다 근거 먼저</h3>
+      <ul><li>중요했던 것 → 내 근거 → 결과 순서</li><li>앞섬·뒤짐·비슷함(±1%p) 배지</li><li>AI 해설 문장마다 출처·추론</li></ul></div>
+  </div>
+
+  <div class="white" style="display:grid;grid-template-columns:repeat(4,1fr);gap:5mm;margin-top:auto">
+    <div class="pr"><span class="ico">1</span><div><b>하나증권V 문법 그대로</b><span>흰 카드·파스텔 타일·초록 말풍선·AI 그라데이션 카드</span></div></div>
+    <div class="pr"><span class="ico">2</span><div><b>한 화면에 한 동작</b><span>하단 고정 주 버튼 하나, 다음 할 일이 늘 보임</span></div></div>
+    <div class="pr"><span class="ico">3</span><div><b>결과색은 결과에서만</b><span>판단 전 화면엔 빨강·파랑이 없어 결과를 암시하지 않음</span></div></div>
+    <div class="pr"><span class="ico">4</span><div><b>보상 대신 습관</b><span>XP·리그·하트 없이 진행 띠·연습 일수·복습 일정</span></div></div>
+  </div>
+  <div class="foot"><span>제안 화면(가정)이며 하나증권 실제 화면이 아닙니다 · 카드 자료는 예시 데이터</span><span>UI 시안 1 / 2</span></div>
+</section>
+
+<!-- ================= 2쪽 · 회고와 연결 ================= -->
+<section class="page">
+  <div class="top">
+    <div>
+      <div class="eyebrow">UI/UX 시안 · 회고와 연결</div>
+      <h1>쌓이면 보인다 — <span class="g">판단 리포트</span></h1>
+    </div>
+    <div class="lead">매매일지를 쓰지 않아도 판단할 때마다 저절로 쌓이는 회고<br><b>약점은 복습과 하나증권 콘텐츠로 이어짐</b></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:74mm 66mm 1fr;gap:7mm;flex:1;min-height:0">
+    <!-- S7 + 핀 -->
+    <div style="position:relative;align-self:start">
+      <img class="phone" src="mock/S7.png" alt="판단 리포트">
+      <span class="pin" style="top:24%">1</span>
+      <span class="pin" style="top:46%">2</span>
+      <span class="pin" style="top:57.5%">3</span>
+      <span class="pin" style="top:70%">4</span>
+    </div>
+    <!-- 설명 -->
+    <div style="display:flex;flex-direction:column;gap:5mm;padding-top:6mm">
+      <div class="co"><span class="num">1</span><div><b>어디에 집중했을 때 잘됐나</b><span>근거 유형(실적·차트·상황)별로 시장보다 앞섬·비슷함·뒤짐 횟수를 누적 막대로. 승률 %·순위는 보여 주지 않음</span></div></div>
+      <div class="co"><span class="num">2</span><div><b>틀렸다면, 왜</b><span>뒤진 판단의 공통점을 AI가 한 문장으로("뒤진 12번 중 7번은 차트 흐름만 근거"). 횟수만 쓰고 단정하지 않음</span></div></div>
+      <div class="co"><span class="num">3</span><div><b>확신도와 결과</b><span>확신이 근거보다 앞서는지 뒤처지는지 문장으로 보정</span></div></div>
+      <div class="co"><span class="num">4</span><div><b>자주 놓친 개념 → 복습</b><span>○△✕에서 '달랐다'가 많은 개념을 복습 일정과 자사 콘텐츠로 연결</span></div></div>
+      <div class="white" style="margin-top:auto;padding:3.4mm 4mm">
+        <div style="font:700 9.4pt var(--font)">데이터가 쌓일수록</div>
+        <div style="font-size:8.4pt;color:var(--t2);line-height:1.45;margin-top:1mm">개인에게는 다른 앱으로 옮기기 어려운 '나만의 투자 데이터'(락인), 회사에는 동의·가명 처리된 개인투자자 판단 데이터 → 투자심리 AI 고도화</div>
+      </div>
+    </div>
+    <!-- S6 · S8 + 토큰 -->
+    <div style="display:flex;flex-direction:column;gap:4mm;min-height:0">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5mm">
+        <div class="step"><img class="phone" src="mock/S6.png" alt="" style="width:90%;margin:0 auto">
+          <h3 style="font-size:10pt"><span class="num">C</span>틀린 개념 → 자사 콘텐츠</h3>
+          <ul><li>리서치 포인트·세미나라운지·하나TV로 이어보기</li></ul></div>
+        <div class="step"><img class="phone" src="mock/S8.png" alt="" style="width:90%;margin:0 auto">
+          <h3 style="font-size:10pt"><span class="num">D</span>주문 전 근거 메모</h3>
+          <ul><li>선택 입력, 리포트에 함께 쌓여 실전 회고로</li></ul></div>
+      </div>
+      <div class="white" style="padding:3mm 4mm;margin-top:auto">
+        <div style="font:700 8.6pt var(--font);margin-bottom:2mm">디자인 토큰</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2mm">
+          <div class="sw"><i style="background:#00A470"></i><b>Green</b>#00A470</div>
+          <div class="sw"><i style="background:#D8F4EC"></i><b>Mint</b>#D8F4EC</div>
+          <div class="sw"><i style="background:#F4F8F8;border:1px solid var(--line)"></i><b>Base</b>#F4F8F8</div>
+          <div class="sw"><i style="background:linear-gradient(120deg,#E9E6FC,#DDF2F7,#DCECFC)"></i><b>AI</b>그라데이션</div>
+          <div class="sw"><i style="background:#F83850"></i><b>앞섬</b>#F83850</div>
+          <div class="sw"><i style="background:#8B95A1"></i><b>비슷함</b>#8B95A1</div>
+          <div class="sw"><i style="background:#2470F4"></i><b>뒤짐</b>#2470F4</div>
+        </div>
+        <div style="font-size:7.4pt;color:var(--t3);margin-top:1.6mm">Pretendard 22·16·13·12 / 카드 반경 18 · 칩 12 · 버튼 14 / 색만으로 구분하지 않게 막대마다 횟수 라벨</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>제안 화면(가정)이며 하나증권 실제 화면이 아닙니다 · 리포트 수치는 예시 데이터</span><span>UI 시안 2 / 2</span></div>
+</section>
+
+</body>
+</html>

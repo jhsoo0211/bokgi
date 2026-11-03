@@ -2,357 +2,305 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>투자형 듀오링고 복기</title>
+<title>투자형 듀오링고 복기 — 기획 요약</title>
 <style>
 @font-face { font-family: "Pretendard"; font-weight: 400; src: url("../../../web/public/fonts/Pretendard-Regular.woff2") format("woff2"); }
 @font-face { font-family: "Pretendard"; font-weight: 500; src: url("../../../web/public/fonts/Pretendard-Medium.woff2") format("woff2"); }
 @font-face { font-family: "Pretendard"; font-weight: 600; src: url("../../../web/public/fonts/Pretendard-SemiBold.woff2") format("woff2"); }
 @font-face { font-family: "Pretendard"; font-weight: 700; src: url("../../../web/public/fonts/Pretendard-Bold.woff2") format("woff2"); }
-
+/* 하나증권V 화면(사용자 제공 캡처)에서 뽑은 토큰. 로고·상표 이미지는 쓰지 않는다. */
 :root {
-  --paper: #fbfbf9; --white: #ffffff; --soft: #f1f0ea;
-  --ink: #1c1b1a; --ink-2: #6b6a66; --ink-3: #cfcdc5; --dot: #9a9890;
-  --hana: #008485; --hana-d: #006b6a; --hana-t: #e5f3f2;   /* 강조: 해결·핵심에만 */
-  --red: #d7263d;                                              /* 문제 숫자에만 */
-  --desk: #e9e8e2;
+  --green: #00A470; --green-d: #087A54; --mint: #D8F4EC; --mint2: #EAF8F2; --bg: #F4F8F8; --soft: #F2F4F6;
+  --t1: #191F28; --t2: #4E5968; --t3: #8B95A1; --t4: #B0B8C1; --line: #E5E8EB;
+  --up: #F83850; --mid: #8B95A1; --down: #2470F4;
+  --ai: linear-gradient(120deg, #E9E6FC 0%, #DDF2F7 55%, #DCECFC 100%);
   --font: "Pretendard", system-ui, sans-serif;
 }
 @page { size: A4 landscape; margin: 0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { background: var(--desk); }
-body { font: 400 9.5pt/1.45 var(--font); color: var(--ink); -webkit-print-color-adjust: exact; print-color-adjust: exact; font-variant-numeric: tabular-nums; word-break: keep-all; }
-.page { width: 297mm; height: 210mm; padding: 8mm 12mm 9mm; background: var(--paper); position: relative; overflow: hidden; break-after: page; display: flex; flex-direction: column; gap: 4.5mm; margin: 0 auto 6mm; }
+html, body { background: #dfe3e6; }
+body { font: 400 9pt/1.45 var(--font); color: var(--t1); -webkit-print-color-adjust: exact; print-color-adjust: exact; word-break: keep-all; font-variant-numeric: tabular-nums; }
+.page { width: 297mm; height: 210mm; padding: 8mm 12mm 9mm; background: var(--bg); position: relative; overflow: hidden; break-after: page; display: flex; flex-direction: column; gap: 4mm; margin: 0 auto 6mm; }
 .page:last-child { break-after: auto; margin-bottom: 0; }
-@media print { html, body { background: var(--paper); } .page { margin: 0; } }
+@media print { html, body { background: var(--bg); } .page { margin: 0; } }
 
-.head { display: flex; align-items: center; justify-content: space-between; font-size: 7.6pt; color: var(--ink-2); }
-.head .pg { display: flex; align-items: center; gap: 2mm; font: 700 9.4pt var(--font); color: var(--ink); }
-.head .pg .no { color: #fff; background: var(--hana); padding: .3mm 2.2mm; border-radius: 1mm; }
-.title { display: flex; align-items: flex-end; justify-content: space-between; gap: 8mm; border-bottom: 2px solid var(--ink); padding-bottom: 3mm; }
-.title h1 { font: 700 23pt/1.15 var(--font); letter-spacing: -0.03em; }
-.title h1 .g { color: var(--hana); }
-.title .sub { font: 600 12.5pt/1.4 var(--font); color: var(--ink-2); letter-spacing: -0.015em; margin-top: 1.4mm; }
-.title .sub b { color: var(--ink); }
-.title .side { text-align: right; font: 500 9.6pt/1.5 var(--font); color: var(--ink-2); flex: none; }
-.title .side b { color: var(--ink); }
+.head { display: flex; justify-content: space-between; align-items: center; font-size: 7.6pt; color: var(--t3); }
+.head .tag { display: flex; align-items: center; gap: 2mm; font: 700 9.4pt var(--font); color: var(--t1); }
+.head .tag i { font-style: normal; color: #fff; background: var(--green); border-radius: 1.2mm; padding: .3mm 2.2mm; }
+.title { display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; }
+.title h1 { font: 700 22pt/1.18 var(--font); letter-spacing: -0.03em; }
+.title h1 .g { color: var(--green); }
+.title .sub { font: 600 12pt/1.4 var(--font); color: var(--t2); letter-spacing: -0.015em; margin-top: 1.2mm; }
+.title .sub b { color: var(--t1); }
+.title .side { text-align: right; font: 500 9.4pt/1.5 var(--font); color: var(--t3); flex: none; }
+.title .side b { color: var(--t1); }
 
-.lb { font: 700 8pt var(--font); color: var(--hana-d); letter-spacing: .02em; margin-bottom: 1.2mm; display: flex; align-items: center; gap: 1.6mm; }
-.lb::before { content: ""; width: 2.2mm; height: 2.2mm; background: var(--hana); border-radius: .5mm; }
-h2 { font: 700 13.5pt/1.3 var(--font); letter-spacing: -0.02em; margin-bottom: 2.4mm; }
-h3 { font: 700 10.5pt/1.3 var(--font); letter-spacing: -0.01em; }
-.mut { color: var(--ink-2); }
-.src { font-size: 6.8pt; color: var(--ink-2); line-height: 1.35; }
-.g { color: var(--hana); }
-.gd { color: var(--hana-d); }
-.r { color: var(--red); }
-.box { background: var(--white); border: 1.5px solid var(--ink); border-radius: 1.6mm; padding: 4mm 4.4mm; }
-.box.g-line { border-color: var(--hana); border-width: 2px; }
-.box.tint { background: var(--hana-t); border: none; }
-.box.soft { background: var(--soft); border: none; }
-.grid { display: grid; gap: 4.5mm; }
-.row { display: flex; gap: 4mm; }
-.mark { background: linear-gradient(transparent 58%, #c6e8e5 58%); }
-
-.phone { border: 1.5px solid var(--ink); border-radius: 2.6mm; overflow: hidden; background: var(--paper); position: relative; }
-.phone img, .shot img { display: block; width: 100%; height: auto; }
-.shot { border: 1.5px solid var(--ink); border-radius: 1.4mm; overflow: hidden; background: #fff; }
-.ex { position: absolute; right: 1.2mm; bottom: 1.2mm; font: 600 5.8pt var(--font); color: var(--ink-2); background: #fff; border: 1px solid var(--ink-3); padding: .2mm 1mm; border-radius: .8mm; }
-.prop { position: absolute; top: 1.4mm; right: 1.4mm; font: 700 6.2pt var(--font); color: var(--hana-d); border: 1px solid var(--hana); background: #fff; padding: .2mm 1.2mm; border-radius: .8mm; z-index: 1; }
-.num { display: inline-flex; align-items: center; justify-content: center; width: 6mm; height: 6mm; border-radius: 50%; background: var(--hana); color: #fff; font: 700 8.6pt var(--font); flex: none; }
-.cap { margin-top: 2.2mm; }
-.cap .t { display: flex; align-items: center; gap: 1.8mm; font: 700 11pt/1.25 var(--font); letter-spacing: -0.015em; }
-.cap .d { margin-top: 1mm; font-size: 8.6pt; line-height: 1.4; color: var(--ink-2); }
-
-/* 1쪽 흐름 비교 */
-.lane { display: grid; grid-template-columns: 17mm 1fr; gap: 2.4mm; align-items: center; }
-.lane .who { font: 700 9pt/1.25 var(--font); }
-.steps { display: flex; align-items: center; gap: 1.6mm; }
-.steps .s { flex: 1; text-align: center; padding: 3.4mm 1mm; border-radius: 1.4mm; font: 700 10.4pt/1.25 var(--font); }
-.steps .ar { font: 700 11pt var(--font); color: var(--ink-3); flex: none; }
-.lane.old .s { background: var(--soft); color: var(--ink-2); border: 1.2px dashed var(--ink-3); }
-.lane.new .s { background: var(--hana); color: #fff; }
-.lane.new .ar { color: var(--hana); }
-.pts { display: grid; grid-template-columns: 1fr 1fr; gap: 2.2mm 4mm; }
-.pt { display: flex; gap: 2mm; align-items: flex-start; }
-.pt b { display: block; font: 700 10.4pt/1.3 var(--font); }
-.pt span.d { display: block; font-size: 8.4pt; color: var(--ink-2); line-height: 1.38; margin-top: .4mm; }
-.big { display: flex; align-items: baseline; gap: 2.2mm; }
-.big .v { font: 700 30pt/1 var(--font); letter-spacing: -0.03em; }
-.big .l { font-size: 9.6pt; line-height: 1.35; }
-.bar { height: 3.2mm; border-radius: 0 1mm 1mm 0; background: var(--ink); }
-.bar.w { background: var(--ink-3); }
-.why { display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 5mm; align-items: center; }
-.why .it { display: flex; gap: 2.4mm; align-items: flex-start; font-size: 9pt; line-height: 1.4; }
-.why .it b { display: block; font-size: 10pt; }
-
-/* 2쪽 */
-.chain { display: flex; align-items: center; gap: 1.6mm; flex-wrap: wrap; }
-.chain .c { border: 1.5px solid var(--hana); color: var(--hana-d); background: #fff; border-radius: 1.2mm; padding: 1.2mm 1.4mm; font: 700 8.2pt/1.25 var(--font); text-align: center; }
-.chain .c.f { background: var(--hana); color: #fff; }
-.chain .ar { color: var(--hana); font: 700 11pt var(--font); }
-.ent { display: grid; grid-template-columns: 6mm 1fr; gap: 2.2mm; align-items: start; font-size: 9pt; line-height: 1.38; }
-.ent b { font-size: 10pt; }
-.ba { display: grid; grid-template-columns: 1fr 5mm 1.2fr; gap: 3mm 1.2mm; align-items: center; font-size: 9.4pt; line-height: 1.35; }
-.ba .b { color: var(--ink-2); }
-.ba .ar { color: var(--hana); font: 700 11pt var(--font); text-align: center; }
-.ba .a { font-weight: 700; }
-.step { border-left: 2.4px solid var(--hana); padding-left: 3mm; }
-.step .w { font: 700 7.8pt var(--font); color: var(--hana-d); }
-.step b { font-size: 10.4pt; }
-.step .d { font-size: 8.4pt; color: var(--ink-2); line-height: 1.38; }
-.tag { display: inline-block; font: 600 7.8pt/1 var(--font); border: 1px solid var(--ink); border-radius: 1mm; padding: 1mm 1.8mm; margin: 0 1mm 1mm 0; background: #fff; }
-
-.mock { background: var(--paper); padding: 2.4mm; font-size: 7.6pt; line-height: 1.4; height: 100%; display: flex; flex-direction: column; gap: 1.6mm; }
-.mock .top { font-weight: 700; font-size: 7.8pt; border-bottom: 1.5px solid var(--ink); padding-bottom: 1mm; padding-right: 11mm; }
-.mock .ln { display: flex; justify-content: space-between; border-bottom: 1px dotted var(--dot); padding: .7mm 0; }
-.mock .sheet { margin-top: auto; background: #fff; border: 1.5px solid var(--ink); border-radius: 1.6mm 1.6mm 0 0; padding: 2mm; display: flex; flex-direction: column; gap: 1.4mm; }
-.mock .chips { display: flex; gap: 1.1mm; }
-.mock .chips span { border: 1.2px solid var(--ink); padding: .6mm 1mm; font-weight: 600; background: #fff; white-space: nowrap; font-size: 7pt; }
-.mock .chips span.on { border-color: var(--hana); background: var(--hana); color: #fff; }
-.mock .conf { display: flex; gap: .9mm; }
-.mock .conf span { flex: 1; text-align: center; border: 1.2px solid var(--ink); padding: .5mm 0; font-weight: 700; }
-.mock .conf span.on { background: var(--ink); color: #fff; }
-.mock .btn { text-align: center; padding: 1.2mm 0; font-weight: 700; background: var(--ink); color: #fff; }
-
-/* 3쪽 */
-.eff { display: grid; gap: 4mm; }
-.eff .k { font: 700 8.6pt var(--font); color: var(--hana-d); }
-.eff .t { font: 700 16pt/1.2 var(--font); letter-spacing: -0.025em; margin-top: .8mm; }
-.eff .d { font-size: 9.4pt; line-height: 1.42; color: var(--ink-2); margin-top: 1.2mm; }
-.chk { display: grid; grid-template-columns: 6.6mm 1fr; gap: 4.6mm 2.4mm; font-size: 11.2pt; align-items: center; }
-.chk i { font-style: normal; width: 6.2mm; height: 6.2mm; border-radius: 50%; background: var(--hana); color: #fff; font: 700 9pt/6.2mm var(--font); text-align: center; }
-.chk i.p { background: #fff; color: var(--ink-2); border: 1.4px dashed var(--ink-2); line-height: 5.8mm; }
-.rs { display: grid; grid-template-columns: 32mm 1fr; font-size: 10.6pt; line-height: 1.42; }
-.rs > * { padding: 4.4mm 0; border-bottom: 1px dotted var(--dot); }
+.card { background: #fff; border-radius: 4mm; padding: 4mm 4.4mm; }
+.card.g { box-shadow: 0 0 0 .6mm var(--green) inset; }
+.card.ai { background: var(--ai); }
+.card.mint { background: var(--mint2); }
+.lb { font: 700 8pt var(--font); color: var(--green-d); display: flex; align-items: center; gap: 1.6mm; margin-bottom: 1.6mm; letter-spacing: .02em; }
+.lb::before { content: ""; width: 2.2mm; height: 2.2mm; border-radius: .6mm; background: var(--green); }
+h2 { font: 700 13pt/1.3 var(--font); letter-spacing: -0.02em; }
+h3 { font: 700 10.6pt/1.3 var(--font); letter-spacing: -0.015em; }
+.mut { color: var(--t3); }
+.t2 { color: var(--t2); }
+.src { font-size: 6.6pt; color: var(--t3); line-height: 1.35; }
+.g { color: var(--green); } .gd { color: var(--green-d); } .up { color: var(--up); } .down { color: var(--down); }
+.grid { display: grid; gap: 4mm; }
+.row { display: flex; gap: 3mm; align-items: center; }
+.ico { width: 9mm; height: 9mm; border-radius: 3mm; display: flex; align-items: center; justify-content: center; flex: none; font: 700 11pt var(--font); }
+.num { display: inline-flex; align-items: center; justify-content: center; width: 5.6mm; height: 5.6mm; border-radius: 50%; background: var(--green); color: #fff; font: 700 8.2pt var(--font); flex: none; }
+.phone { display: block; width: 100%; height: auto; }
+.big { font: 700 24pt/1 var(--font); letter-spacing: -0.03em; }
+.pill { display: inline-flex; align-items: center; padding: 1mm 2.4mm; border-radius: 999px; font: 700 7.8pt var(--font); background: var(--mint); color: var(--green-d); }
+.flow { display: flex; align-items: center; gap: 1.6mm; }
+.flow .s { flex: 1; text-align: center; padding: 2.6mm 1mm; border-radius: 2.4mm; font: 700 9.4pt/1.25 var(--font); }
+.flow .ar { flex: none; font: 700 11pt var(--font); color: var(--t4); }
+.flow.old .s { background: var(--soft); color: var(--t3); }
+.flow.new .s { background: var(--green); color: #fff; }
+.flow.new .ar { color: var(--green); }
+.cap b { display: flex; align-items: center; gap: 1.6mm; font: 700 10pt/1.3 var(--font); letter-spacing: -0.01em; margin-top: 2mm; }
+.cap > span { display: block; font-size: 8pt; line-height: 1.4; color: var(--t2); margin-top: .8mm; }
+.chips { display: flex; gap: 1.4mm; flex-wrap: wrap; }
+.chips span { background: var(--soft); border-radius: 2mm; padding: 1.2mm 2mm; font: 600 7.8pt var(--font); color: var(--t1); }
+.chips span.g2 { background: var(--mint); color: var(--green-d); }
+.ba { display: grid; grid-template-columns: 1fr 5mm 1.15fr; gap: 2.6mm 1mm; align-items: center; font-size: 9pt; line-height: 1.38; }
+.ba .b { color: var(--t3); } .ba .ar { color: var(--green); font: 700 11pt var(--font); text-align: center; } .ba .a { font-weight: 700; }
+.step { border-left: .7mm solid var(--green); padding-left: 3mm; }
+.step .w { font: 700 7.6pt var(--font); color: var(--green-d); }
+.step b { font-size: 10pt; display: block; }
+.step span { font-size: 8.2pt; color: var(--t2); line-height: 1.38; }
+.chk { display: grid; grid-template-columns: 5.4mm 1fr; gap: 2.6mm 2mm; align-items: center; font-size: 8.6pt; }
+.chk i { font-style: normal; width: 5mm; height: 5mm; border-radius: 50%; background: var(--green); color: #fff; font: 700 7.6pt/5mm var(--font); text-align: center; }
+.chk i.p { background: #fff; color: var(--t3); box-shadow: 0 0 0 .3mm var(--t3) inset; }
+.rs { display: grid; grid-template-columns: 27mm 1fr; font-size: 8.8pt; line-height: 1.4; }
+.rs > * { padding: 2.2mm 0; border-bottom: .2mm solid var(--line); }
 .rs .k { font-weight: 700; }
-.foot { position: absolute; left: 12mm; right: 12mm; bottom: 3.8mm; display: flex; justify-content: space-between; font-size: 6.6pt; color: var(--ink-2); }
+.node { background: #fff; border-radius: 3mm; padding: 2.6mm 3mm; text-align: center; font: 700 9.2pt/1.3 var(--font); box-shadow: 0 0 0 .3mm var(--line) inset; }
+.node small { display: block; font: 500 7.6pt/1.35 var(--font); color: var(--t2); margin-top: .6mm; }
+.node.g { background: var(--green); color: #fff; box-shadow: none; } .node.g small { color: #DDF7EC; }
+.node.ai { background: var(--ai); box-shadow: none; }
+.ar2 { color: var(--green); font: 700 12pt var(--font); text-align: center; align-self: center; }
+.eff .k { font: 700 7.8pt var(--font); color: var(--green-d); }
+.eff .t { font: 700 13pt/1.2 var(--font); letter-spacing: -0.02em; margin-top: .6mm; }
+.eff .d { font-size: 8.2pt; line-height: 1.4; color: var(--t2); margin-top: .8mm; }
+.shot { border-radius: 2mm; overflow: hidden; box-shadow: 0 0 0 .3mm var(--line); background: #fff; }
+.shot img { display: block; width: 100%; height: auto; }
+.p2phones .phone { width: 80%; margin: 0 auto; }
+.fix { margin-top: auto; background: var(--mint2); border-radius: 2.4mm; padding: 2mm 2.6mm; font: 600 8.6pt/1.4 var(--font); color: var(--t1); }
+.fix b { color: var(--green-d); margin-right: 1mm; }
+.foot { position: absolute; left: 12mm; right: 12mm; bottom: 3.8mm; display: flex; justify-content: space-between; font-size: 6.6pt; color: var(--t3); }
 </style>
 </head>
 <body>
 
 <!-- ================= 1쪽 · 배경과 핵심 아이디어 ================= -->
 <section class="page">
-  <div class="head">
-    <div>하나증권 제1회 청년 금융 아이디어 공모전 · 01 더 편리한 금융</div>
-    <div class="pg"><span class="no">1</span>배경과 핵심 아이디어</div>
-  </div>
+  <div class="head"><span>하나증권 제1회 청년 금융 아이디어 공모전 · 01 더 편리한 금융</span><span class="tag"><i>1</i>배경과 핵심 아이디어</span></div>
   <div class="title">
     <div>
       <h1><span class="g">투자형 듀오링고</span> '복기'</h1>
-      <div class="sub">차트만 보고 맞히지 않는다. <b>차트·실적·당시 상황 중 근거를 골라 먼저 판단</b>하고, 결과로 배운다</div>
+      <div class="sub">차트만 보고 맞히는 공부에서, <b>상황·차트·재무제표로 근거를 골라 판단하는 공부</b>로</div>
     </div>
-    <div class="side">복기(復棋) — 끝난 판을 되짚어 보는 일<br><b>하루 5분 · 카드 3장 · 하나 MTS 안에서</b></div>
+    <div class="side">복기(復棋) — 끝난 판을 되짚어 보는 일<br><b>하루 5분 · 카드 3장 · 하나증권V 안에서</b></div>
   </div>
 
-  <div class="grid" style="grid-template-columns: 80mm 1fr; flex:1; min-height:0">
-    <!-- 불편·위험 -->
-    <div class="box" style="display:flex;flex-direction:column">
-      <div class="lb">불편 · 위험</div>
-      <h2>보고서는 있는데, 못 읽는다</h2>
-      <div class="mut" style="font-size:8.4pt">증권사 보고서를 덜 읽는 이유</div>
-      <div class="big" style="margin-top:1.6mm"><span class="v r">39.6%</span><span class="l"><b>분량이 많아서</b></span></div>
-      <div class="big" style="margin-top:2mm"><span class="v r" style="font-size:24pt">28.8%</span><span class="l"><b>필요한 정보를 찾기 어려워서</b></span></div>
-      <div style="font-size:8.6pt;margin-top:1.6mm">'신뢰하지 않아서'는 14.9%뿐</div>
-      <div class="src" style="margin-top:.8mm">리멤버리서치, 30·40대 금융투자자 1,005명(2026.8)</div>
-      <div style="margin-top:4mm;padding-top:3mm;border-top:1px dotted var(--dot)">
-        <div class="mut" style="font-size:8.4pt">그래서 투자 정보는 쉬운 곳에서</div>
-        <div style="display:grid;grid-template-columns:20mm 1fr 11mm;gap:1.6mm 2mm;align-items:center;font-size:8.8pt;margin-top:1.6mm">
-          <span>유튜브</span><div class="bar" style="width:100%"></div><b style="text-align:right">37.4%</b>
-          <span>증권사 보고서</span><div class="bar w" style="width:39%"></div><b style="text-align:right">14.6%</b>
+  <div class="grid" style="grid-template-columns: 1.32fr 1fr; flex:1; min-height:0">
+    <!-- 불편·위험 네 갈래 -->
+    <div style="display:flex;flex-direction:column;gap:2mm;min-height:0">
+      <div class="lb" style="margin:0">불편 · 위험 — 네 가지 빈틈</div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:3.4mm;flex:1;min-height:0">
+        <div class="card" style="display:flex;flex-direction:column;gap:1.6mm">
+          <div class="row"><span class="ico" style="background:#FFF1E6;color:#F07B2B">1</span><h3>공부는 차트만 본다</h3></div>
+          <div style="font:700 14pt/1.25 var(--font);letter-spacing:-0.02em;margin-top:1mm">가려진 차트로 <span class="mut">"오를까?"</span></div>
+          <div style="font-size:8.6pt;line-height:1.42" class="t2">당시 금리·이슈 + 차트 + 재무제표를 <b style="color:var(--t1)">함께 놓고 판단하는 학습 앱은 찾기 어려움</b> → 한쪽만 보고 사는 습관</div>
+          <div class="fix"><b>복기는 →</b>세 판(흐름·숫자·그때)을 한 카드에, 근거는 직접 선택</div>
         </div>
-        <div class="src" style="margin-top:1mm">피앰아이, 20~59세 1,000명(2026.6) · 서울신문 2026.9.14 보도</div>
+        <div class="card" style="display:flex;flex-direction:column;gap:1.4mm">
+          <div class="row"><span class="ico" style="background:#FEECEE;color:var(--up)">2</span><h3>보고서는 있는데 못 읽는다</h3></div>
+          <div class="row" style="gap:4mm;align-items:baseline;margin-top:.6mm"><span class="big up">39.6%</span><span style="font-size:8.6pt"><b>분량이 많아서</b></span></div>
+          <div class="row" style="gap:4mm;align-items:baseline"><span class="big up" style="font-size:19pt">28.8%</span><span style="font-size:8.6pt"><b>필요한 정보를 찾기 어려워서</b></span></div>
+          <div style="font-size:8.2pt" class="t2">불신은 14.9%뿐 — 질이 아니라 <b style="color:var(--t1)">소화 방식</b>의 문제</div>
+          <div class="src">증권사 보고서를 덜 읽는 이유 · 리멤버리서치, 30·40대 금융투자자 1,005명</div>
+          <div class="fix"><b>복기는 →</b>핵심만 카드 한 장, 분량은 정보 수준으로 조절</div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;gap:1.4mm">
+          <div class="row"><span class="ico" style="background:#EAF1FE;color:var(--down)">3</span><h3>자사 콘텐츠로 가는 길이 없다</h3></div>
+          <div class="row" style="gap:2.4mm;align-items:baseline;margin-top:.6mm"><span class="big">37.4%</span><span style="font-size:8.6pt">유튜브</span><span class="mut" style="font:700 11pt var(--font)">vs</span><span class="big mut" style="font-size:19pt">14.6%</span><span style="font-size:8.6pt">증권사 보고서</span></div>
+          <div style="font-size:8.6pt;line-height:1.42" class="t2">MTS 안에 리서치·세미나라운지·하나TV가 있어도 <b style="color:var(--t1)">'지금 모르는 것'과 이어 주는 동선이 없어</b> 외부로 빠짐</div>
+          <div class="src">투자 정보 출처 · 피앰아이, 20~59세 1,000명 · 서울신문 2026.9.14</div>
+          <div class="fix"><b>복기는 →</b>틀린 개념 직후 리서치·세미나라운지·하나TV로 연결</div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;gap:1.6mm">
+          <div class="row"><span class="ico" style="background:#EFEBFE;color:#7B6CF0">4</span><h3>왜 샀는지 돌아보지 않는다</h3></div>
+          <div style="font:700 14pt/1.25 var(--font);letter-spacing:-0.02em;margin-top:1mm">매매일지는 <span class="mut">쓰다 멈춤</span></div>
+          <div style="font-size:8.6pt;line-height:1.42" class="t2">쓰는 부담에 비해 돌아오는 게 없어 회고가 이어지지 않음 → 무엇을 잘못 읽었는지 몰라 <b style="color:var(--t1)">같은 실수를 반복</b></div>
+          <div class="src">배경: 20대 재무 점검 55.8→33.2점(2022→2024, 한국은행·금융감독원)</div>
+          <div class="fix"><b>복기는 →</b>판단할 때마다 저절로 쌓이는 '판단 리포트'</div>
+        </div>
       </div>
-      <div style="margin-top:auto;font:700 10.6pt/1.4 var(--font)">정보가 없는 게 아니라,<br><span class="mark">판단으로 잇는 법</span>을 모른다</div>
     </div>
 
     <!-- 핵심 아이디어 -->
-    <div class="box g-line" style="display:grid;grid-template-columns:1fr 50mm;gap:5mm">
-      <div style="display:flex;flex-direction:column;gap:3.4mm">
-        <div>
-          <div class="lb">핵심 아이디어</div>
-          <h2 style="font-size:15pt;line-height:1.38;margin-bottom:0">결과를 가린 실제 과거 사례로<br><span class="mark">차트·실적 중 근거를 직접 골라</span> 먼저 판단하고,<br>결과를 되짚어 개념을 배우는 <span class="g">투자형 듀오링고</span></h2>
+    <div class="card g" style="display:grid;grid-template-columns:1fr 46mm;gap:4mm">
+      <div style="display:flex;flex-direction:column;gap:3mm">
+        <div class="lb" style="margin:0">핵심 아이디어</div>
+        <div style="font:700 13pt/1.42 var(--font);letter-spacing:-0.02em">결과를 가린 실제 과거 사례로<br><span style="background:linear-gradient(transparent 58%,#BFEBDB 58%)">상황·차트·재무 중 근거를 골라</span><br>먼저 판단하고, 결과로 배운다</div>
+        <div style="display:grid;gap:2mm;margin-top:1mm">
+          <div class="cap" style="font:700 7.8pt var(--font);color:var(--t3)">기존 차트 앱</div>
+          <div class="flow old"><span class="s">차트만</span><span class="ar">→</span><span class="s">오를까?</span><span class="ar">→</span><span class="s">끝</span></div>
+          <div style="font:700 7.8pt var(--font);color:var(--green-d)">복기</div>
+          <div class="flow new"><span class="s" style="flex:1.45">상황·차트<br>·재무</span><span class="ar">→</span><span class="s">근거<br>고르기</span><span class="ar">→</span><span class="s">결과<br>되짚기</span><span class="ar">→</span><span class="s">리포트<br>·복습</span></div>
         </div>
-        <div style="display:grid;gap:3.2mm;margin-top:1.4mm">
-          <div class="lane old"><span class="who mut">기존<br>차트 앱</span><div class="steps"><span class="s">차트만 보고</span><span class="ar">→</span><span class="s">오를까?</span><span class="ar">→</span><span class="s">맞음 / 틀림</span><span class="ar">→</span><span class="s">끝</span></div></div>
-          <div class="lane new"><span class="who g">복기</span><div class="steps"><span class="s">차트·실적<br>·그때</span><span class="ar">→</span><span class="s">근거 고르기</span><span class="ar">→</span><span class="s">시장 대비 결과</span><span class="ar">→</span><span class="s">개념·복습</span></div></div>
-        </div>
-        <div class="pts" style="margin-top:auto">
-          <div class="pt"><span class="num">1</span><span><b>차트만이 아니다</b><span class="d">기술적 분석·재무제표·금리와 이슈를 한 카드에</span></span></div>
-          <div class="pt"><span class="num">2</span><span><b>근거는 내가 고른다</b><span class="d">차트 / 실적 / 둘 다 — 골라야 판단이 열림</span></span></div>
-          <div class="pt"><span class="num">3</span><span><b>보고 싶은 것만 남긴다</b><span class="d">정보는 다 주고, 판·항목은 가릴 수 있음</span></span></div>
-          <div class="pt"><span class="num">4</span><span><b>맞히기가 아니라 배움</b><span class="d">적중률·랭킹 없이, 틀린 뒤 개념과 간격 복습</span></span></div>
+        <div style="display:grid;gap:2.2mm;margin-top:auto">
+          <div class="row" style="align-items:flex-start"><span class="num">1</span><div style="font-size:8.4pt;line-height:1.38"><b style="font-size:9.6pt;display:block">종합 판단</b>사전 정보·차트·재무제표를 한 카드에</div></div>
+          <div class="row" style="align-items:flex-start"><span class="num">2</span><div style="font-size:8.4pt;line-height:1.38"><b style="font-size:9.6pt;display:block">보고 싶은 것만</b>정보는 다 주고, 판·항목은 가릴 수 있음</div></div>
+          <div class="row" style="align-items:flex-start"><span class="num">3</span><div style="font-size:8.4pt;line-height:1.38"><b style="font-size:9.6pt;display:block">점수 대신 근거</b>시장 대비 앞섬·뒤짐·비슷함, 랭킹 없음</div></div>
+          <div class="row" style="align-items:flex-start"><span class="num">4</span><div style="font-size:8.4pt;line-height:1.38"><b style="font-size:9.6pt;display:block">회고가 저절로</b>쌓인 판단 → 리포트·복습·자사 콘텐츠</div></div>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column">
-        <div class="phone" style="height:100mm"><img src="screens/06-gate.jpg" alt="근거 고르기 화면"><span class="ex">예시 데이터</span></div>
-        <div class="cap"><div class="t" style="font-size:9.6pt">근거를 골라야 판단이 열린다</div><div class="d" style="font-size:7.8pt">질문은 '오를까'가 아니라 '시장보다 앞설까'</div></div>
-      </div>
+      <div style="display:flex;flex-direction:column;justify-content:center"><img class="phone" src="mock/S4.png" alt="근거 고르기 화면"></div>
     </div>
   </div>
 
   <!-- 기회 발견 -->
-  <div class="box tint why" style="padding:3.4mm 4.4mm">
-    <div class="lb" style="margin:0;font-size:9pt">기회 발견 · 왜 지금</div>
-    <div class="it"><span class="num">!</span><span><b>투자 전 교육이 제도로</b>2025.12부터 해외 고위험 상품 사전교육 의무화</span></div>
-    <div class="it"><span class="num">!</span><span><b>간편 → 프로 징검다리</b>하나증권V의 간편·프로모드 사이를 잇는 학습</span></div>
-    <div class="it"><span class="num">!</span><span><b>AI 정보의 사실·추론 구분</b>AI로 정보를 얻는 투자자가 늘어남(15.6%)</span></div>
+  <div class="card ai" style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:5mm;align-items:center;padding:3.2mm 4.4mm">
+    <div class="lb" style="margin:0;font-size:8.6pt">기회 발견 · 왜 지금</div>
+    <div class="row" style="align-items:flex-start"><span class="num">1</span><div style="font-size:8.6pt;line-height:1.4"><b style="font-size:9.6pt;display:block">투자 전 교육이 제도로</b>2025.12 해외 고위험 상품 사전교육 의무화</div></div>
+    <div class="row" style="align-items:flex-start"><span class="num">2</span><div style="font-size:8.6pt;line-height:1.4"><b style="font-size:9.6pt;display:block">간편 → 프로 징검다리</b>2026.9 하나증권V 간편·프로모드 출시</div></div>
+    <div class="row" style="align-items:flex-start"><span class="num">3</span><div style="font-size:8.6pt;line-height:1.4"><b style="font-size:9.6pt;display:block">'판단' 데이터는 빈칸</b>투자심리 AI(공포탐욕시그널, 2025.9)는 있음</div></div>
   </div>
-  <div class="foot"><span>화면은 복기 웹 베타의 실제 화면이며 카드 자료는 예시 데이터입니다.</span><span>1 / 3</span></div>
+  <div class="foot"><span>화면은 제안 화면(가정)이며 카드 자료는 예시 데이터입니다.</span><span>1 / 3</span></div>
 </section>
 
 <!-- ================= 2쪽 · 구체화와 실행 ================= -->
 <section class="page">
-  <div class="head">
-    <div>하나증권 제1회 청년 금융 아이디어 공모전 · 01 더 편리한 금융 · 투자형 듀오링고 '복기'</div>
-    <div class="pg"><span class="no">2</span>구체화와 실행</div>
-  </div>
-  <div class="title" style="padding-bottom:2.4mm">
-    <h1 style="font-size:21pt">보고 → 고르고 → 되짚고 → <span class="g">배운다</span></h1>
-    <div class="side">하루 5분 · 카드 3장 + 복습 2개<br><b>XP·리그·하트 없이 학습 흐름만</b></div>
+  <div class="head"><span>하나증권 제1회 청년 금융 아이디어 공모전 · 01 더 편리한 금융 · 투자형 듀오링고 '복기'</span><span class="tag"><i>2</i>구체화와 실행</span></div>
+  <div class="title">
+    <div><h1 style="font-size:20pt">하루 5분, 카드 3장 — <span class="g">판단이 쌓여 리포트가 된다</span></h1></div>
+    <div class="side">보고 → 고르고 → 되짚고 → 쌓인다<br><b>XP·리그·하트 없이 학습 흐름만</b></div>
   </div>
 
   <div>
-    <div class="lb">아이디어 구성 — 실제 화면</div>
-    <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:7mm">
-      <div><div class="phone" style="height:47mm"><img src="screens/02-card-flow.jpg" alt=""><span class="ex">예시 데이터</span></div>
-        <div class="cap"><div class="t"><span class="num">1</span>보고: 세 판을 한 카드에</div><div class="d">흐름(차트) · 숫자(재무) · 그때(금리·이슈)</div></div></div>
-      <div><div class="phone" style="height:47mm"><img src="screens/06-gate.jpg" alt=""><span class="ex">예시 데이터</span></div>
-        <div class="cap"><div class="t"><span class="num">2</span>고르고: 근거·확신도</div><div class="d">차트·실적·상황 중 무엇을 봤는지 기록</div></div></div>
-      <div><div class="phone" style="height:47mm"><img src="screens/07-reveal-top.jpg" alt=""><span class="ex">예시 데이터</span></div>
-        <div class="cap"><div class="t"><span class="num">3</span>되짚고: 결과 공개</div><div class="d">중요했던 것 → 내 근거 → 시장 대비 결과</div></div></div>
-      <div><div class="phone" style="height:47mm"><img src="screens/09-concepts-path.jpg" alt=""></div>
-        <div class="cap"><div class="t"><span class="num">4</span>배운다: 개념·복습</div><div class="d">개념 20개, 1·3·7·21일 간격 복습</div></div></div>
+    <div class="lb">아이디어 구성</div>
+    <div class="grid p2phones" style="grid-template-columns:repeat(5,1fr);gap:7mm">
+      <div><img class="phone" src="mock/S1.png" alt=""><div class="cap"><b><span class="num">A</span>MTS 홈에서 시작</b><span>간편모드 첫 화면 '오늘의 복기'</span></div></div>
+      <div><img class="phone" src="mock/S3.png" alt=""><div class="cap"><b><span class="num">1</span>세 판을 한 카드에</b><span>흐름·숫자·그때, 판 가리기</span></div></div>
+      <div><img class="phone" src="mock/S4.png" alt=""><div class="cap"><b><span class="num">2</span>근거를 골라야 열림</b><span>근거 칩 + 확신도, 시장 대비</span></div></div>
+      <div><img class="phone" src="mock/S5.png" alt=""><div class="cap"><b><span class="num">3</span>결과보다 근거 먼저</b><span>중요했던 것 → 내 근거 → 결과</span></div></div>
+      <div><img class="phone" src="mock/S7.png" alt=""><div class="cap"><b><span class="num">4</span>판단 리포트</b><span>어디에 집중했을 때 잘됐나</span></div></div>
     </div>
   </div>
 
-  <div class="grid" style="grid-template-columns: 1.55fr 0.62fr 1fr; flex:1; min-height:0">
-    <!-- MTS 연결 -->
-    <div class="box g-line" style="display:grid;grid-template-columns:1fr 38mm;gap:4mm;padding:3.2mm 4mm">
-      <div style="display:flex;flex-direction:column;gap:2mm">
-        <div class="lb" style="margin:0">하나 MTS 연결 — 학습에서 실전으로</div>
-        <div class="ent"><span class="num">A</span><span><b>메인 '복기' 메뉴</b> <span class="mut">오늘의 카드 3장 + 복습</span></span></div>
-        <div class="ent"><span class="num">B</span><span><b>첫 주문 전 '첫 투자 준비'</b> <span class="mut">개념 5개 + 카드 3장</span></span></div>
-        <div class="ent"><span class="num">C</span><span><b>틀린 개념 → 하나증권 콘텐츠로 이어보기</b> <span class="mut">외부 유튜브 대신</span></span></div>
-        <div class="chain" style="margin-left:8.2mm;flex-wrap:nowrap">
-          <span class="c" style="flex:1">하나증권V<br>리서치 포인트</span><span class="c" style="flex:1">세미나라운지<br>영상</span><span class="c" style="flex:1">주제별<br>리서치 구독</span><span class="c" style="flex:1">하나TV<br>모닝브리프</span>
-        </div>
-        <div class="ent"><span class="num">D</span><span><b>주문 전 '근거 메모'(선택)</b> <span class="mut">무엇을 보고 샀나 → 뒤에 돌아보기</span></span></div>
-      </div>
-      <div class="phone" style="height:100%"><span class="prop">D · 제안</span>
-        <div class="mock">
-          <div class="top">매수 주문</div>
-          <div class="ln"><span>수량</span><b>3주</b></div>
-          <div class="sheet">
-            <b>근거 메모 <span class="mut" style="font-weight:500">(선택)</span></b>
-            <span class="mut">무엇을 보고 결정했나요?</span>
-            <div class="chips"><span>차트</span><span class="on">실적</span><span>둘 다</span></div>
-            <div class="conf"><span>1</span><span>2</span><span class="on">3</span><span>4</span><span>5</span></div>
-            <div class="btn">남기고 주문</div>
-          </div>
-        </div></div>
+  <div class="grid" style="grid-template-columns:1.3fr 1fr 0.9fr;flex:1;min-height:0">
+    <div class="card g" style="display:flex;flex-direction:column;gap:2.2mm">
+      <div class="lb" style="margin:0">하나 MTS 연결</div>
+      <div class="row" style="align-items:flex-start;font-size:8.8pt"><span class="num">A</span><span><b>메인 '복기'</b> <span class="t2">간편모드 홈·빠른 메뉴에서 오늘의 카드 3장</span></span></div>
+      <div class="row" style="align-items:flex-start;font-size:8.8pt"><span class="num">B</span><span><b>첫 주문 전 '첫 투자 준비'</b> <span class="t2">개념 5개 + 카드 3장</span></span></div>
+      <div class="row" style="align-items:flex-start;font-size:8.8pt"><span class="num">C</span><span><b>약점 개념 → 자사 콘텐츠</b></span></div>
+      <div class="chips" style="margin-left:8.6mm"><span class="g2">하나증권V 리서치 포인트·AI 브리핑</span><span class="g2">세미나라운지 영상</span><span class="g2">주제별 리서치 구독</span><span class="g2">하나TV 모닝브리프</span></div>
+      <div class="row" style="align-items:flex-start;font-size:8.8pt"><span class="num">D</span><span><b>주문 전 '근거 메모'(선택)</b> <span class="t2">리포트에 함께 쌓여 실전 회고로</span></span></div>
     </div>
-
-    <!-- 보고 싶은 것만 -->
-    <div class="box" style="padding:3.4mm 3.4mm;display:flex;flex-direction:column">
-      <div class="lb">보고 싶은 것만</div>
-      <div class="grid" style="grid-template-columns:1fr 1fr;gap:2.2mm;align-items:start">
-        <div><div class="shot"><img src="screens/10-numbers-basic-card.jpg" alt=""></div><div style="text-align:center;font:700 8.8pt var(--font);margin-top:1mm">초급</div></div>
-        <div><div class="shot"><img src="screens/10-numbers-advanced-card.jpg" alt=""></div><div style="text-align:center;font:700 8.8pt var(--font);margin-top:1mm">고급</div></div>
-      </div>
-      <div style="font-size:8.2pt;line-height:1.38;margin-top:auto" class="mut">재무 정보 깊이를 고르고, <b style="color:var(--ink)">판 단위로 가려</b> '차트만'·'실적만'도 연습</div>
-    </div>
-
-    <!-- 경험의 변화 -->
-    <div class="box" style="padding:3.4mm 4mm">
+    <div class="card" style="display:flex;flex-direction:column">
       <div class="lb">경험의 변화</div>
       <div class="ba">
-        <span class="b">영상·차트 하나 보고 "오를 것 같아서"</span><span class="ar">→</span><span class="a">차트·실적을 같은 틀로 보고 근거를 남긴 뒤 판단</span>
-        <span class="b">긴 리포트·모르는 지표에 막힘</span><span class="ar">→</span><span class="a">지표 옆 개념 카드, 이어서 자사 리서치</span>
-        <span class="b">손실 뒤 원인을 모름</span><span class="ar">→</span><span class="a">일지·근거 메모로 근거와 결과 확인</span>
+        <span class="b">차트 하나·영상 한마디로 "오를 것 같아서"</span><span class="ar">→</span><span class="a">상황·차트·실적을 같은 틀로 보고 근거를 남김</span>
+        <span class="b">긴 리포트에 막혀 유튜브로</span><span class="ar">→</span><span class="a">개념 카드, 이어서 자사 리서치·영상</span>
+        <span class="b">매매일지는 쓰다 멈춤</span><span class="ar">→</span><span class="a">판단할 때마다 쌓이는 리포트</span>
       </div>
     </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:2.4mm">
+      <div class="lb" style="margin:0">실행 방안 <span class="mut" style="font-weight:500;letter-spacing:0">(가정)</span></div>
+      <div class="step"><div class="w">0~3개월</div><b>파일럿</b><span>웹 베타 + 실제 사례 30장 시범</span></div>
+      <div class="step"><div class="w">3~6개월</div><b>MTS 탑재</b><span>웹뷰로 A·C·판단 리포트</span></div>
+      <div class="step"><div class="w">6~12개월</div><b>학습 → 실전</b><span>B·D, 동의 기반 데이터 AI 활용 검토</span></div>
+      <div class="src" style="margin-top:auto">협업: MTS 개발 · 리서치센터 · 소비자보호·준법 · 정보보호 · 데이터·AI · 마케팅</div>
+    </div>
   </div>
-
-  <!-- 실행 방안 -->
-  <div class="box soft" style="display:grid;grid-template-columns:24mm 1fr 1fr 1fr 70mm;gap:5mm;align-items:center;padding:3mm 4.4mm">
-    <div class="lb" style="margin:0;font-size:9pt">실행 방안</div>
-    <div class="step"><div class="w">0~3개월</div><b>파일럿</b><div class="d">웹 베타 + 실제 사례 30장 시범 운영</div></div>
-    <div class="step"><div class="w">3~6개월</div><b>MTS 탑재</b><div class="d">웹뷰로 '복기' 메뉴(A)·콘텐츠 연결(C)</div></div>
-    <div class="step"><div class="w">6~12개월</div><b>학습 → 실전</b><div class="d">첫 투자 준비(B)·근거 메모(D)</div></div>
-    <div style="font-size:7.8pt"><b>협업(가정)</b><br><span class="tag">MTS 개발</span><span class="tag">리서치센터</span><span class="tag">소비자보호·준법</span><span class="tag">정보보호</span><span class="tag">마케팅</span></div>
-  </div>
-  <div class="foot"><span>1~4는 복기 웹 베타의 실제 화면(예시 데이터), 'D · 제안'은 공모용 제안 화면입니다(하나 MTS 실제 화면 아님).</span><span>2 / 3</span></div>
+  <div class="foot"><span>화면은 제안 화면(가정)이며 하나증권 실제 화면이 아닙니다 · 카드·리포트 수치는 예시 데이터</span><span>2 / 3</span></div>
 </section>
 
 <!-- ================= 3쪽 · 기대효과와 실현 가능성 ================= -->
 <section class="page">
-  <div class="head">
-    <div>하나증권 제1회 청년 금융 아이디어 공모전 · 01 더 편리한 금융 · 투자형 듀오링고 '복기'</div>
-    <div class="pg"><span class="no">3</span>기대효과와 실현 가능성</div>
-  </div>
-  <div class="title" style="padding-bottom:2.4mm">
-    <h1 style="font-size:21pt">핵심 기능은 <span class="g">이미 동작</span> — MTS 웹뷰로 옮긴다</h1>
-    <div class="side">추천·예측 없이<br><b>근거를 훈련하는 투자 학습</b></div>
+  <div class="head"><span>하나증권 제1회 청년 금융 아이디어 공모전 · 01 더 편리한 금융 · 투자형 듀오링고 '복기'</span><span class="tag"><i>3</i>기대효과와 실현 가능성</span></div>
+  <div class="title">
+    <div><h1 style="font-size:20pt">쌓일수록 커진다 — <span class="g">손님에겐 실력, 회사엔 데이터</span></h1></div>
+    <div class="side">핵심 기능은 웹 베타로 이미 동작<br><b>MTS 웹뷰로 옮긴다</b></div>
   </div>
 
-  <div class="grid" style="grid-template-columns: 1.3fr 1fr">
-    <div class="box g-line">
-      <div class="lb">기대효과 · 회사</div>
-      <div class="eff" style="grid-template-columns:repeat(4,1fr)">
-        <div><div class="k">신규 고객</div><div class="t">첫 계좌·첫 거래</div><div class="d">2030이 '배우며 시작하는' MTS 첫 화면</div></div>
-        <div><div class="k">재방문</div><div class="t">매일 5분</div><div class="d">하루 세션과 복습 일정이 돌아올 이유</div></div>
-        <div><div class="k">자사 콘텐츠</div><div class="t">리서치·영상 활용</div><div class="d">외부 유튜브 대신 자사 채널로</div></div>
-        <div><div class="k">소비자보호</div><div class="t">위험 이해 상시</div><div class="d">투자 전 학습 장치를 MTS 안에</div></div>
+  <div class="grid" style="grid-template-columns:1.55fr 1fr">
+    <!-- 회사: 데이터 선순환 -->
+    <div class="card g">
+      <div class="lb">기대효과 · 회사 — 데이터 선순환</div>
+      <div style="display:grid;grid-template-columns:1fr 5mm 1fr 5mm 1fr 5mm 1fr;gap:1mm;align-items:stretch">
+        <div class="node">매일 판단<small>카드 3장 + 주문 근거 메모</small></div><span class="ar2">→</span>
+        <div class="node">판단 리포트<small>약점 확인 · 쌓일수록 락인</small></div><span class="ar2">→</span>
+        <div class="node">자사 콘텐츠<small>리서치·세미나라운지·하나TV</small></div><span class="ar2">→</span>
+        <div class="node g">재방문·첫 거래<small>2030 신규 고객 안착</small></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 5mm 1.4fr 5mm 1.2fr;gap:1mm;margin-top:2.6mm;align-items:stretch">
+        <div class="node" style="background:var(--soft);box-shadow:none">동의 · 가명 처리<small>별도 동의한 판단 데이터만</small></div><span class="ar2">→</span>
+        <div class="node ai">개인투자자 '판단' 데이터<small>근거 선택 · 확신도 · 결과</small></div><span class="ar2">→</span>
+        <div class="node ai">투자심리 AI 고도화<small>공포탐욕시그널 · 맞춤 교육·보호</small></div>
+      </div>
+      <div class="eff" style="display:grid;grid-template-columns:repeat(4,1fr);gap:3.4mm;margin-top:3.4mm">
+        <div><div class="k">신규 고객</div><div class="t">배우며 시작</div><div class="d">투자를 망설이던 2030의 첫 화면</div></div>
+        <div><div class="k">재방문 · 락인</div><div class="t">매일 5분</div><div class="d">옮기기 어려운 '나만의 투자 데이터'</div></div>
+        <div><div class="k">자사 콘텐츠</div><div class="t">외부 대신 자사로</div><div class="d">약점 직후 리서치·영상 연결</div></div>
+        <div><div class="k">AI 데이터 자산</div><div class="t">판단 패턴</div><div class="d">시장 심리에 개인 판단을 더함</div></div>
       </div>
     </div>
-    <div class="box">
+    <!-- 손님 -->
+    <div class="card">
       <div class="lb">기대효과 · 손님</div>
-      <div class="eff" style="grid-template-columns:repeat(3,1fr)">
-        <div><div class="k">편의성</div><div class="t">5분, 한 카드</div><div class="d">흩어진 차트·재무·시황을 한 틀로</div></div>
-        <div><div class="k">안전성</div><div class="t">돈 넣기 전에</div><div class="d">과거 사례로 위험을 먼저 경험</div></div>
-        <div><div class="k">신뢰</div><div class="t">내 근거로</div><div class="d">추천 대신 판단 훈련, AI 근거 표시</div></div>
+      <div class="eff" style="display:flex;flex-direction:column;justify-content:space-around;height:calc(100% - 6mm)">
+        <div class="row" style="align-items:flex-start"><span class="ico" style="background:var(--mint);color:var(--green-d);width:8mm;height:8mm">5'</span><div><div class="t" style="margin:0;font-size:13pt">한 카드, 하루 5분</div><div class="d">흩어진 상황·차트·재무를 한 틀로, 분량은 정보 수준으로</div></div></div>
+        <div class="row" style="align-items:flex-start"><span class="ico" style="background:#FEECEE;color:var(--up);width:8mm;height:8mm">!</span><div><div class="t" style="margin:0;font-size:13pt">돈 넣기 전에 경험</div><div class="d">과거 사례로 변동과 위험을 먼저, 추종 매매 대신 내 근거</div></div></div>
+        <div class="row" style="align-items:flex-start"><span class="ico" style="background:#EFEBFE;color:#7B6CF0;width:8mm;height:8mm">↗</span><div><div class="t" style="margin:0;font-size:13pt">약점이 데이터로</div><div class="d">"실적을 근거로 할 때 앞섬이 많고, 차트만 볼 때 자주 뒤진다"</div></div></div>
       </div>
     </div>
   </div>
 
-  <div class="grid" style="grid-template-columns: 1fr 1.15fr 0.85fr; flex:1; min-height:0">
-    <div class="box" style="display:flex;flex-direction:column">
-      <div class="lb">실현 가능성 · 이미 동작하는 것</div>
-      <div class="chk" style="margin-top:1.6mm">
-        <i>✓</i><span>세 판 카드(차트·재무·당시 상황)</span>
-        <i>✓</i><span>근거·확신도를 골라야 열리는 판단</span>
-        <i>✓</i><span>정보 수준 4단계 · 9개 묶음 켜고 끄기</span>
-        <i>✓</i><span>결과 공개 · AI 해설 문장 라벨</span>
-        <i>✓</i><span>개념 20개 · 간격 복습 · 판단 일지</span>
-        <i>✓</i><span>판단 전 결과 누수 자동 검사</span>
-        <i class="p">+</i><span class="mut">제안: 판 가리기 · MTS 진입점 A~D</span>
+  <div class="grid" style="grid-template-columns:1.15fr 1.1fr 0.85fr;flex:1;min-height:0">
+    <div class="card" style="display:grid;grid-template-columns:1fr 40mm;gap:4mm">
+      <div style="display:flex;flex-direction:column">
+        <div class="lb">실현 가능성 · 이미 동작</div>
+        <div class="chk">
+          <i>✓</i><span>세 판 카드 · 근거·확신도 게이트</span>
+          <i>✓</i><span>정보 수준 4단계 · 9개 묶음</span>
+          <i>✓</i><span>결과 공개 · AI 해설 문장 라벨</span>
+          <i>✓</i><span>개념 20 · 간격 복습 · 판단 일지</span>
+          <i>✓</i><span>판단 전 결과 누수 자동 검사</span>
+          <i class="p">+</i><span class="mut">제안: 판단 리포트 화면 · MTS 연결 A~D</span>
+        </div>
+        <div class="src" style="margin-top:auto">웹 베타: Next.js + PostgreSQL, 모바일 기준 → MTS 웹뷰 탑재</div>
       </div>
-      <div class="src" style="margin-top:auto">웹 베타: Next.js + PostgreSQL, 모바일 화면 기준 → MTS 웹뷰 탑재 가능</div>
+      <div style="display:flex;flex-direction:column;gap:1.4mm">
+        <div class="src" style="font-weight:700;color:var(--t2)">지금 동작하는 웹 베타</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.6mm">
+          <div class="shot"><img src="screens/06-gate.jpg" alt=""></div>
+          <div class="shot"><img src="screens/12-journal-insights.jpg" alt=""></div>
+        </div>
+        <div class="src">실제 화면 캡처 · 예시 데이터</div>
+      </div>
     </div>
-
-    <div class="box" style="display:flex;flex-direction:column">
+    <div class="card" style="display:flex;flex-direction:column">
       <div class="lb">실현 가능성 · 제약과 해결</div>
       <div class="rs">
         <span class="k">투자권유 오인</span><span>종료된 과거 사례만, 종목 추천·매매 신호 없음, 준법감시 사전 심의</span>
-        <span class="k">AI 오류·누수</span><span>판단 전 문장은 사람이 작성, 누수 필터, 서버가 준 숫자만 말함</span>
+        <span class="k">데이터 활용</span><span>학습 기록 최소 수집, 근거 메모·AI 활용은 별도 동의 후 가명 처리</span>
+        <span class="k">AI 오류·누수</span><span>판단 전 문장은 사람이 작성, 누수 필터, 서버가 준 숫자만</span>
         <span class="k">시세 이용 조건</span><span>판단 시점 = 100인 지수로 표시, 보유 시세 이용권·공공데이터</span>
-        <span class="k">개인정보</span><span>학습 기록 최소 수집, 근거 메모는 동의 후 저장·가명 처리</span>
+        <span class="k">게임화</span><span>리포트는 승률 점수가 아니라 분포·횟수, 랭킹·경품 없음</span>
       </div>
-      <div style="margin-top:auto;font-size:8.6pt" class="mut">적중률 점수·랭킹·경품이 없어 사행성 우려도 낮음</div>
     </div>
-
-    <div class="box soft" style="display:flex;flex-direction:column;gap:2.4mm">
+    <div class="card" style="display:flex;flex-direction:column;gap:2mm;background:#fff">
       <div class="lb" style="margin:0">AI 활용 · 참고자료</div>
-      <div style="font-size:8.6pt;line-height:1.45">
-        <b>서비스 안 AI</b><br>질문자(판단 전, 정답·결과 언급 금지) · 해설자(판단 뒤, 단정 금지, 문장마다 출처·추론 표시)
-      </div>
-      <div class="shot" style="width:88%"><img src="screens/07-explain.jpg" alt="AI 해설 문장 라벨"></div>
-      <div style="font-size:8.6pt;line-height:1.45">
-        <b>기획서 작성</b><br>Claude(Anthropic)·Gemini(Google) — 자료 조사 정리·문장 다듬기·보충자료 편집 보조
-      </div>
-      <div class="src" style="font-size:7pt;line-height:1.5;margin-top:auto">
-        한국은행·금융감독원 「2024 전국민 금융이해력 조사」 · 금융감독원 해외 고위험 상품 사전교육·모의거래 의무화(2025.12) · 서울신문 「불신 쌓는 리서치」(2026.9.14) · 하나증권V 출시(2026.9.7) · 세미나라운지 오픈(2026.1.27) · 하나증권 모바일 리서치 개편(2024.11) · DART · SEC EDGAR · 공공데이터포털
-      </div>
+      <div style="font-size:8.2pt;line-height:1.45"><b>서비스</b> 질문자(판단 전, 근거 되묻기) · 해설자(판단 후, 단정 금지·출처/추론 표시)</div>
+      <div style="font-size:8.2pt;line-height:1.45"><b>작성</b> Claude(Anthropic)·Gemini(Google) — 자료 조사 정리·문장 다듬기·보충자료 편집 보조</div>
+      <div style="font-size:8pt;line-height:1.45;background:var(--soft);border-radius:2mm;padding:2mm 2.4mm"><b>AI 문구 원칙</b><br><span class="up">금지</span> "~ 때문에 올랐습니다"(단정), "AI 분석 결과 ~"(권위)<br><span class="g">사용</span> "AI 해석이에요. 공식 발표된 이유는 아니에요."</div>
+      <div class="src" style="line-height:1.5;margin-top:auto">한국은행·금감원 「2024 전국민 금융이해력 조사」 · 금감원 사전교육·모의거래 의무화(2025.12) · 서울신문 「불신 쌓는 리서치」(2026.9.14, 리멤버리서치·피앰아이) · 하나증권V(2026.9.7) · 세미나라운지(2026.1.27) · 모바일 리서치 개편(2024.11) · 공포탐욕시그널(2025.9.18) 보도</div>
     </div>
   </div>
   <div class="foot"><span>복기는 종목을 추천하지 않으며, 종료된 과거 사례로 판단을 훈련하는 교육 서비스입니다.</span><span>3 / 3</span></div>
