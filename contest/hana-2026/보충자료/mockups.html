@@ -20,9 +20,14 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; word-break: keep-all; font-variant-numeric: tabular-nums; }
-.screen { width: 360px; height: 760px; border-radius: 46px; border: 10px solid #EEF0F2; background: var(--card); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+.screen { width: 362px; height: 780px; border-radius: 58px; border: 12px solid #121315; background: var(--card); overflow: hidden; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 0 2px #5A5E64, 0 0 0 3px #2A2C30; }
+.screen::after { content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 100px; height: 29px; border-radius: 16px; background: #000; z-index: 40; }
+.device { position: relative; padding: 18px 16px 30px; display: inline-block; }
+.device .btn-l, .device .btn-r { position: absolute; width: 4px; border-radius: 2px; background: linear-gradient(90deg, #3A3D42, #6A6E75); }
+.device .btn-l { left: 11px; } .device .btn-r { right: 11px; }
 .screen.bg { background: var(--bg); }
-.sb { height: 34px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 22px 0 26px; font: 600 13px var(--font); }
+.sb { height: 48px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 2px 24px 0 34px; font: 600 15px var(--font); letter-spacing: -0.01em; }
+.sb .ic { display: flex; gap: 5px; align-items: center; }
 .sb i { display: inline-block; width: 22px; height: 10px; border: 1.5px solid var(--t1); border-radius: 3px; position: relative; }
 .sb i::after { content: ""; position: absolute; inset: 1.5px 5px 1.5px 1.5px; background: var(--t1); border-radius: 1px; }
 .body { flex: 1; overflow: hidden; padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
@@ -70,7 +75,7 @@ body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display:
 .mark { position: absolute; left: 50%; transform: translateX(-50%); bottom: 8px; font: 600 10px var(--font); color: var(--t4); background: rgba(255,255,255,.85); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
 .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 24px 24px 0 0; box-shadow: 0 -8px 30px rgba(25,31,40,.14); padding: 10px 18px 22px; display: flex; flex-direction: column; gap: 12px; }
 .sheet .grab { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 2px; }
-.dim { position: absolute; inset: 34px 0 0 0; background: rgba(25,31,40,.38); }
+.dim { position: absolute; inset: 48px 0 0 0; background: rgba(25,31,40,.38); }
 /* 누적 막대 */
 .stk { display: flex; height: 14px; border-radius: 7px; overflow: hidden; gap: 2px; background: #fff; }
 .stk i { display: block; height: 100%; }
@@ -100,7 +105,7 @@ body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display:
 
 <!-- ============ S1 · MTS 홈 진입(A) ============ -->
 <section class="screen bg" id="S1">
-  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="sb"><span>9:41</span><span class="ic"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#191F28"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#191F28"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#191F28"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#191F28"/></svg><svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0z" fill="#191F28"/><path d="M3.6 6.8a6.4 6.4 0 0 1 8.8 0l1.5-1.8a8.8 8.8 0 0 0-11.8 0z" fill="#191F28"/><path d="M.6 3.3a10.8 10.8 0 0 1 14.8 0L16.9 1.5a13.2 13.2 0 0 0-17.8 0z" fill="#191F28"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#191F28" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#191F28"/><rect x="24.6" y="4.2" width="1.8" height="4.6" rx=".9" fill="#191F28" opacity=".45"/></svg></span></div>
   <div class="ab" style="font-size:14px;font-weight:600;gap:6px">
     <span>코스피</span><span style="color:var(--up)">2,915.30 +0.42%</span>
     <div class="r" style="gap:12px;font-size:14px"><span class="pill g" style="padding:4px 8px">간편</span><span>검색</span><span>알림</span></div>
@@ -133,7 +138,7 @@ body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display:
 
 <!-- ============ S2 · 복기 홈 ============ -->
 <section class="screen" id="S2">
-  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="sb"><span>9:41</span><span class="ic"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#191F28"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#191F28"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#191F28"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#191F28"/></svg><svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0z" fill="#191F28"/><path d="M3.6 6.8a6.4 6.4 0 0 1 8.8 0l1.5-1.8a8.8 8.8 0 0 0-11.8 0z" fill="#191F28"/><path d="M.6 3.3a10.8 10.8 0 0 1 14.8 0L16.9 1.5a13.2 13.2 0 0 0-17.8 0z" fill="#191F28"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#191F28" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#191F28"/><rect x="24.6" y="4.2" width="1.8" height="4.6" rx=".9" fill="#191F28" opacity=".45"/></svg></span></div>
   <div class="ab"><span class="back">‹</span>복기<div class="r"><span class="pill g">정보 수준 · 기본</span></div></div>
   <div class="body">
     <div class="prog" style="margin-top:2px"><i></i><i></i><i></i><i class="rv" style="background:var(--line)"></i><i style="background:var(--line)"></i></div>
@@ -164,7 +169,7 @@ body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display:
 
 <!-- ============ S3 · 판단 카드 ============ -->
 <section class="screen" id="S3">
-  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="sb"><span>9:41</span><span class="ic"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#191F28"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#191F28"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#191F28"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#191F28"/></svg><svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0z" fill="#191F28"/><path d="M3.6 6.8a6.4 6.4 0 0 1 8.8 0l1.5-1.8a8.8 8.8 0 0 0-11.8 0z" fill="#191F28"/><path d="M.6 3.3a10.8 10.8 0 0 1 14.8 0L16.9 1.5a13.2 13.2 0 0 0-17.8 0z" fill="#191F28"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#191F28" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#191F28"/><rect x="24.6" y="4.2" width="1.8" height="4.6" rx=".9" fill="#191F28" opacity=".45"/></svg></span></div>
   <div class="ab"><span class="back">‹</span>오늘 1/3<div class="r"><span class="pill">정보 수준 · 기본</span></div></div>
   <div class="body">
     <div class="prog"><i class="on"></i><i></i><i></i><i></i><i></i></div>
@@ -196,7 +201,7 @@ body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display:
 
 <!-- ============ S4 · 근거 고르기 ============ -->
 <section class="screen" id="S4">
-  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="sb"><span>9:41</span><span class="ic"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#191F28"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#191F28"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#191F28"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#191F28"/></svg><svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0z" fill="#191F28"/><path d="M3.6 6.8a6.4 6.4 0 0 1 8.8 0l1.5-1.8a8.8 8.8 0 0 0-11.8 0z" fill="#191F28"/><path d="M.6 3.3a10.8 10.8 0 0 1 14.8 0L16.9 1.5a13.2 13.2 0 0 0-17.8 0z" fill="#191F28"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#191F28" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#191F28"/><rect x="24.6" y="4.2" width="1.8" height="4.6" rx=".9" fill="#191F28" opacity=".45"/></svg></span></div>
   <div class="ab"><span class="back">‹</span>오늘 1/3</div>
   <div class="body">
     <div class="prog"><i class="on"></i><i></i><i></i><i></i><i></i></div>
@@ -224,7 +229,7 @@ body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display:
 
 <!-- ============ S5 · 결과 공개 ============ -->
 <section class="screen" id="S5">
-  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="sb"><span>9:41</span><span class="ic"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#191F28"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#191F28"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#191F28"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#191F28"/></svg><svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0z" fill="#191F28"/><path d="M3.6 6.8a6.4 6.4 0 0 1 8.8 0l1.5-1.8a8.8 8.8 0 0 0-11.8 0z" fill="#191F28"/><path d="M.6 3.3a10.8 10.8 0 0 1 14.8 0L16.9 1.5a13.2 13.2 0 0 0-17.8 0z" fill="#191F28"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#191F28" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#191F28"/><rect x="24.6" y="4.2" width="1.8" height="4.6" rx=".9" fill="#191F28" opacity=".45"/></svg></span></div>
   <div class="ab"><span class="back">‹</span>결과<div class="r"><span class="cap">예시 데이터</span></div></div>
   <div class="body" style="gap:10px">
     <div><div style="font:700 22px var(--font);letter-spacing:-0.02em">어도비 (ADBE)</div><div class="cap">2023 Q3 → 2024 Q1 · 6개월</div></div>
@@ -256,7 +261,7 @@ body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display:
 
 <!-- ============ S6 · 개념 + 자사 콘텐츠(C) ============ -->
 <section class="screen" id="S6">
-  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="sb"><span>9:41</span><span class="ic"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#191F28"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#191F28"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#191F28"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#191F28"/></svg><svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0z" fill="#191F28"/><path d="M3.6 6.8a6.4 6.4 0 0 1 8.8 0l1.5-1.8a8.8 8.8 0 0 0-11.8 0z" fill="#191F28"/><path d="M.6 3.3a10.8 10.8 0 0 1 14.8 0L16.9 1.5a13.2 13.2 0 0 0-17.8 0z" fill="#191F28"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#191F28" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#191F28"/><rect x="24.6" y="4.2" width="1.8" height="4.6" rx=".9" fill="#191F28" opacity=".45"/></svg></span></div>
   <div class="ab"><span class="back">‹</span>오늘의 개념</div>
   <div class="body">
     <div class="card s">
@@ -284,7 +289,7 @@ body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display:
 
 <!-- ============ S7 · 판단 리포트(대시보드) ============ -->
 <section class="screen bg" id="S7">
-  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="sb"><span>9:41</span><span class="ic"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#191F28"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#191F28"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#191F28"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#191F28"/></svg><svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0z" fill="#191F28"/><path d="M3.6 6.8a6.4 6.4 0 0 1 8.8 0l1.5-1.8a8.8 8.8 0 0 0-11.8 0z" fill="#191F28"/><path d="M.6 3.3a10.8 10.8 0 0 1 14.8 0L16.9 1.5a13.2 13.2 0 0 0-17.8 0z" fill="#191F28"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#191F28" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#191F28"/><rect x="24.6" y="4.2" width="1.8" height="4.6" rx=".9" fill="#191F28" opacity=".45"/></svg></span></div>
   <div class="ab"><span class="back">‹</span>판단 리포트<div class="r"><span class="pill" style="background:#fff">최근 30일</span></div></div>
   <div class="body" style="gap:10px">
     <div class="cap" style="margin-top:-4px">판단 33번 · 실전 근거 메모 3건 포함 · 점수가 아니라 습관을 봐요</div>
@@ -323,7 +328,7 @@ body { font-family: var(--font); background: #dfe3e6; color: var(--t1); display:
 
 <!-- ============ S8 · 주문 근거 메모(D) ============ -->
 <section class="screen" id="S8">
-  <div class="sb"><span>9:41</span><i></i></div>
+  <div class="sb"><span>9:41</span><span class="ic"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#191F28"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#191F28"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#191F28"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#191F28"/></svg><svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0z" fill="#191F28"/><path d="M3.6 6.8a6.4 6.4 0 0 1 8.8 0l1.5-1.8a8.8 8.8 0 0 0-11.8 0z" fill="#191F28"/><path d="M.6 3.3a10.8 10.8 0 0 1 14.8 0L16.9 1.5a13.2 13.2 0 0 0-17.8 0z" fill="#191F28"/></svg><svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#191F28" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#191F28"/><rect x="24.6" y="4.2" width="1.8" height="4.6" rx=".9" fill="#191F28" opacity=".45"/></svg></span></div>
   <div class="ab"><span class="back">‹</span>주문<div class="r"><span class="cap">종목 A (예시)</span></div></div>
   <div class="body">
     <div class="seg"><span class="on" style="color:var(--up)">매수</span><span>매도</span></div>

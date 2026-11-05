@@ -1,6 +1,6 @@
 /* 시안 화면(보충자료/mockups.html)의 .screen 요소를 하나씩 PNG로 저장한다(읽기 전용, 서버 필요 없음).
    루트에서: node contest/hana-2026/scripts/mockups.mjs
-   결과: contest/hana-2026/보충자료/mock/S1.png ~ S8.png (360×760, 3배 해상도) */
+   결과: contest/hana-2026/보충자료/mock/S1.png ~ S8.png (아이폰형 기기 프레임 포함, 투명 배경, 3배 해상도) */
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -21,6 +21,16 @@ try {
   await page.goto(pathToFileURL(SRC).href);
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(300);
+  // 각 화면을 기기 래퍼(.device)로 감싸고 측면 버튼을 붙인다(그림자·버튼까지 함께 찍히게)
+  await page.$$eval('.screen', (els) => els.forEach((e) => {
+    const d = document.createElement('div'); d.className = 'device'; d.id = 'D' + e.id;
+    e.parentNode.insertBefore(d, e); d.appendChild(e);
+    for (const [cls, top, h] of [['btn-l', 130, 30], ['btn-l', 190, 58], ['btn-l', 262, 58], ['btn-r', 210, 92]]) {
+      const b = document.createElement('i'); b.className = cls; b.style.top = top + 'px'; b.style.height = h + 'px'; d.appendChild(b);
+    }
+  }));
+  await page.evaluate(() => { document.documentElement.style.background = 'transparent'; document.body.style.background = 'transparent'; });
+  await page.waitForTimeout(100);
   const ids = await page.$$eval('.screen', (els) => els.map((e) => e.id));
   for (const id of ids) {
     // 화면 안에서 넘친 요소(본문 영역 밖으로 나간 것)를 알려 준다
@@ -29,7 +39,7 @@ try {
       return [...s.querySelectorAll('*')].filter((e) => { const b = e.getBoundingClientRect(); return b.width && (b.bottom > r.bottom - 9 || b.right > r.right - 9) && !e.closest('.dim,.mark,.sheet'); })
         .map((e) => (e.className || e.tagName).toString().slice(0, 20) + ':' + (e.innerText || '').slice(0, 16)).slice(0, 4);
     });
-    await page.locator(`#${id}`).screenshot({ path: path.join(OUT, `${id}.png`), omitBackground: true });
+    await page.locator(`#D${id}`).screenshot({ path: path.join(OUT, `${id}.png`), omitBackground: true });
     console.log('saved', id, over.length ? `넘침 ${JSON.stringify(over)}` : '');
   }
 } finally {
